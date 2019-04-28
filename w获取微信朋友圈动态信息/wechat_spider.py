@@ -16,22 +16,22 @@ import time
 class WeChatSpider:
     def __init__(self):
         self.desired_caps = {
-            'platformName': 'Android',
-            'deviceName': 'OS105',
-            'appPackage': 'com.tencent.mm',
-            'appActivity': '.ui.LauncherUI'
+            "platformName": "Android",
+            "deviceName": "OS105",
+            "appPackage": "com.tencent.mm",
+            "appActivity": ".ui.LauncherUI"
         }
         self.driver_server = 'http://127.0.0.1:4723/wd/hub'
         print('微信启动...')
         # 启动微信
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
         # 设置等待
-        self.wait = WebDriverWait(self.driver, 300)
+        self.wait = WebDriverWait(self.driver, 600, 3, AttributeError)
 
     def login(self):
         """登录模块"""
+
         print("-----点击登录-----")
-        # time.sleep(1)
         login = self.wait.until(EC.element_to_be_clickable((By.ID, 'com.tencent.mm:id/e4g')))
         login.click()
 
@@ -49,10 +49,9 @@ class WeChatSpider:
 
         # 输入密码
         print("-----密码输入-----")
-        time.sleep(1)
         pass_w = input('请输入密码：')
+        # presence_of_element_located 元素加载出，传入定位元组，如(By.ID, 'p')
         password = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/kh')))
-
         password.send_keys(pass_w)
 
         # 点击登录
@@ -60,10 +59,9 @@ class WeChatSpider:
         login = self.wait.until(EC.element_to_be_clickable((By.ID, 'com.tencent.mm:id/axt')))
         login.click()
 
-        # 通讯录提示
         print("-----关闭通讯录弹窗-----")
-        time.sleep(5)  # 视网络情况调整延迟时间 预防加载过慢报错
-        tip = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/az9')))
+        # WebDriverWait 10秒内每隔2秒运行一次直到找到元素 规定时间内找不到则报错 element_to_be_clickable 元素可点击
+        tip = WebDriverWait(self.driver, 10, 2).until(EC.element_to_be_clickable((By.ID, 'com.tencent.mm:id/az9')))
         tip.click()
 
     def craw_friend(self):
@@ -72,7 +70,6 @@ class WeChatSpider:
         tab = self.wait.until(EC.presence_of_element_located(
             (By.XPATH, '//*[@resource-id="com.tencent.mm:id/bq"]/android.widget.LinearLayout/android.widget.RelativeLayout[3]')))
         print('已经找到发现按钮')
-        time.sleep(1)
         tab.click()
 
         print('-----点击朋友圈-----')
@@ -81,22 +78,61 @@ class WeChatSpider:
         friends.click()
         time.sleep(3)
 
-        # while True:
-        #     items = self.wait.until(EC.presence_of_all_elements_located(
-        #         (By.XPATH, '//*[@resource-id="com.tencent.mm:id/dja"]//*[@class="android.widget.FrameLayout"]')))
-        #     self.driver.swipe(300, 1000, 300, 300)
-        #     for item in items:
-        #         try:
-        #             nickname = item.find_element_by_id('com.tencent.mm:id/as6').get_attribute('text')
-        #             print(nickname)
-        #             content = item.find_element_by_id('com.tencent.mm:id/dkf').get_attribute('text')
-        #             print(content)
-        #             data = {'nickname': nickname,
-        #                     'content': content}
-        #             self.collection.update({'nickname': nickname, 'content': content}, {'$set': data}, True)
-        #
-        #         except:
-        #             pass
+        # 开始爬取朋友圈
+        diction = dict()
+        temp = dict()
+        count = 0
+        while True:
+            flag = True
+            self.driver.swipe(500, 1700, 500, 1050, 2000)
+            time.sleep(2)
+            items = self.driver.find_elements_by_id('com.tencent.mm:id/ejc')
+            time.sleep(1)
+            for item in items:
+                try:
+                    # item.click()
+
+                    temp['content'] = item.get_attribute('text')
+                    print(item.get_attribute('text'))
+                    if temp['content'] in diction.values():
+                        rtn = self.driver.find_element_by_id('com.tencent.mm:id/jc')
+                        rtn.click()
+                        temp.clear()
+                        time.sleep(1)
+                    else:
+
+                        diction['content%s' % count] = temp['content']
+                        print("日期：", temp['time'], "内容：", temp['content'])
+                        rtn = self.driver.find_element_by_id('com.tencent.mm:id/jc')
+                        rtn.click()
+                        count += 1
+                        temp.clear()
+                        time.sleep(1)
+                except Exception:
+                    pass
+            try:
+                self.driver.find_element_by_id('com.tencent.mm:id/e4l')
+                print('获取该用户朋友圈完毕')
+                flag = False
+            except Exception:
+                pass
+
+            try:
+                self.driver.find_element_by_id('com.tencent.mm:id/e4m')
+                print('获取该用户朋友圈完毕')
+                flag = False
+            except Exception:
+                pass
+
+            try:
+                self.driver.find_element_by_id('com.tencent.mm:id/ae7')
+                print('获取该用户朋友圈完毕')
+                flag = False
+            except Exception:
+                pass
+
+            if flag is False:
+                break
 
 
 if __name__ == '__main__':
