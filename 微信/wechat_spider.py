@@ -70,7 +70,7 @@ class WeChatSpider:
         tip.click()
 
     def craw_friend(self):
-        """获取好友朋友圈"""
+        """获取实时朋友圈动态"""
         while True:
             print("-----点击发现-----")
             tab = self.wait.until(EC.presence_of_element_located(
@@ -93,42 +93,41 @@ class WeChatSpider:
         temp = dict()
         count = 0
         self.driver.swipe(500, 1700, 500, 1050, 2000)  # 定位第一屏
-        with open("data.csv", "a+", encoding="utf-8") as f:
-            while True:
-                flag = True
-                # 定位数据
-                items = self.driver.find_elements_by_id('com.tencent.mm:id/ejc')
-                for item in items:
-                    try:
-                        temp['content'] = item.get_attribute('text')
-                        if temp['content'] in self.diction.values():
-                            temp.clear()
-                            continue
-                        else:
-                            self.diction['content%s' % count] = temp['content']
-                            count += 1
-                            temp.clear()
-                            f.write("{}{}".format(self.diction.values(), "\n"))
 
-                    except Exception as e:
-                        print(e)
-
-                self.driver.swipe(500, 1800, 500, 200, 2000)  # 向上滑动一屏
-
+        while True:
+            flag = True
+            # 定位数据
+            items = self.driver.find_elements_by_id('com.tencent.mm:id/ejc')
+            for item in items:
                 try:
-                    self.driver.find_element_by_id('com.tencent.mm:id/ahy')  # 判断是否到达底部
-                    print('获取该用户朋友圈完毕')
-                    flag = False
-                except Exception:
-                    pass
+                    temp['content'] = item.get_attribute('text')
+                    if temp['content'] in self.diction.values():
+                        temp.clear()
+                        continue
+                    else:
+                        self.diction['content%s' % count] = temp['content']
+                        count += 1
+                        temp.clear()
 
-                if flag is False:
-                    break
+                except Exception as e:
+                    print(e)
 
-    # def data_save(self):
-    #     for i in self.diction.values():
-    #         with open("data.csv", "a+", encoding="utf-8") as f:
-    #             f.write(i + "\n")
+            self.driver.swipe(500, 1800, 500, 200, 2000)  # 向上滑动一屏
+
+            try:
+                self.driver.find_element_by_id('com.tencent.mm:id/ahy')  # 判断是否到达底部
+                print('获取该用户朋友圈完毕')
+                flag = False
+            except Exception:
+                pass
+
+            if flag is False:
+                break
+
+    def data_save(self):
+        for i in self.diction.values():
+            with open("data.csv", "a+", encoding="utf-8") as f:
+                f.write(i + "\n")
 
 
 if __name__ == '__main__':
