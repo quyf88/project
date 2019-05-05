@@ -93,43 +93,46 @@ class WeChatSpider:
         temp = dict()
         count = 0
         self.driver.swipe(500, 1700, 500, 1050, 2000)  # 定位第一屏
-        while True:
-            flag = True
-            # 定位数据
-            items = self.driver.find_elements_by_id('com.tencent.mm:id/ejc')
-            for item in items:
+        with open("data.csv", "a+", encoding="utf-8") as f:
+            while True:
+                flag = True
+                # 定位数据
+                items = self.driver.find_elements_by_id('com.tencent.mm:id/ejc')
+                for item in items:
+                    try:
+                        temp['content'] = item.get_attribute('text')
+                        if temp['content'] in self.diction.values():
+                            temp.clear()
+                            continue
+                        else:
+                            self.diction['content%s' % count] = temp['content']
+                            count += 1
+                            temp.clear()
+                            f.write("{}{}".format(self.diction.values(), "\n"))
+
+                    except Exception as e:
+                        print(e)
+
+                self.driver.swipe(500, 1800, 500, 200, 2000)  # 向上滑动一屏
+
                 try:
-                    temp['content'] = item.get_attribute('text')
-                    if temp['content'] in self.diction.values():
-                        temp.clear()
-                        continue
-                    else:
-                        self.diction['content%s' % count] = temp['content']
-                        count += 1
-                        temp.clear()
-                except Exception as e:
-                    print(e)
+                    self.driver.find_element_by_id('com.tencent.mm:id/ahy')  # 判断是否到达底部
+                    print('获取该用户朋友圈完毕')
+                    flag = False
+                except Exception:
+                    pass
 
-            self.driver.swipe(500, 1800, 500, 200, 2000)  # 向上滑动一屏
+                if flag is False:
+                    break
 
-            try:
-                self.driver.find_element_by_id('com.tencent.mm:id/ahy')  # 判断是否到达底部
-                print('获取该用户朋友圈完毕')
-                flag = False
-            except Exception:
-                pass
-
-            if flag is False:
-                break
-
-    def data_save(self):
-        for i in self.diction.values():
-            with open("data.csv", "a+", encoding="utf-8") as f:
-                f.write(i + "\n")
+    # def data_save(self):
+    #     for i in self.diction.values():
+    #         with open("data.csv", "a+", encoding="utf-8") as f:
+    #             f.write(i + "\n")
 
 
 if __name__ == '__main__':
     wechat = WeChatSpider()
-    wechat.login()
+    # wechat.login()
     wechat.craw_friend()
-    wechat.data_save()
+    # wechat.data_save()
