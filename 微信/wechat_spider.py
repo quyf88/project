@@ -3,13 +3,14 @@
 # @Author  : project
 # @File    : wechat_spider.py
 # @Software: PyCharm
-
+"""
+自动获取朋友圈实时动态
+"""
 
 from appium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-
 import time
 
 
