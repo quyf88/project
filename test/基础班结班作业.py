@@ -36,6 +36,7 @@
     学生本身还具有学习和自我介绍的功能，并且实例可以直接被调用，调用的时候会去使用类的其中一个方法
 """
 
+
 # class Person:
 #
 #     def __init__(self, career, name):
@@ -47,8 +48,8 @@
 #
 #     def sleep(self):
 #         print("{}：正在吃饭".format(self.name))
-#
-#
+
+
 # class Student(Person):
 #
 #     def __init__(self, career, name):
@@ -116,108 +117,106 @@
 """
 
 
-class Account:
+# class Account:
+#
+#     def __init__(self, number='admin', password='123456'):
+#         self.number = number
+#         self.password = password
+#
+#     def login(self):
+#         """注册模块"""
+#         number = input("注册账号：")
+#         while True:
+#             password_1 = input("设置密码：")
+#             password_2 = input("确认密码：")
+#             if password_1 != password_2:
+#                 print("两次密码输入不一致，请重新输入")
+#                 continue
+#             else:
+#                 print("注册成功，账号：{} 密码：{}".format(number, password_2))
+#                 self.number = number
+#                 self.password = password_2
+#                 break
+#         while True:
+#             print("*" * 30)
+#             print("*-----1.账号登录-----*")
+#             print("*-----2.退出系统-----*")
+#             print("*" * 30)
+#             user_input = int(input("请输入:"))
+#
+#             if user_input == 1:
+#                 self.log_in()
+#                 break
+#             elif user_input == 2:
+#                 self.out()
+#                 break
+#             else:
+#                 print("输入错误重新输入")
+#                 continue
+#
+#     def log_in(self):
+#         """登录模块"""
+#         while True:
+#             number = input("账号：")
+#             password = input("密码：")
+#             if number != self.number or password != self.password:
+#                 print("账号或密码错误，请重新输入")
+#                 continue
+#
+#             print("{}:欢迎登录".format(number))
+#             print("*" * 30)
+#             print("*-----1.退出登录-----*")
+#             print("*-----2.退出系统-----*")
+#             print("*" * 30)
+#             user_input = int(input("请输入:"))
+#
+#             if user_input == 1:
+#                 print("账号退出成功!")
+#                 self.main()
+#                 break
+#             elif user_input == 2:
+#                 self.out()
+#                 break
+#             else:
+#                 print("输入错误重新输入")
+#
+#     def out(self):
+#         print("退出系统")
+#
+#     def main(self):
+#         while True:
+#             print("*" * 30)
+#             print("*---用户注册登录系统---*")
+#             print("*-----1.登录-----*")
+#             print("*-----2.注册-----*")
+#             print("*-----3.退出-----*")
+#             print("*" * 30)
+#             user_input = int(input("请输入:"))
+#             if user_input == 1:
+#                 self.log_in()
+#                 break
+#             elif user_input == 2:
+#                 self.login()
+#                 break
+#             elif user_input == 3:
+#                 self.out()
+#                 break
+#             else:
+#                 print("输入错误重新输入")
+#
+#
+# if __name__ == '__main__':
+#     login = Account()
+#     login.main()
 
-    def __init__(self, number='admin', password='123456'):
-        self.number = number
-        self.password = password
+"""
+6、
+写一个能匹配出  0.0.0.0---255.255.255  所有Ip4 的正则表达式 
+提示：必须写你分析的过程
+"""
+import re
 
-    def login(self):
-        """注册模块"""
-        number = input("注册账号：")
-        while True:
-            password_1 = input("设置密码：")
-            password_2 = input("确认密码：")
-            if password_1 != password_2:
-                print("两次密码输入不一致，请重新输入")
-                continue
-            else:
-                print("注册成功，账号：{} 密码：{}".format(number, password_2))
-                self.number = number
-                self.password = password_2
-                break
-        while True:
-            print("*" * 30)
-            print("*-----1.账号登录-----*")
-            print("*-----2.退出系统-----*")
-            print("*" * 30)
-            user_input = int(input("请输入:"))
+ip_4 = '1.1.1.250'
+ip = re.match(r'^(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$', ip_4)
 
-            if user_input == 1:
-                self.log_in()
-            elif user_input == 2:
-                self.out()
-            else:
-                print("输入错误重新输入")
-                continue
-
-    def log_in(self):
-        """登录模块"""
-        while True:
-            number = input("账号：")
-            password = input("密码：")
-            if number != self.number or password != self.password:
-                print("账号或密码错误，请重新输入")
-                continue
-
-            print("{}:欢迎登录".format(number))
-            print("*" * 30)
-            print("*-----1.退出登录-----*")
-            print("*-----2.退出系统-----*")
-            print("*" * 30)
-            user_input = int(input("请输入:"))
-
-            if user_input == 1:
-                print("账号退出成功!")
-                self.main()
-            elif user_input == 2:
-                self.out()
-                break
-            else:
-                print("输入错误重新输入")
-
-    def out(self):
-        print("退出系统")
-
-    def main(self):
-        while True:
-            print("*" * 30)
-            print("*---用户注册登录系统---*")
-            print("*-----1.登录-----*")
-            print("*-----2.注册-----*")
-            print("*-----3.退出-----*")
-            print("*" * 30)
-            user_input = int(input("请输入:"))
-            if user_input == 1:
-                self.log_in()
-                break
-            elif user_input == 2:
-                self.login()
-                break
-            elif user_input == 3:
-                self.out()
-                break
-            else:
-                print("输入错误重新输入")
-
-
-if __name__ == '__main__':
-    login = Account()
-    login.main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+print(ip.group())
