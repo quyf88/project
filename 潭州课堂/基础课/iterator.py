@@ -5,7 +5,7 @@
 # @Software: PyCharm
 
 
-from test.builder import builder
+from 潭州课堂.基础课.builder import builder
 
 iter = builder(10)
 
