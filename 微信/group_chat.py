@@ -71,7 +71,7 @@ class GroupChat:
         tip.click()
 
     def group_list(self):
-        """进去群聊列表"""
+        """进入群聊列表"""
 
         # 点击通讯录
         tab = self.wait.until(EC.presence_of_element_located(
@@ -93,8 +93,10 @@ class GroupChat:
         self.back = self.driver.find_element_by_accessibility_id("返回")
 
         # 获取群聊数量
-        group_amount = self.driver.find_element_by_id("com.tencent.mm:id/b0p")
+        group_amount = self.wait.until(EC.presence_of_element_located((By.ID, "com.tencent.mm:id/b0p")))
         amount = group_amount.get_attribute("text")
+        if int(amount[:1]) == 0:
+            return print("该账号共有{}，退出系统。".format(amount))
         print("该账号共有{}".format(amount))
 
         # 进入群聊页面
@@ -110,7 +112,7 @@ class GroupChat:
             print("成功获取群成员")
 
             # 获取群聊成员数量
-            member_number = self.driver.find_element_by_id("android:id/text1")
+            member_number = self.wait.until(EC.presence_of_element_located((By.ID, "android:id/text1")))
             member_number = member_number.get_attribute("text")
             print("该群共有：{}人".format(member_number))
 
@@ -136,12 +138,23 @@ class GroupChat:
                 for detail in details:
                     detail.click()
                     friend_add = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/cs')))
+
+                    # 判断是否已是好友
+                    if friend_add.get_attribute("text") == '发消息':
+                        wechat_number = self.driver.find_element_by_id('com.tencent.mm:id/b45')
+                        print("{}：已经是您的好友".format(wechat_number.get_attribute("text")))
+                        self.back.click()
+                    elif self.driver.find_element_by_accessibility_id("添加成员"):
+
+                        pass
+
                     friend_add.click()
                     send = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/jx')))
                     send.click()
                     self.back.click()
 
                 self.back.click()  # 返回
+                self.back.click()
                 self.group_list()  # 进入群聊页面
 
 
