@@ -145,7 +145,7 @@ class GroupChat:
                         print("{}：已经是您的好友".format(wechat_number.get_attribute("text")))
                         self.back.click()
                     elif self.driver.find_element_by_accessibility_id("添加成员"):
-
+                        # TODO
                         pass
 
                     friend_add.click()
