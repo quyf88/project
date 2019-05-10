@@ -11,7 +11,8 @@ from appium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time, re
+import time
+import re
 
 
 class GroupChat:
@@ -76,25 +77,23 @@ class GroupChat:
     def go_group_list(self):
         """进入群聊列表"""
 
-        # 点击通讯录
-        tab = self.wait.until(EC.presence_of_element_located(
-            (By.XPATH,
+        # 通讯录
+        tab = self.wait.until(EC.presence_of_element_located((By.XPATH,
              '//*[@resource-id="com.tencent.mm:id/bq"]/android.widget.LinearLayout/android.widget.RelativeLayout[2]')))
-        print('获取通讯录按钮')
+        print('获取到通讯录按钮')
         tab.click()
         print("-----点击通讯录-----")
 
-        # 点击群聊
-        group = self.wait.until(EC.presence_of_element_located(
-            (By.XPATH,
+        # 群聊
+        group = self.wait.until(EC.presence_of_element_located((By.XPATH,
              '//*[@resource-id="com.tencent.mm:id/mi"]/android.widget.LinearLayout/android.widget.RelativeLayout[2]')))
-        print('获取群聊按钮')
+        print('获取到群聊按钮')
         group.click()
         print("-----点击群聊-----")
 
     def get_group(self):
         """获取群聊信息"""
-
+        # 初始化返回按钮
         self.back = self.driver.find_element_by_accessibility_id("返回")
 
         # 获取群聊数量
@@ -126,7 +125,6 @@ class GroupChat:
             print("该群共有：{}人".format(amount))
 
             # 查看全部群成员
-
             view_all = self.driver.find_elements_by_id('android:id/title')
             # view = view_all[0].get_attribute("text")
 
@@ -137,11 +135,12 @@ class GroupChat:
 
                 for detail in details:
                     time.sleep(0.5)
-                    if detail.get_attribute("name") == "添加成员":  # name = accessibility id
+
+                    # 判断是否可加 name = accessibility id
+                    if detail.get_attribute("name") == "添加成员":
                         break
                     detail.click()
-                    friend_add = WebDriverWait(self.driver, 3, 1).until(EC.presence_of_element_located(
-                        (By.ID, 'com.tencent.mm:id/cs')))
+                    friend_add = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/cs')))
 
                     # 判断是否已是好友
                     if friend_add.get_attribute("text") == '发消息':
@@ -151,10 +150,24 @@ class GroupChat:
                         continue
 
                     friend_add.click()
-                    send = WebDriverWait(self.driver, 3, 1).until(
-                        EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/jx')))
-                    send.click()
-                    self.back.click()
+                    try:
+                        privacy = self.driver.find_element_by_id("com.tencent.mm:id/az_")
+                        privacy.click()
+                        # TODO
+                        self.back.click()
+                        continue
+                    except:
+                        # 清空默认验证申请文本
+                        clear_text = self.wait.until(EC.presence_of_element_located((By.ID, "com.tencent.mm:id/e0o")))
+                        clear_text.clear()
+
+                        time.sleep(0.5)
+
+                        # 发送添加请求
+                        send = WebDriverWait(self.driver, 3, 1).until(
+                            EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/jx')))
+                        send.click()
+                        self.back.click()
 
                 self.back.click()  # 返回
                 self.back.click()
@@ -166,7 +179,8 @@ class GroupChat:
                 view = view_all[0].get_attribute("text")
                 if view == "查看全部群成员":
                     view_all[0].click()
-                    self.driver.swipe(500, 200, 500, 1800, 2000)
+                    time.sleep(1)
+                    self.driver.swipe(1000, 800, 1000, 1800, 2000)
                     # 添加好友
                     while True:
                         flag = True
@@ -179,10 +193,10 @@ class GroupChat:
                                 flag = False
                                 break
                             detail.click()
-                            friend_add = WebDriverWait(self.driver, 3, 1).until(EC.presence_of_element_located(
-                                (By.ID, 'com.tencent.mm:id/cs')))
+                            friend_add = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/cs')))
                             if detail_text in self.temp:
                                 continue
+
                             # 判断是否已是好友
                             if friend_add.get_attribute("text") == '发消息':
                                 wechat_number = self.driver.find_element_by_id('com.tencent.mm:id/b45')
@@ -192,20 +206,30 @@ class GroupChat:
                                 continue
                             friend_add.click()
 
-                            # 清空默认验证申请文本
-                            clear_text = self.driver.find_element_by_id('com.tencent.mm:id/e0o')
-                            clear_text.clear()
+                            try:
+                                privacy = self.driver.find_element_by_id("com.tencent.mm:id/az_")
+                                privacy.click()
+                                self.driver.refresh()
+                                self.back.click()
+                                continue
+                                # privacy.isDisplayed()
+                            except:
+                                # 清空默认验证申请文本
+                                clear_text = self.wait.until(EC.presence_of_element_located((By.ID, "com.tencent.mm:id/e0o")))
+                                clear_text.clear()
 
-                            # 发送
-                            send = WebDriverWait(self.driver, 3, 1).until(
-                                EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/jx')))
-                            send.click()
+                                time.sleep(0.5)
 
-                            self.temp.append(detail_text)
-                            print("{}：添加好友消息发送成功".format(detail_text))
-                            self.back.click()
+                                # 发送
+                                send = WebDriverWait(self.driver, 3, 1).until(
+                                    EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/jx')))
+                                send.click()
+                                self.temp.append(detail_text)
+                                print("添加好友:{},消息发送成功".format(detail_text))
+                                self.back.click()
 
                         if flag is False:
+                            self.temp.clear()
                             break
                         self.driver.swipe(500, 1800, 500, 500, 2000)
 
