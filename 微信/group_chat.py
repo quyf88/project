@@ -11,7 +11,7 @@ from appium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time
+import time, re
 
 
 class GroupChat:
@@ -31,6 +31,8 @@ class GroupChat:
         self.wait = WebDriverWait(self.driver, 30, 1, AttributeError)
         # 返回按钮
         self.back = None
+        # 计数
+        self.temp = []
 
     def login(self):
         """登录模块"""
@@ -120,32 +122,22 @@ class GroupChat:
             # 获取群聊成员数量
             member_number = self.wait.until(EC.presence_of_element_located((By.ID, "android:id/text1")))
             member_number = member_number.get_attribute("text")
-            print("该群共有：{}人".format(member_number))
+            amount = re.search(r'\d+', member_number).group()
+            print("该群共有：{}人".format(amount))
 
             # 查看全部群成员
-            try:
-                # TODO 群人数较多的情况
-                view_all = WebDriverWait(self.driver, 3, 1).until(EC.presence_of_element_located(
-                    (By.XPATH,
-                     '//*[@resource-id="android:id/list"]/android.widget.LinearLayout/*[@resource-id="android:id/title"]')))
-                view_all.click()
 
-                # 添加好友
-                details = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/auo')))
-                details.click()
-                friend_add = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/cs')))
-                friend_add.click()
-                send = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/jx')))
-                send.click()
+            view_all = self.driver.find_elements_by_id('android:id/title')
+            # view = view_all[0].get_attribute("text")
 
-            except Exception:
+            if len(view_all) != 0 and view_all[0].get_attribute("text") != '查看全部群成员':
                 print("已显示全部群成员")
                 # 添加好友 find_elements_by_id 此方法返回一个列表
                 details = self.driver.find_elements_by_id('com.tencent.mm:id/e0c')
 
                 for detail in details:
                     time.sleep(0.5)
-                    if detail.get_attribute("name") == "添加成员":
+                    if detail.get_attribute("name") == "添加成员":  # name = accessibility id
                         break
                     detail.click()
                     friend_add = WebDriverWait(self.driver, 3, 1).until(EC.presence_of_element_located(
@@ -167,6 +159,59 @@ class GroupChat:
                 self.back.click()  # 返回
                 self.back.click()
                 self.go_group_list()
+
+            elif len(view_all) == 0:
+                self.driver.swipe(500, 1800, 500, 500, 2000)  # 向上滑一屏
+                view_all = self.driver.find_elements_by_id('android:id/title')
+                view = view_all[0].get_attribute("text")
+                if view == "查看全部群成员":
+                    view_all[0].click()
+                    self.driver.swipe(500, 200, 500, 1800, 2000)
+                    # 添加好友
+                    while True:
+                        flag = True
+                        details = self.driver.find_elements_by_id('com.tencent.mm:id/auq')
+
+                        for detail in details:
+                            detail_text = detail.get_attribute("text")
+                            time.sleep(0.5)
+                            if len(self.temp) == int(amount):
+                                flag = False
+                                break
+                            detail.click()
+                            friend_add = WebDriverWait(self.driver, 3, 1).until(EC.presence_of_element_located(
+                                (By.ID, 'com.tencent.mm:id/cs')))
+                            if detail_text in self.temp:
+                                continue
+                            # 判断是否已是好友
+                            if friend_add.get_attribute("text") == '发消息':
+                                wechat_number = self.driver.find_element_by_id('com.tencent.mm:id/b45')
+                                print("{}：已经是您的好友".format(wechat_number.get_attribute("text")))
+                                self.temp.append(detail_text)
+                                self.back.click()
+                                continue
+                            friend_add.click()
+
+                            # 清空默认验证申请文本
+                            clear_text = self.driver.find_element_by_id('com.tencent.mm:id/e0o')
+                            clear_text.clear()
+
+                            # 发送
+                            send = WebDriverWait(self.driver, 3, 1).until(
+                                EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/jx')))
+                            send.click()
+
+                            self.temp.append(detail_text)
+                            print("{}：添加好友消息发送成功".format(detail_text))
+                            self.back.click()
+
+                        if flag is False:
+                            break
+                        self.driver.swipe(500, 1800, 500, 500, 2000)
+
+                    self.back.click()  # 返回
+                    self.back.click()
+                    self.go_group_list()
 
 
 if __name__ == '__main__':
