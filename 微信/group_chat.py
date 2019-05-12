@@ -8,6 +8,7 @@
 """
 
 from appium import webdriver
+from appium.webdriver.common.touch_action import TouchAction
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from appium.webdriver.connectiontype import ConnectionType
@@ -33,7 +34,7 @@ class GroupChat:
         self.wait = WebDriverWait(self.driver, 30, 1, AttributeError)
         # 计数
         self.temp = []
-        # 获取网络方式
+        # 获取连接网络方式 返回1,2,3,4,6
         self.network = self.driver.network_connection
 
     def login(self):
@@ -168,26 +169,18 @@ class GroupChat:
                     clear_text.clear()
                     time.sleep(0.5)
 
-                    # 发送添加请求
-                    # send = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/jx')))
-                    # if not send.is_enabled():
-                    #     send = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/jx')))
-                    # time.sleep(0.5)
-                    # send.click()
-                    # time.sleep(0.5)
-                    # self.driver.keyevent(4)
+                    # 发送
                     while True:
-                        send = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/jx')))
-                        if send.get_attribute("text") == "发送":
-                            time.sleep(0.5)
+                        try:
+                            # TouchAction(self.driver).tap(x=957, y=121).wait(200).perform()
+                            send = self.driver.find_element_by_id('com.tencent.mm:id/jx')
                             send.click()
-                            time.sleep(2)
+                            if send.is_displayed():
+                                continue
+                        except:
+                            time.sleep(1)
                             self.driver.keyevent(4)
                             break
-
-                        time.sleep(0.5)
-                        self.driver.keyevent(4)
-                        friend_add.click()
 
                 time.sleep(0.5)
                 self.driver.keyevent(4)
@@ -196,13 +189,13 @@ class GroupChat:
                 self.group_page()
 
             elif len(view_all) == 0:
-                self.driver.swipe(500, 1800, 500, 500, 2000)  # 向上滑一屏
+                self.driver.swipe(500, 1800, 500, 500, 3000)  # 向上滑一屏
                 view_all = self.driver.find_elements_by_id('android:id/title')
                 view = view_all[0].get_attribute("text")
                 if view == "查看全部群成员":
                     view_all[0].click()
                     time.sleep(1)
-                    self.driver.swipe(1000, 500, 1000, 1800, 2000)
+                    self.driver.swipe(1000, 500, 1000, 1800, 3000)
                     time.sleep(0.5)
                     # 添加好友
                     while True:
@@ -220,7 +213,7 @@ class GroupChat:
 
                             # 进入个人详情 获取"添加到通讯录"标签
                             detail.click()
-                            time.sleep(3)
+                            time.sleep(2.5)
                             friend_add = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/cs')))
 
                             # 判断是否已是好友
@@ -252,24 +245,24 @@ class GroupChat:
 
                             # 发送
                             while True:
-                                send = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/jx')))
-                                if send.get_attribute("text") == "发送":
-                                    time.sleep(1)
+                                try:
+                                    # TouchAction(self.driver).tap(x=957, y=121).wait(200).perform()
+                                    send = self.driver.find_element_by_id('com.tencent.mm:id/jx')
                                     send.click()
+                                    if send.is_displayed():
+                                        continue
+                                except:
                                     self.temp.append(detail_text)
                                     print("添加好友:{},消息发送成功".format(detail_text))
-                                    time.sleep(2)
+                                    time.sleep(1)
                                     self.driver.keyevent(4)
                                     break
-
-                                time.sleep(0.5)
-                                self.driver.keyevent(4)
-                                friend_add.click()
 
                         if flag is False:
                             self.temp.clear()
                             break
-                        self.driver.swipe(500, 1800, 500, 500, 2000)
+                        time.sleep(1)
+                        self.driver.swipe(500, 1900, 500, 400, 3000)
 
                     time.sleep(0.5)
                     self.driver.keyevent(4)
