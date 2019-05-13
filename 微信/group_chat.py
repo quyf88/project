@@ -217,8 +217,8 @@ class GroupChat:
                 if view == "查看全部群成员":
                     view_all[0].click()
                     time.sleep(1)
-                    self.driver.swipe(1000, 500, 1000, 1800, 2000)
-                    time.sleep(0.5)
+                    self.driver.swipe(1000, 400, 1000, 2000, 1000)
+                    time.sleep(1)
                     # 添加好友
                     while True:
                         flag = True
@@ -277,7 +277,7 @@ class GroupChat:
                             # 发送
                             while True:
                                 try:
-                                    # TouchAction(self.driver).tap(x=957, y=121).wait(200).perform()
+                                    TouchAction(self.driver).tap(x=957, y=121).wait(500).perform()
                                     send = self.driver.find_element_by_id('com.tencent.mm:id/jx')
                                     send.click()
                                     if send.is_displayed():
