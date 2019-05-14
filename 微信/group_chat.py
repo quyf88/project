@@ -225,7 +225,7 @@ class GroupChat:
                     # 添加好友
                     while True:
                         temp = []
-                        flag = True  # TODO
+                        flag = True
                         details = self.driver.find_elements_by_id('com.tencent.mm:id/auq')
 
                         for detail in details:
@@ -303,11 +303,11 @@ class GroupChat:
                                     _count += 1
                                     continue
 
+                        time.sleep(0.5)
+                        self.driver.swipe(500, 1600, 500, 600, 1200)
                         if flag is False:
                             temp.clear()
                             break
-                        time.sleep(0.5)
-                        self.driver.swipe(500, 1600, 500, 600, 1200)
 
                     time.sleep(0.5)
                     self.driver.keyevent(4)
