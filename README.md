@@ -6,7 +6,7 @@
 - ### **环境配置**
 
   - ```python
-    win10  python3.6.7  Appium-desktop-1.12.1-x64
+    win10  python3.6.7  Appium-desktop-1.12.1-x64 微信版本：7.0.3
     pip install Appium-Python-Client==0.41
     pip install selenium==4.0.0a1
     ```
