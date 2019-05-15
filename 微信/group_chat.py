@@ -3,6 +3,7 @@
 # @Author  : project
 # @File    : group_chat.py
 # @Software: PyCharm
+
 """
 自动添加群聊好友
 """
@@ -115,7 +116,7 @@ class GroupChat:
 
         # 进入群聊页面 获取群列表
         group_item = self.driver.find_elements_by_id('com.tencent.mm:id/mz')
-        for group in group_item[4:]:
+        for group in group_item:
             if self.count == 0:
                 break
             group.click()
@@ -129,9 +130,11 @@ class GroupChat:
             if group_name in group_list:
                 print("跳过：{}，已添加过".format(group_name))
                 continue
+
             # 进入群成员页面
-            member = self.wait.until(EC.presence_of_element_located((By.ID, "com.tencent.mm:id/jy")))
-            member.click()
+            member = self.wait.until(EC.presence_of_all_elements_located((By.ID, "com.tencent.mm:id/jy")))
+            member[-1].click()
+            self.driver.swipe(500, 1200, 500, 500, 1000)
             print("成功获取群成员")
 
             # 获取当前群聊成员数量
@@ -142,8 +145,10 @@ class GroupChat:
 
             # 判断当前页面是否有“查看全部群成员”标签
             view_all = self.driver.find_elements_by_id('android:id/title')
+
             # 群聊人数较少直接添加
-            if len(view_all) != 0 and view_all[0].get_attribute("text") != '查看全部群成员':
+            if view_all[0].get_attribute('text') != "查看全部群成员":
+                self.driver.swipe(500, 500, 500, 1400, 1000)
                 print("已显示全部群成员")
 
                 # 获取当前群聊成员列表 发送添加请求 find_elements_by_id 此方法返回一个列表
@@ -164,7 +169,6 @@ class GroupChat:
                     if friend_add.get_attribute('text') == '发消息':
                         wechat_number = self.driver.find_element_by_id('com.tencent.mm:id/b45')
                         print("{}：已经是您的好友".format(wechat_number.get_attribute("text")))
-                        time.sleep(0.5)
                         self.driver.keyevent(4)
                         continue
 
@@ -173,7 +177,6 @@ class GroupChat:
 
                     # 判断对方是否开启好友验证
                     if friend_add.is_displayed():
-                        time.sleep(0.5)
                         self.driver.keyevent(4)
                         continue
 
@@ -181,13 +184,13 @@ class GroupChat:
                     privacy = self.driver.find_elements_by_id("com.tencent.mm:id/az_")
                     if len(privacy) != 0:
                         privacy[0].click()
-                        # time.sleep(0.5)
                         self.driver.keyevent(4)
                         continue
 
                     # 清空默认验证申请文本
-                    clear_text = self.wait.until(EC.presence_of_element_located((By.ID, "com.tencent.mm:id/e0o")))
-                    clear_text.clear()
+                    TouchAction(self.driver).tap(x=988, y=349).wait(300).perform()
+                    # clear_text = self.wait.until(EC.presence_of_element_located((By.ID, "com.tencent.mm:id/e0o")))
+                    # clear_text.clear()
 
                     # 发送
                     _count1 = 0
@@ -207,115 +210,121 @@ class GroupChat:
                             self.driver.keyevent(4)
                             break
 
+                print("群：{}，添加完成!".format(group_name))
+                print('*' * 50)
                 time.sleep(0.5)
                 self.driver.keyevent(4)
                 time.sleep(0.5)
                 self.driver.keyevent(4)
                 self.group_page()
 
-            elif len(view_all) == 0:
-                self.driver.swipe(500, 1800, 500, 500, 2000)  # 向上滑一屏
-                view_all = self.driver.find_elements_by_id('android:id/title')
-                view = view_all[0].get_attribute("text")
-                if view == "查看全部群成员":
-                    view_all[0].click()
-                    time.sleep(1)
-                    self.driver.swipe(1000, 400, 1000, 2000, 500)
-                    time.sleep(0.5)
-                    # 添加好友
-                    while True:
-                        temp = []
-                        flag = True
-                        details = self.driver.find_elements_by_id('com.tencent.mm:id/auq')
+            elif view_all[0].get_attribute('text') == "查看全部群成员":
+                # self.driver.swipe(500, 1800, 500, 500, 2000)  # 向上滑一屏
+                # view_all = self.driver.find_elements_by_id('android:id/title')
+                # view = view_all[0].get_attribute("text")
+                # if view == "查看全部群成员":
+                view_all[0].click()
+                time.sleep(1)
+                self.driver.swipe(1000, 400, 1000, 2000, 500)
+                time.sleep(0.5)
+                # 添加好友
+                temp = []
+                while True:
+                    flag = True
+                    details = self.driver.find_elements_by_id('com.tencent.mm:id/auq')
 
-                        for detail in details:
-                            detail_text = detail.get_attribute("text")
-                            time.sleep(0.5)
-                            if len(temp) >= int(amount):
-                                flag = False
-                                print("本群已经添加完成")
-                                break
-                            elif detail_text in temp:
-                                print("跳过：{}，已被添加过".format(detail_text))
-                                continue
-
-                            # 进入个人详情 获取"添加到通讯录"标签
-                            detail.click()
-                            time.sleep(1.5)
-                            friend_add = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/cs')))
-
-                            # 判断是否已是好友
-                            if friend_add.get_attribute("text") == '发消息':
-                                # wechat_number = self.driver.find_element_by_id('com.tencent.mm:id/b45')
-                                print("{}：已经是您的好友".format(detail_text))
-                                temp.append(detail_text)
-                                time.sleep(0.5)
-                                self.driver.keyevent(4)
-                                continue
-
-                            # 点击添加到通讯录
-                            friend_add.click()
-                            time.sleep(1)
-
-                            # 判断对方是否开启好友验证
-                            if friend_add.is_displayed():
-                                temp.append(detail_text)
-                                print("添加好友:{},成功".format(detail_text))
-                                time.sleep(0.5)
-                                self.driver.keyevent(4)
-                                continue
-
-                            # 判断对方是否设置隐私
-                            privacy = self.driver.find_elements_by_id("com.tencent.mm:id/az_")
-                            if len(privacy) != 0:
-                                temp.append(detail_text)
-                                privacy[0].click()
-                                self.driver.keyevent(4)
-                                continue
-
-                            # 判断对方账户是否异常
-                            if friend_add.is_displayed():
-                                temp.append(detail_text)
-                                self.driver.keyevent(4)
-                                print("对方账户异常，无法添加。")
-                                continue
-
-                            # 清空默认验证申请文本
-                            clear_text = self.wait.until(EC.presence_of_element_located((By.ID, "com.tencent.mm:id/e0o")))
-                            clear_text.clear()
-
-                            # 发送
-                            _count = 0
-                            while True:
-                                TouchAction(self.driver).tap(x=957, y=121).wait(500).perform()
-                                if friend_add.is_displayed():
-                                    temp.append(detail_text)
-                                    print("添加好友:{},消息发送成功".format(detail_text))
-                                    time.sleep(0.5)
-                                    self.driver.keyevent(4)
-                                    break
-                                elif _count == 1:
-                                    temp.append(detail_text)
-                                    self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/kb'))).click()
-                                    self.driver.keyevent(4)
-                                    break
-                                else:
-                                    _count += 1
-                                    continue
-
+                    for detail in details:
+                        detail_text = detail.get_attribute("text")
                         time.sleep(0.5)
-                        self.driver.swipe(500, 1600, 500, 600, 1200)
-                        if flag is False:
-                            temp.clear()
+                        if len(temp) >= int(amount):
+                            flag = False
+                            print("本群已经添加完成")
                             break
+                        elif detail_text in temp:
+                            print("跳过：{}，已被添加过".format(detail_text))
+                            continue
+
+                        # 进入个人详情 获取"添加到通讯录"标签
+                        detail.click()
+                        time.sleep(1)
+                        friend_add = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/cs')))
+
+                        # 判断是否已是好友
+                        if friend_add.get_attribute("text") == '发消息':
+                            print("{}：已经是您的好友".format(detail_text))
+                            temp.append(detail_text)
+                            self.driver.keyevent(4)
+                            continue
+
+                        # 点击添加到通讯录 TODO
+                        friend_add.click()
+                        time.sleep(1)
+
+                        # 判断对方是否开启好友验证
+                        if friend_add.is_displayed():
+                            temp.append(detail_text)
+                            print("添加好友:{},成功".format(detail_text))
+                            time.sleep(0.5)
+                            self.driver.keyevent(4)
+                            continue
+
+                        # 判断对方是否设置隐私
+                        privacy = self.driver.find_elements_by_id("com.tencent.mm:id/az_")
+                        if len(privacy) != 0:
+                            temp.append(detail_text)
+                            privacy[0].click()
+                            self.driver.keyevent(4)
+                            continue
+
+                        # 判断对方账户是否异常
+                        if friend_add.is_displayed():
+                            temp.append(detail_text)
+                            self.driver.keyevent(4)
+                            print("对方账户异常，无法添加。")
+                            continue
+
+                        # 清空默认验证申请文本
+                        clear_text = self.wait.until(EC.presence_of_element_located((By.ID, "com.tencent.mm:id/e0o")))
+                        # clear_text.clear()
+                        if clear_text.is_displayed():
+                            TouchAction(self.driver).tap(x=988, y=349).wait(300).perform()
+
+                        # 发送
+                        send_button = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/jx')))
+                        while True:
+                            TouchAction(self.driver).tap(x=957, y=121).wait(500).perform()
+
+                            if send_button.is_displayed():
+                                temp.append(detail_text)
+                                self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/kb'))).click()
+                                self.driver.keyevent(4)
+                                break
+
+                            elif self.wait.until(
+                                    EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/cs'))).is_displayed():
+                                temp.append(detail_text)
+                                print("添加好友:{},消息发送成功".format(detail_text))
+                                self.driver.keyevent(4)
+                                break
 
                     time.sleep(0.5)
-                    self.driver.keyevent(4)
-                    time.sleep(0.5)
-                    self.driver.keyevent(4)
-                    time.sleep(0.5)
-                    self.driver.keyevent(4)
-                    self.group_page()
+                    self.driver.swipe(500, 1600, 500, 500, 1000)
+                    if flag is False:
+                        temp.clear()
+                        break
+
+                time.sleep(0.5)
+                self.driver.keyevent(4)
+                time.sleep(0.5)
+                self.driver.keyevent(4)
+                time.sleep(0.5)
+                self.driver.keyevent(4)
+                self.group_page()
+            else:
+                self.driver.keyevent(4)
+                time.sleep(0.5)
+                self.driver.keyevent(4)
+                self.group_page()
 
             # 当前群添加完成
             group_list.append(group_name)
