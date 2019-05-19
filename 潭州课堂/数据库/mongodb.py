@@ -17,7 +17,7 @@ class MongoDB:
         # 指定集合,没有则创建
         self.my_set = self.db["student"]
 
-    def add_db(self, data):
+    def insert(self, data):
         """
         增
         db.student.insert({name:'a',age:20}) # 插入一条数据
@@ -33,8 +33,10 @@ class MongoDB:
         elif isinstance(data, dict):
             add = self.my_set.insert_one(data)
             return add.inserted_ids
+        else:
+            return "写入失败!确认数据类型为list或dict"
 
-    def remove_db(self, data, justOne=True):
+    def delete(self, data, justOne=True):
         """
         删
         db.student.remove({name:'a'})
@@ -42,6 +44,7 @@ class MongoDB:
         db.student.remove({}) # 删除全部数据
         delete_one() 删除一条
         delete_many() 删除多条
+        data = {} 删除全部
         """
         if justOne is False:
             deleted = self.my_set.delete_many(data)
@@ -49,6 +52,8 @@ class MongoDB:
         elif justOne is True:
             deleted = self.my_set.delete_one(data)
             return deleted.deleted_count
+        else:
+            return "删除失败!确认数据类型为list或dict"
 
     def find_db(self, data=None):
         """
@@ -62,11 +67,13 @@ class MongoDB:
         """
 
         if data is None:
-            return self.my_set.find(data)
+            return self.my_set.find()
         elif isinstance(data, dict):
             return self.my_set.find_one(data)
+        else:
+            return "查询失败!检查语法是否正确"
 
-    def update_db(self, old_data, new_data, multi=False):
+    def update(self, old_data, new_data, multi=False):
         """
         改
         db.stutent.update({需要修改的值},{修改后的值}) # 会重写数据
@@ -90,8 +97,8 @@ a = [{"a": "python", "b": "hello"}, {"c": "haha", "d": 1}]
 c = {}
 if __name__ == '__main__':
     db = MongoDB()
-    print(db.add_db(a))
+    print(db.find_db())
     # find = db.find_db()
     # update = db.update_db(b, c, multi=True)
-    # rem = db.remove_db(c, justOne=False)
-    # print(rem)
+    rem = db.delete(c, justOne=False)
+    print(rem)
