@@ -14,6 +14,18 @@ from selenium.webdriver.support import expected_conditions as EC
 """新闻自动点击刷金币"""
 
 
+def run_time(func):
+    def new_func(*args, **kwargs):
+        start_time = datetime.now()
+        print("程序开始时间：{}".format(start_time))
+        func(*args, **kwargs)
+        end_time = datetime.now()
+        print("程序结束时间：{}".format(end_time))
+        print("程序执行用时：{}s".format((end_time - start_time)))
+
+    return new_func
+
+
 class News:
     def __init__(self):
         self.desired_caps = {
@@ -29,17 +41,6 @@ class News:
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
         # 设置等待
         self.wait = WebDriverWait(self.driver, 60, 1)
-
-    def run_time(self, func):
-        def new_func(*args, **kwargs):
-            start_time = datetime.now()
-            print("程序开始时间：{}".format(start_time))
-            func(*args, **kwargs)
-            end_time = datetime.now()
-            print("程序结束时间：{}".format(end_time))
-            print("程序执行用时：{}s".format((end_time - start_time)))
-
-        return new_func
 
     @run_time
     def loop_look(self):
