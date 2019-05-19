@@ -29,12 +29,14 @@ class MongoDB:
         """
         if isinstance(data, list):
             add = self.my_set.insert_many(data)
-            return add.inserted_ids
+            result = add.inserted_ids
         elif isinstance(data, dict):
             add = self.my_set.insert_one(data)
-            return add.inserted_ids
+            result = add.inserted_ids
         else:
-            return "写入失败!确认数据类型为list或dict"
+            result = "写入失败!确认数据类型为list或dict"
+
+        return result
 
     def delete(self, data, justOne=True):
         """
@@ -48,12 +50,14 @@ class MongoDB:
         """
         if justOne is False:
             deleted = self.my_set.delete_many(data)
-            return deleted.deleted_count
+            result = deleted.deleted_count
         elif justOne is True:
             deleted = self.my_set.delete_one(data)
-            return deleted.deleted_count
+            result = deleted.deleted_count
         else:
             return "删除失败!确认数据类型为list或dict"
+
+        return result
 
     def find_db(self, data=None):
         """
@@ -67,11 +71,13 @@ class MongoDB:
         """
 
         if data is None:
-            return self.my_set.find()
+            result = self.my_set.find()
         elif isinstance(data, dict):
-            return self.my_set.find_one(data)
+            result = self.my_set.find_one(data)
         else:
             return "查询失败!检查语法是否正确"
+
+        return result
 
     def update(self, old_data, new_data, multi=False):
         """
@@ -86,19 +92,10 @@ class MongoDB:
         new_data = {"$set": new_data}
         if multi is True:
             matched = self.my_set.update_many(old_data, new_data)
-            return matched.matched_count
-        elif multi is False:
+            result = matched.matched_count
+        else:
             matched = self.my_set.update_one(old_data, new_data)
-            return matched.matched_count
+            result = matched.matched_count
 
+        return result
 
-a = [{"a": "python", "b": "hello"}, {"c": "haha", "d": 1}]
-
-c = {}
-if __name__ == '__main__':
-    db = MongoDB()
-    print(db.find_db())
-    # find = db.find_db()
-    # update = db.update_db(b, c, multi=True)
-    rem = db.delete(c, justOne=False)
-    print(rem)
