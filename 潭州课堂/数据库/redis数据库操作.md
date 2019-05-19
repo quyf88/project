@@ -11,6 +11,10 @@ exit # 退出
 ```
 keys * # 查看全部
 del key # 删除 del key名
+rename key new_key # 修改key名
+expire key ms # 设置过期时间
+ttl key # 查看过期时间
+persist key # 删除过期时间
 ```
 
 #### **seting**
@@ -87,4 +91,36 @@ zrange zset_a 0 10 # 通过指定索引查询
 zrangebyscore zset_a 1 2 # 通过权重查询
 zadd zset_a 1 hello # 查看指定值权重
 ```
+
+
+
+
+
+```python
+import redis
+
+# 1.建立连接
+conn = redis.StrictRedis(db=0, decode_responses=True)
+# 2.使用redis命令
+"""(1)string"""
+conn.set('k', 'v')
+res = conn.get('k')
+print(res)
+"""(2)key操作"""
+# 查看全部key
+res = conn.keys('*')
+print(res)
+# 修改key名 返回true修改成功
+res = conn.rename('k', 'key')
+print(res)
+# 删除 1 成功 0 失败
+res = conn.delete('k')
+print(res)
+```
+
+
+
+
+
+
 
