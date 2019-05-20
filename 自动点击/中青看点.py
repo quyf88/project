@@ -27,7 +27,7 @@ def run_time(func):
 class News:
     def __init__(self):
         self.desired_caps = {
-            "automationName": "uiautomator2",  # 引擎
+            "automationName": "uiautomator2",  # 引擎 默认Appium
             "platformName": "Android",
             "deviceName": "OS105",
             "appPackage": "cn.youth.news",
