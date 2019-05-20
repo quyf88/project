@@ -27,6 +27,7 @@ def run_time(func):
 class News:
     def __init__(self):
         self.desired_caps = {
+            "automationName": "uiautomator2",  # 引擎
             "platformName": "Android",
             "deviceName": "OS105",
             "appPackage": "cn.youth.news",
@@ -38,7 +39,7 @@ class News:
         # 启动APP
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
         # 设置等待
-        self.wait = WebDriverWait(self.driver, 10, 1)
+        self.wait = WebDriverWait(self.driver, 30, 1)
 
     @run_time
     def loop_look(self):
@@ -46,39 +47,37 @@ class News:
         try:
             print("关闭弹窗")
             self.driver.keyevent(4)
+            print("切换到热点栏目")
+            self.driver.swipe(800, 500, 300, 500, 500)
             while True:
                 print("————————刷新页面中————————")
-                news = self.wait.until(EC.presence_of_all_elements_located(
-                    (By.ID, 'cn.youth.news:id/lr_more_article')))
+                news = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'cn.youth.news:id/lr_more_article')))
                 len_news = 1
                 print("获取到：{}条新闻".format(len(news)))
                 for new in news:
                     time.sleep(0.5)
                     print("读取第：{}条新闻中...".format(len_news))
                     new.click()
-                    content = self.wait.until(EC.presence_of_element_located(
-                        (By.ID, 'com.yanhui.qktx:id/web_framecn.youth.news:id/bwv_article_detail')))
-                    if content.is_displayed():
-                        count = 0
-                        while True:
-                            fang = True
-                            time.sleep(2)
-                            self.driver.swipe(500, 1200, 500, 1000, 1000)
-                            time.sleep(2)
-                            count += 1
-                            if count == 30:
-                                fang = False
-                            if fang is False:
-                                self.driver.keyevent(4)
-                                break
-                        print("第：{}条新闻读取完毕...".format(len_news))
-                    else:
-                        continue
+
+                    count = 0
+                    while True:
+                        fang = True
+                        time.sleep(2)
+                        self.driver.swipe(500, 1200, 500, 1050, 1000)
+                        time.sleep(2)
+                        count += 1
+                        if count == 15:
+                            fang = False
+                        if fang is False:
+                            self.driver.keyevent(4)
+                            break
+                    print("第：{}条新闻读取完毕...".format(len_news))
+                    print("-" * 15)
                     len_news += 1
 
                 print("当前屏幕读取完成,刷新下一屏")
-                print("*" * 50)
-                self.driver.swipe(500, 1800, 500, 600, 800)
+                print("*" * 30)
+                self.driver.swipe(500, 1800, 500, 500, 800)
         except Exception as e:
             print(e)
             print("退出时间：{}".format(datetime.now()))
