@@ -4,6 +4,7 @@
 # @File    : 中青看点.py
 # @Software: PyCharm
 import time
+import winsound
 from datetime import datetime
 from appium import webdriver
 from selenium.webdriver.common.by import By
@@ -27,13 +28,14 @@ def run_time(func):
 class News:
     def __init__(self):
         self.desired_caps = {
-            "automationName": "uiautomator2",  # 引擎 默认Appium
-            "platformName": "Android",
-            "deviceName": "OS105",
-            "appPackage": "cn.youth.news",
-            "appActivity": "com.weishang.wxrd.activity.SplashActivity",
-            "noReset": True
-        }
+              "automationName": "uiautomator2",  # 引擎
+              "platformName": "Android",
+              "deviceName": "127.0.0.1:62001",
+              "appPackage": "cn.youth.news",
+              "appActivity": "com.weishang.wxrd.activity.SplashActivity",
+              "noReset": True,
+              "platformVersion": "5.1.1"  # 模拟器版本号
+            }
         self.driver_server = 'http://127.0.0.1:4723/wd/hub'
         print('APP启动...')
         # 启动APP
@@ -43,7 +45,7 @@ class News:
 
     @run_time
     def loop_look(self):
-        time.sleep(6)
+        time.sleep(6)  # 等待广告关闭
         try:
             print("关闭弹窗")
             self.driver.keyevent(4)
@@ -80,7 +82,10 @@ class News:
                 self.driver.swipe(500, 1800, 500, 500, 800)
         except Exception as e:
             print(e)
-            print("退出时间：{}".format(datetime.now()))
+            winsound.Beep(500, 1000)  # 提示音
+            self.driver.keyevent(4)
+            self.driver.swipe(500, 1800, 500, 500, 800)
+            self.loop_look()
 
 
 if __name__ == '__main__':
