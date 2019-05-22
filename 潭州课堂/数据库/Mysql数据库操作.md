@@ -1,4 +1,4 @@
-#### **Mysql 库基础命令**
+#### ** joinMysql 库基础命令**
 
 ```
 mysql -u用户名 -p密码 # 进入
@@ -84,4 +84,79 @@ delete from 表名 where 条件； # 删除满足条件的数据
 |   **YEAR**    |     **1**      |                **1901/2155**                |        **YYYY**         |          **年份值**          |
 | **DATETIME**  |     **8**      | **1000-01-01 00:00:00/9999-12-31 23:59:59** | **YYYY-MM-DD HH:MM:SS** |     **混合日期和时间值**     |
 | **TIMESTAMP** |     **8**      |     **1970-01-01 00:00:00/2037 年某时**     |   **YYYYMMDD HHMMSS**   | **混合日期和时间值，时间戳** |
+
+#### **Mysql linux系统SQL脚本导入**
+
+```
+mysql -h localhost -u root -p 路径
+mysql -u root -p # 进入数据库
+mysql>use 数据库
+然后使用source命令，后面参数为脚本文件(如这里用到的.sql)
+mysql>source /home/pt/test.sql
+```
+
+#### **Mysql 筛选条件**
+
+```
+# 排序  
+select * from 表名 order by 字段； # 默认asc 正序， desc倒序
+# 限制
+select * from 表名 limit 条数；
+select * from 表名 limit 开始位置，条数； 从索引位置开始显示多少条
+# 去重
+select distinct 字段 from 表名；
+# 模糊查询 like 
+	% 代替任意多个字符
+	_ 代替任意一个字符	
+# 范围查询
+select * from 表名 between 条件1 and 条件2；连续范围
+select * from 表名 字段 in（条件1，条件2，...）； 范围查询 只要满足其中条件就返回
+
+```
+
+#### **Mysql  聚合分组**
+
+```
+# 聚合函数
+	select 函数（字段） form 表名；
+	常用函数
+	count（） 统计个数
+	sum（） 求和
+	max（）最大值
+	avg（）平均值
+	min（）最小值
+	gtoup_concat（） 列出字段全部值
+# 分组查询 group by
+	select 字段，聚合函数（*） from 表 group by 字段；
+# 聚合筛选 having
+	select 字段1 from 表 group by 字段1， 字段2 having 字段2条件； 用字段2的条件限制字段1的输出结果
+
+条件判断执行优先级  where > 聚合函数和别名 > having
+```
+
+#### **Mysql 子查询（嵌套查询）**
+
+```
+# 使用条件
+	1.嵌套在查询内部
+	2.必须在（）内使用
+select * from 表 where age >（select avg（age）from students） 
+```
+
+#### **Mysql 连接查询**
+
+```
+# 无条件内连接  表1的每一项和表2每一项依次组合
+	select * from 表1 join 表2；
+# 有条件内连接  on 条件
+	select * from 表1 join 表2 on 条件；
+# 外连接
+	左外连接 以左表为基准 left
+	右外连接 以右表为基准 right
+# 多表联合查询
+select count(*) from (select * from 表1 where 表1字段 = (select 表2字段 from 表2 where 表2条件))as a left join 表3 on a.student_number=students.number where age>18;
+
+select * from 表1 where 表1字段 = (select 表2字段 from 表2 where 表2条件） #以表2返回的结果为条件查询表1，然后整个条件结果重命名为a 和 表三连接查询 得到想要结果 
+
+```
 
