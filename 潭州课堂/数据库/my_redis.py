@@ -1,6 +1,6 @@
 # coding=utf-8
 # 作者    ： Administrator
-# 文件    ：Redis.py
+# 文件    ：my_redis.py
 # IED    ：PyCharm
 # 创建时间 ：2019/5/19 16:14
 """
@@ -45,14 +45,14 @@ import redis
 
 
 class Redis:
-    def __init__(self, db):
-        self.conn = redis.StrictRedis(db=db, decode_responses=True)
+    def __init__(self, db=0, decode_responses=True):
+        self.conn = redis.StrictRedis(db=db, decode_responses=decode_responses)
 
-    def insert(self, kay, value, right=True):
+    def push(self, kay, *values, right=True):
         if right:
-            result = self.conn.rpush(kay, value)
+            result = self.conn.rpush(kay, *values)
         else:
-            result = self.conn.lpush(kay, value)
+            result = self.conn.lpush(kay, *values)
         return result
 
     def remove(self, key, value=None, right=True, sub=None):
@@ -64,11 +64,11 @@ class Redis:
             result = self.conn.lpop(key)
         return result
 
-    def find(self, key, sub=None, start=None, end=None, index=True):
-        if index is True:
-            result = self.conn.lindex(key, sub)
+    def search(self, key, start, end=None):
+        if end:
+            result = self.conn.lindex(key, start, end)
         else:
-            result = self.conn.lrange(key, start, end)
+            result = self.conn.lrange(key, start)
         return result
 
     def update(self, key, value, index):
