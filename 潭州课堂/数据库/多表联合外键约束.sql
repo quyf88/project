@@ -1,4 +1,4 @@
-﻿# 创建一张成绩表.
+﻿# 创建一张学院表.
 CREATE TABLE if not exists colleges(
   id INT PRIMARY KEY auto_increment,
   name VARCHAR(20)
