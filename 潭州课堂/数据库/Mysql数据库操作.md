@@ -1,4 +1,4 @@
-#### ** joinMysql 库基础命令**
+#### **Mysql 库基础命令**
 
 ```
 mysql -u用户名 -p密码 # 进入
@@ -8,7 +8,7 @@ create database if not exists test; # 创建数据库 if not exists 检查是否
 drop database if exists test; # 删除数据库 if exists 检查是否有此库
 use 库名; # 进入库
 select database(); # 查看当前所在库
-db.dropDatabase() # 删除库
+drop database 库名 # 删除库
 ```
 
 #### **Mysql 表基础命令**
@@ -148,15 +148,66 @@ select * from 表 where age >（select avg（age）from students）
 ```
 # 无条件内连接  表1的每一项和表2每一项依次组合
 	select * from 表1 join 表2；
+	
 # 有条件内连接  on 条件
 	select * from 表1 join 表2 on 条件；
+	
 # 外连接
 	左外连接 以左表为基准 left
 	右外连接 以右表为基准 right
+	
 # 多表联合查询
 select count(*) from (select * from 表1 where 表1字段 = (select 表2字段 from 表2 where 表2条件))as a left join 表3 on a.student_number=students.number where age>18;
 
-select * from 表1 where 表1字段 = (select 表2字段 from 表2 where 表2条件） #以表2返回的结果为条件查询表1，然后整个条件结果重命名为a 和 表三连接查询 得到想要结果 
+select * from 表1 where 表1字段 = (select 表2字段 from 表2 where 表2条件）
+#以表2返回的结果为条件查询表1，然后整个条件结果重命名为a 和 表三连接查询 得到想要结果 
 
 ```
 
+#### **Mysql 表结构修改（alter）**
+
+```
+alter table 表名 rename to 新表名；  # 修改表名
+alter table 表名 change name 字段名 新字段名 数据类型； # 修改字段名
+alter table 表名 modify 字段名 数据类型； # 修改字段类型
+alter table 表名 add 字段名 数据类型；  添加字段
+alter table 表名 drop 字段名； # 删除字段
+```
+
+#### **Mysql 约束条件（主键、外键）**
+
+```
+# 默认 default
+	create table 表 （id int defult 100,name varchar(10)） 
+	# 创建表时字段指定一个默认参数，添加数据时如不添加此参数将使用默认参数
+	
+# 非空 not null
+	create table 表 （id int not null,name varchar(10)）
+	
+# 唯一 nuique key
+	create table 表 （id int unique key,name varchar(10)）
+	# 只能有一个
+	
+# 自增长 auto_increment 
+	create table 表 （id int primary key auto_increment,name varchar(10)）auto_increment=100
+	# 设置id 为主键 且自增长 指定默认值为100 从100开始
+	
+# 主键 primary key 唯一而且非空 如不指定会自动设置一个
+	create table 表 （id int primary key,name varchar(10)）
+	
+# 外键 foreign key
+	create table b表（b_id int primary key,b_name varshar(20) not null,fy_id not null, 
+	foreign key(fy_id) references a表(a_id)） # 设置外键
+```
+
+#### **Mysql 表关系**
+
+```
+# 一对一
+# 一对多
+# 多对多
+create table 中间表（a_id，b_id,primary key（a_id,b_id）,  # primary key（a_id,b_id） 设置联合主键
+				foreign key(a_id) regerences A(a_id),  # a_id 外键关联 A表a_id
+				foreign key(b_id) regerences B(b_id)）;  # b_id 外键关联 B表b_id
+				
+```
