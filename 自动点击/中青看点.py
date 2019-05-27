@@ -30,11 +30,11 @@ class News:
         self.desired_caps = {
               "automationName": "uiautomator2",  # 引擎
               "platformName": "Android",
-              "deviceName": "127.0.0.1:62001",
+              "deviceName": "OS105",
               "appPackage": "cn.youth.news",
               "appActivity": "com.weishang.wxrd.activity.SplashActivity",
               "noReset": True,
-              "platformVersion": "5.1.1"  # 模拟器版本号
+              # "platformVersion": "5.1.1"  # 模拟器版本号
             }
         self.driver_server = 'http://127.0.0.1:4723/wd/hub'
         print('APP启动...')
