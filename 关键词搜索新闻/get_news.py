@@ -110,11 +110,6 @@ class SearchNews:
         return data
 
     def main(self):
-        # baidu = self.baidu_news()
-        # for i in baidu:
-        #     fe = MySql()
-        #     fe.create(i)
-        # sina_new = self.sina_news()
         china_new = self.xinhua_news()
         for i in china_new:
             fe = MySql()
