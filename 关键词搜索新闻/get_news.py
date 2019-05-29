@@ -12,8 +12,8 @@ from 关键词搜索新闻.My_SQL import MySql
 
 
 class SearchNews:
-    def __init__(self, word):
-        self.word = word
+    def __init__(self):
+
         self.headers = {'User-Agent':
                         'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)'
                         ' Chrome/68.0.3440.106 Safari/537.36 '
@@ -35,9 +35,9 @@ class SearchNews:
 
         return response
 
-    def baidu_news(self):
+    def baidu_news(self, word):
         """百度新闻"""
-        url = 'https://www.baidu.com/s?ie=utf-8&cl=2&rtt=1&bsst=1&rsv_dl=news_t_sk&tn=news&word={}'.format(quote(self.word))
+        url = 'https://www.baidu.com/s?ie=utf-8&cl=2&rtt=1&bsst=1&rsv_dl=news_t_sk&tn=news&word={}'.format(quote(word))
         response = self._parse_url(url)
         content = response.content.decode()
         etree_html = etree.HTML(content)
@@ -48,7 +48,7 @@ class SearchNews:
         results = etree_html.xpath("//div[@class='result']")
         for result in results:
             fields = {}
-            fields['keyword'] = self.word  # 关键词
+            fields['keyword'] = word  # 关键词
             fields['url'] = result.xpath("./h3/a/@href")  # url
             tag = ''.join(result.xpath("./div/p/text()")).split()  # 来源 发布日期
             fields['tag'] = ''.join(tag)
@@ -60,9 +60,9 @@ class SearchNews:
 
         return data
 
-    def sina_news(self):
+    def sina_news(self, word):
         """新浪新闻"""
-        url = 'https://search.sina.com.cn/?q={}&c=news&from=index'.format(quote(self.word, encoding='GBK'))
+        url = 'https://search.sina.com.cn/?q={}&c=news&from=index'.format(quote(word, encoding='GBK'))
         response = self._parse_url(url)
         content = response.content.decode(encoding='GBK')
         etree_html = etree.HTML(content)
@@ -73,7 +73,7 @@ class SearchNews:
         results = etree_html.xpath("//div[@class='box-result clearfix']")
         for result in results:
             fields = {}
-            fields['keyword'] = self.word  # 关键词
+            fields['keyword'] = word  # 关键词
             fields['url'] = result.xpath("./h2/a/@href")  # url
             tag = ''.join(result.xpath("./h2/span/text()")).split()  # 来源 发布日期
             fields['tag'] = ''.join(tag)
@@ -85,9 +85,9 @@ class SearchNews:
 
         return data
 
-    def xinhua_news(self):
+    def xinhua_news(self, word):
         """新华网"""
-        url = 'http://so.news.cn/getNews?keyword={}&curPage=1&sortField=0&searchFields=1&lang=cn'.format(quote(self.word))
+        url = 'http://so.news.cn/getNews?keyword={}&curPage=1&sortField=0&searchFields=1&lang=cn'.format(quote(word))
         response = self._parse_url(url)
         content = response.json()
 
@@ -97,7 +97,7 @@ class SearchNews:
         results = content['content']['results']
         for result in results:
             fields = {}
-            fields['keyword'] = self.word  # 关键词
+            fields['keyword'] = word  # 关键词
             fields['url'] = result['url']  # url
             pubtime = result['pubtime']  # 发布日期
             tag = result['sitename']  # 来源
@@ -106,15 +106,24 @@ class SearchNews:
             fields['source'] = '新华网'
 
             data.append(fields)
+        url_list = [i['url'] for i in results]
+        pubtime_list = [i['pubtime'] for i in results]
+        sitename_list = [i['sitename'] for i in results]
+        summary_list = [i['des'] for i in results]
+        source_list = ['新华网']
 
-        return data
+        return url_list, pubtime_list, sitename_list, summary_list
 
     def main(self):
+        url_list, pubtime_list, sitename_list, summary_list = self.xinhua_news('华为')
 
-        china_new = self.xinhua_news()
-        for i in china_new:
-            fe = MySql()
-            fe.create(i)
+        for i in range(len(url_list)):
+            a = url_list[i], pubtime_list[i], sitename_list[i], summary_list[i]
+            print(a)
+        # china_new = self.xinhua_news(word)
+        # for i in china_new:
+        #     fe = MySql()
+        #     fe.create(i)
 
     # def get_mysql_data(self):
     #     """数据库读取数据"""
@@ -126,7 +135,6 @@ class SearchNews:
 
 if __name__ == '__main__':
     wd = input('输入关键词：')
-    news = SearchNews(wd)
-    # news.main()
+    news = SearchNews()
+    news.main()
     # news.get_mysql_data()
-
