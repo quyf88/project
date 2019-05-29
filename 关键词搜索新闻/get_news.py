@@ -106,19 +106,27 @@ class SearchNews:
             fields['source'] = '新华网'
 
             data.append(fields)
-        print(data)
+
         return data
 
     def main(self):
+
         china_new = self.xinhua_news()
         for i in china_new:
             fe = MySql()
             fe.create(i)
 
+    # def get_mysql_data(self):
+    #     """数据库读取数据"""
+    #     fe = MySql()
+    #     a = fe.find_db('select * from words')
+
+    #     return a
+
 
 if __name__ == '__main__':
     wd = input('输入关键词：')
     news = SearchNews(wd)
-    news.main()
-
+    # news.main()
+    # news.get_mysql_data()
 
