@@ -5,34 +5,84 @@
 # 创建时间 ：2019/5/30 22:21
 
 
+import re
 import requests
-from retrying import retry
+from lxml import etree
+from urllib.parse import quote
+from fake_useragent import UserAgent
 
 
 class GetComment:
-    def __init__(self):
-        super().__init__()
 
-        self.headers = {'User-Agent':
-                        'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)'
-                        ' Chrome/59.0.3071.104 Safari/537.36'
-                        }
-        self.cookie = {'_T_WM': '31576192650',
-                       ' SCF': 'AiijZBWTC3cK4xjwOUz27rnhXM13IutsjntDNytulWwnuWiLzenrdulnr8RBLmKClrJFMRwCfY1hieUEs9bbS7g.',
-                       ' MLOGIN': '1',
-                       ' SUB': '_2A25x65U1DeRhGeBO4lEV9ybJyD2IHXVTFzt9rDV6PUJbkdAKLXPxkW1NRbX_QKAlFu3rCiwBBYhdRhowWvMWmW_4',
-                       ' SUHB': '0h1J1PizDoA8ye', ' SSOLoginState': '1559225701',
-                       ' M_WEIBOCN_PARAMS': 'lfid%3D102803%26luicode%3D20000174'
-                       }
+    def __get_headers(self):
+        return {"User-Agent": UserAgent().random}
 
-    @retry(stop_max_attempt_number=3)
-    def run(self):
-        url = 'https://m.weibo.cn/api/comments/show?id=4377707464827773&page={}'.format(1)
-        response = requests.get(url, headers=self.headers, cookies=self.cookie, timeout=3)
+    def new_url_list(self, word):
+        """根据关键词获取视频地址列表"""
+        url = 'https://search.bilibili.com/all?keyword={}'.format(quote(word, encoding='UTF-8'))
+        response = requests.get(url, headers=self.__get_headers())
+        content = response.content.decode(encoding='UTF-8')
+        et_html = etree.HTML(content)
+        new_url_list = et_html.xpath('//ul[@class="video-contain clearfix"]/li/a/@href')
 
-        print(response.json())
+        return new_url_list
+
+    def comment_oid_list(self, word):
+        """获取评论视频oid列表"""
+        comment_url_list = self.new_url_list(word)
+        comment_oids_list = [re.findall(r'av(.*)\?', i)for i in comment_url_list]
+        comment_oid_list = [i for j in comment_oids_list for i in j]
+
+        return comment_oid_list
+
+    def comment_url_list(self, word):
+        """拼接评论url"""
+
+        comment_url_list = []
+        comment_oid_list = self.comment_oid_list(word)
+        numbers = [i for i in range(1, 5)]
+        for comment_oid in comment_oid_list:
+            for number in numbers:
+                comment_url = 'https://api.bilibili.com/x/v2/reply?type=1&oid={0}&pn={1}'.format(comment_oid, number)
+                comment_url_list.append(comment_url)
+
+        return comment_url_list
+
+    def comment_message(self, word):
+        """获取评论"""
+
+        comment_url_list = self.comment_url_list(word)
+
+        for url in comment_url_list:
+            try:
+                comment_reaponse = requests.get(url, headers=self.__get_headers())
+                comment_json = comment_reaponse.json()
+                comment_content_list = comment_json['data']['replies']
+                comment_message = [i['content']['message'] for i in comment_content_list]
+                self.save_to_txt(comment_message)
+
+                yield comment_message
+
+            except Exception as e:
+                print(e)
+                continue
+
+    def save_to_txt(self, comment):
+        """保存为txt"""
+
+        with open('res/wordcloud.txt', 'a+', encoding='utf-8') as f:
+            try:
+                for i in comment:
+                    f.write(i)
+                    print("成功写入一条数据")
+            except:
+                print('保存完成')
 
 
 if __name__ == '__main__':
     comment = GetComment()
-    comment.run()
+    a = comment.comment_message('华为')
+    print(next(a))
+
+
+

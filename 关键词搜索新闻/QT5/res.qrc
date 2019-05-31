@@ -4,5 +4,9 @@
         <file alias="btn.wav">res/btn.wav</file>
         <file alias="finish.wav">res/finish.wav</file>
         <file alias="style.qss">res/style.qss</file>
+        <file alias="stop_words.txt">res/stop_words.txt</file>
+        <file alias="wordcloud.txt">res/wordcloud.txt</file>
+        <file alias="4.jpg">res/4.jpg</file>
+        <file alias="sanguo.png">res/sanguo.png</file>
     </qresource>
 </RCC>

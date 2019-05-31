@@ -8,7 +8,6 @@ import requests
 from lxml import etree
 from urllib.parse import quote
 from retrying import retry
-from 关键词搜索新闻.My_SQL import MySql
 
 
 class SearchNews:

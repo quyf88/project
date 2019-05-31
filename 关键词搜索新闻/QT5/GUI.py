@@ -8,7 +8,9 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QComboBox, QText
 
 import json
 import csv
+from 关键词搜索新闻.QT5.cloud import Cloud
 from 关键词搜索新闻.QT5.get_news import SearchNews
+from 关键词搜索新闻.QT5.get_comment import GetComment
 from 关键词搜索新闻.QT5 import res
 
 
@@ -17,7 +19,7 @@ class CrawlWindow(QWidget):
         super(CrawlWindow, self).__init__()
         self.resize(800, 600)
         self.setWindowTitle('关键词新闻搜索')
-        self.setWindowIcon(QIcon(':res/maoyan.png'))
+        self.setWindowIcon(QIcon(':res/4.jpg'))
 
         # 初始化搜索文本框
         self.movie_name = QLineEdit(self)
@@ -27,6 +29,8 @@ class CrawlWindow(QWidget):
         self.start_btn = QPushButton(self)
         # 初始化开始爬取按钮
         self.get_btn = QPushButton(self)
+        # 初始化一键分析按钮
+        self.word_cloud = QPushButton(self)
         # 初始化另存下拉框
         self.save_combobox = QComboBox(self)
         # 初始化表格控件
@@ -41,6 +45,8 @@ class CrawlWindow(QWidget):
         # 初始化垂直布局
         self.v_layout = QVBoxLayout()
 
+        # 实例化词云程序
+        self.cloud = Cloud()
         # 实例化启动程序
         self.crawl_thread = CrawlThread()
         # 初始化数据库
@@ -55,6 +61,7 @@ class CrawlWindow(QWidget):
         self.btn_init()
         self.combobox_init()
         self.table_init()
+        self.word_cloud_init()
         self.log_init()
         self.progressbar_init()
         self.layout_init()
@@ -88,6 +95,13 @@ class CrawlWindow(QWidget):
         self.start_btn.clicked.connect(lambda: self.btn_slot(self.start_btn))
         self.get_btn.clicked.connect(lambda: self.btn_slot(self.get_btn))
 
+    # TODO
+    def word_cloud_init(self):
+        """一键分析配置"""
+        self.word_cloud.setText('一键分析')
+        self.word_cloud.setEnabled(False)
+        self.word_cloud.clicked.connect(self.word_cloud_slot)
+
     def combobox_init(self):
         """另存为下拉框配置"""
         save_list = ['另存为', 'MySQL', 'csv', 'txt', 'json']
@@ -100,7 +114,7 @@ class CrawlWindow(QWidget):
 
     def table_init(self):
         self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(['新闻链接', '渠道来源', '发布日期', '新闻摘要'])
+        self.table.setHorizontalHeaderLabels(['新闻链接', '评论信息', '渠道来源', '发布日期'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     def log_init(self):
@@ -119,6 +133,7 @@ class CrawlWindow(QWidget):
         self.h_layout.addWidget(self.source_combobox)
         self.h_layout.addWidget(self.start_btn)
         self.h_layout.addWidget(self.get_btn)
+        self.h_layout.addWidget(self.word_cloud)
         self.h_layout.addWidget(self.save_combobox)
 
         self.v_layout.addWidget(self.table)
@@ -141,6 +156,7 @@ class CrawlWindow(QWidget):
             if self.movie_name.text():
                 self.log_browser.clear()
                 self.log_browser.append('<font color="red">一键搜索</font>')
+                self.log_browser.append('<font color="red">搜索中...</font>')
                 self.table.clearContents()
                 self.table.setRowCount(0)
                 self.get_btn.setEnabled(True)
@@ -155,9 +171,13 @@ class CrawlWindow(QWidget):
             self.log_browser.append('<font color="red">开始爬取</font>')
             self.get_btn.setEnabled(False)
             self.start_btn.setEnabled(True)
+            self.word_cloud.setEnabled(True)
             self.save_combobox.setEnabled(True)
 
             self.run()
+
+    def word_cloud_slot(self):
+        self.cloud.run()
 
     def total_nums_slot(self, total_nums):
         """搜索到新闻数"""
@@ -303,6 +323,7 @@ class CrawlWindow(QWidget):
 
     def run(self):
         """根据url爬取数据"""
+
         for row in range(self.table.rowCount()):
             new_url = self.table.item(row, 0).text()
             self.log_browser.append('开始爬取:{}'.format(new_url))
@@ -315,6 +336,7 @@ class CrawlWindow(QWidget):
 
 class CrawlThread(QThread):
     search_news = SearchNews()
+    comment = GetComment()
     total_nums = pyqtSignal(str)
     finished_signal = pyqtSignal()
     log_signal = pyqtSignal(str)
@@ -326,7 +348,7 @@ class CrawlThread(QThread):
     def render(self, movie_name, source_combobox):
         word = movie_name.text()
         source = source_combobox.currentText()
-
+        message = self.comment.comment_message(word)
         if source == self.tr('新华网'):
             data = self.search_news.xinhua_news(word)
         elif source == self.tr('新浪新闻'):
@@ -341,7 +363,7 @@ class CrawlThread(QThread):
 
             self.total_nums.emit(str(total))
             for i in range(len(url_list)):
-                self.result_signal.emit(str(url_list[i]), str(sitename_list[i]), str(pubtime_list[i]), str(summary_list[i]))
+                self.result_signal.emit(str(url_list[i]), str(next(message)), str(sitename_list[i]),  str(pubtime_list[i]))
 
         except Exception as e:
             self.log_signal.emit('<font color="red">状态码返回错误，请求失败请重试!</font>')
