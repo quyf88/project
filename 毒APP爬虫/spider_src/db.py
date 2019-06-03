@@ -3,24 +3,38 @@
 # 文件    ：db.py
 # IED    ：PyCharm
 # 创建时间 ：2019/6/2 23:09
-
-import time
-import sqlite3
+import os
 import json
-import sys
+import time
+import logging
+import sqlite3
 from bs4 import BeautifulSoup
 from collections import OrderedDict
 
 
 class Db:
     def __init__(self, path):
+        self.path = os.getcwd()
         self.db_path = path
         self.connect_db()
+
+    def my_log(self):
+        path = self.path + '\log\\'
+        if not os.path.isdir(path):
+            os.makedirs(path)
+        m_log = logging.Logger('错误日志')
+        mh = logging.FileHandler(path + 'db.log')
+        mh.setLevel(logging.INFO)
+        fmt = logging.Formatter('时间：%(asctime)s 文件名：%(filename)s 行号%(lineno)d')
+
+        mh.setFormatter(fmt)
+        m_log.addHandler(mh)
+
+        return m_log
 
     # 连接数据库
     # 如果数据库文件不存在就创建
     # 如果数据库中表不存在就创建
-
     def connect_db(self):
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
@@ -30,8 +44,8 @@ class Db:
             productId CHAR(50),
             diff int NOT NULL);'''
             c.execute(sql_string)
-        except BaseException as e:
-            print(e)
+        except Exception as e:
+            self.my_log().exception(e)
             print("diff_data table exist!")
         try:
             sql_string = '''CREATE TABLE detail_data
@@ -51,8 +65,8 @@ class Db:
             img_list CHAR(2000),
             size_price CHAR(300));'''
             c.execute(sql_string)
-        except BaseException as e:
-            print(e)
+        except Exception as e:
+            self.my_log().exception(e)
             print("detail_data table exist!")
         try:
             sql_string = '''CREATE TABLE temp_table
@@ -72,8 +86,8 @@ class Db:
             img_list CHAR(2000),
             size_price CHAR(300));'''
             c.execute(sql_string)
-        except BaseException as e:
-            print(e)
+        except Exception as e:
+            self.my_log().exception(e)
             print("temp_table table exist!")
         c.close()
         conn.commit()
@@ -128,6 +142,7 @@ class Db:
             c.execute('''UPDATE poison_data SET data_json = ? WHERE productId = ?;''',
                       [json.dumps(msg['json_data']), msg['productId']])
         except BaseException as e:
+            self.my_log().exception(e)
             with open("error.txt", 'a+', encoding="utf-8") as f:
                 f.write("{} {} {}".format("#u", str(msg['productId']), str(e) + "\n"))
         c.close()
@@ -148,7 +163,7 @@ class Db:
             c.execute(sql_string, [str(msg['productId']), str(time.time()), json.dumps(msg['json_data'])])
 
         except BaseException as e:
-            print(e)
+            self.my_log().exception(e)
             with open("error.txt", 'a+', encoding="utf-8") as f:
                 f.write("{} {} {}".format("#ib", str(msg['productId']), str(e) + "\n"))
         c.close()
@@ -199,6 +214,7 @@ class Db:
             conn.commit()
             conn.close()
         except BaseException as e:
+            self.my_log().exception(e)
             with open("error.txt", 'a+', encoding="utf-8") as f:
                 f.write("{} {} {}".format("#ud", str(msg['productId']), str(e) + "\n"))
 
@@ -214,6 +230,7 @@ class Db:
             else:
                 self.update_diff_table_item(msg)
         except BaseException as e:
+            self.my_log().exception(e)
             pass
             with open("error.txt", 'a+', encoding="utf-8") as f:
                 f.write("{} {} {}".format("#id", str(msg['productId']), str(e) + "\n"))
@@ -278,6 +295,7 @@ class Db:
             conn.commit()
             conn.close()
         except BaseException as e:
+            self.my_log().exception(e)
             with open("error.txt", 'a+', encoding="utf-8") as f:
                 f.write("{} {} {}".format("#ida", str(msg['productId']), str(e) + "\n"))
                 f.write(str(msg['json_data']) + "\n")
@@ -288,7 +306,7 @@ class Db:
             sql_string = "SELECT productId,diff from diff_data ORDER BY diff DESC LIMIT 10"
             c.execute(sql_string)
         except BaseException as e:
-            print(e)
+            self.my_log().exception(e)
         data = c.fetchall()
         result = []
         for i in data:
@@ -331,7 +349,7 @@ class Db:
                 try:
                     temp[key_list[i]] = json.loads(row[i])
                 except BaseException as e:
-                    print('数据库查询失败：{}'.format(e))
+                    self.my_log().exception(e)
                     temp[key_list[i]] = row[i]
             data_list.append(temp)
         c.close()

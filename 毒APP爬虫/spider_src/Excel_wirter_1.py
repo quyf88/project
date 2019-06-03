@@ -97,7 +97,7 @@ class BigExcel:
         except BaseException as e:
             print(e)
             print("dir has exists!")
-        t_list = []
+
         import multiprocessing
         pool = multiprocessing.Pool()
         for k, v in all_data.items():

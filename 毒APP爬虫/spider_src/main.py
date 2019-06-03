@@ -4,21 +4,30 @@ import pandas
 import logging
 import hashlib
 import requests
-from bs4 import BeautifulSoup
-
 import asyncio
 import traceback
 import async_timeout
 import multiprocessing
+from bs4 import BeautifulSoup
 from aiohttp import ClientSession
 from collections import OrderedDict
 from twisted.internet import iocpreactor
 
-import db
-from config import Config
+from 毒APP爬虫.spider_src import db
+from 毒APP爬虫.spider_src import config
+
 
 iocpreactor.install()
 requests.packages.urllib3.disable_warnings()
+
+import sys
+from PyQt5.QtGui import QIcon
+from PyQt5.QtMultimedia import QSound
+from PyQt5.QtCore import QThread, pyqtSignal, QFile, QTextStream
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QComboBox, QTextBrowser, QTableWidget, \
+    QTableWidgetItem, QHeaderView, QProgressBar, QHBoxLayout, QVBoxLayout, QMessageBox, QLineEdit
+
+from 毒APP爬虫.spider_src.GUI import res
 
 
 class Crakeme:
@@ -36,6 +45,7 @@ class Crakeme:
             "duv": "3.5.32",
             "duloginToken": "be5ca850|38667932|25f921d1b93471c9",
         }
+        self.path = os.getcwd()
 
     def get_md5_str(self, dic):
         s = []
@@ -52,8 +62,11 @@ class Crakeme:
         return h1.hexdigest()
 
     def my_logging(self):
+        path = self.path + '\log\\'
+        if not os.path.isdir(path):
+            os.makedirs(path)
         m_log = logging.Logger('错误日志')
-        mh = logging.FileHandler('m_log.log')
+        mh = logging.FileHandler(path + 'main.log')
         mh.setLevel(logging.INFO)
         fmt = logging.Formatter('时间：%(asctime)s 文件名：%(filename)s 行号%(lineno)d')
 
@@ -64,8 +77,9 @@ class Crakeme:
 
 
 class Poison_spider:
-    def __init__(self, config):
-        
+
+    def __init__(self, config_new):
+        super().__init__()
         self.header = {
             'Connection': 'Keep-Alive',
             "User-Agent": "duapp/3.5.31(android;4.4.2)",
@@ -82,9 +96,9 @@ class Poison_spider:
         self.cookie = {"duToken": cookcek}
         self.host = "http://du.hupu.com/"
         self.worker = Crakeme()
-        self.config = config
+        self.config = config_new
         self.db = db.Db('test.db')
-
+        self.result_signal = pyqtSignal(str)
         try:
             os.mkdir("res")
         except:
@@ -93,10 +107,12 @@ class Poison_spider:
     def send_req(self, url):
         """根据API URL 获取所有数据 json"""
 
+        self.result_signal.emit(str(url))
         print('API：{}'.format(url))
         while True:
             try:
-                response = requests.get(url, headers=self.header, cookies=self.cookie, verify=False, timeout=(15, 20))  # TODO
+                # TODO
+                response = requests.get(url, headers=self.header, cookies=self.cookie, verify=False, timeout=(15, 20))
                 break
             except Exception as e:
                 self.worker.my_logging().exception(e)
@@ -140,7 +156,7 @@ class Poison_spider:
 
     def get_detail_list(self, goods_id, catId, page):
         """获取 商品json [data]"""
-        result = []
+
         url_dic = {
             "title": "",  # title=      title=
             "size": "[]",  # size=[]     size=[]
@@ -177,6 +193,7 @@ class Poison_spider:
         }
         end_url = "/product/detail?"
         r = self.send_req(self.make_url(url_dic, end_url))
+        print(r.json)
         return r.json()
 
     def parse_html(self, html):
@@ -271,11 +288,11 @@ class Poison_spider:
                 self.worker.my_logging().exception(e)
                 print("### TOP 请求超时 :", e)
 
-    def new_thead_excel(self, current_path, item_msg):
-        """单线程 单独生成xlsx文档 不下载图片"""
-
-        self.excel_writer1("{}/{}.xlsx".format(current_path, self.save_file_name(item_msg['data']['detail']['title'])),
-                           self.make_pdfrm_data(item_msg))
+    # def new_thead_excel(self, current_path, item_msg):
+    #     """单线程 单独生成xlsx文档 不下载图片"""
+    #
+    #     self.excel_writer1("{}/{}.xlsx".format(current_path, self.save_file_name(item_msg['data']['detail']['title'])),
+    #                        self.make_pdfrm_data(item_msg))
 
     async def run(self, brand_name, item, loop, sem):
         """
@@ -295,8 +312,9 @@ class Poison_spider:
             # 效验文件 是否存在 TODO
             if not os.path.isdir(current_path):
                 os.mkdir(current_path)
+                print("Created successfully：{}".format(current_path))
             else:
-                print("{} exist! 文件已存在".format(current_path))
+                print("{} is exist! 文件已存在".format(current_path))
                 return
 
             await self.excel_writer(
@@ -331,7 +349,7 @@ class Poison_spider:
         if self.config.is_first:
             self.db.insert_detail(msg)
             self.db.insert_temp_table(msg)
-            await self.img_downloader(current_path, img_src, loop)
+            # await self.img_downloader(current_path, img_src, loop)
         else:
             self.db.insert_temp_table(msg)
             if self.config.go_img:
@@ -354,17 +372,17 @@ class Poison_spider:
             self.worker.my_logging().exception(e)
             print("excel wirte error! error : {}".format(path))
 
-    def excel_writer1(self, path, msg):
-        """单线程 xlsx文档写入"""
-        try:
-            print("{} EXCEL WRITing....".format(path))
-            excel_writer = pandas.ExcelWriter(path)
-            pdfrm = pandas.DataFrame(data=msg)
-            pdfrm.to_excel(excel_writer)
-            excel_writer.save()
-            print("{} EXCEL WRITE OVER!".format(path))
-        except:
-            print("excel wirte error! error : {}".format(path))
+    # def excel_writer1(self, path, msg):
+    #     """单线程 xlsx文档写入"""
+    #     try:
+    #         print("{} EXCEL WRITing....".format(path))
+    #         excel_writer1 = pandas.ExcelWriter(path)
+    #         pdfrm = pandas.DataFrame(data=msg)
+    #         pdfrm.to_excel(excel_writer1)
+    #         excel_writer1.save()
+    #         print("{} EXCEL WRITE OVER!".format(path))
+    #     except:
+    #         print("excel wirte error! error : {}".format(path))
 
     async def fetch(self, session, url):
         url = url.replace("%5C%22", "")
@@ -427,14 +445,17 @@ class Poison_spider:
         多线程 保存图片
         :param path: 路径
         :param img_name: 图片名称
-        :param r:
+        :param r: content
         :return: None
         """
         with open("{}/{}".format(path, img_name), 'wb+') as f:
             f.write(r)
+            print('Get the picture successfully：{}'.format(img_name))
 
 
 brand_list = [{'brandName': 'Nike', 'goodsBrandId': 144},
+              # {'brandName': 'Jordan', 'goodsBrandId': 13},
+              # {'brandName': 'adidas original', 'goodsBrandId': 494},
               #  {'brandName': 'Supreme', 'goodsBrandId': 439},
               #  {'brandName': 'KITH', 'goodsBrandId': 10038},
               #  {'brandName': 'THE NORTH FACE', 'goodsBrandId': 45},
@@ -447,8 +468,6 @@ brand_list = [{'brandName': 'Nike', 'goodsBrandId': 144},
               #  {'brandName': 'CASIO', 'goodsBrandId': 843},
               #  {'brandName': 'adidas', 'goodsBrandId': 3},
               #  {'brandName': 'OFF-WHITE', 'goodsBrandId': 1245},
-              {'brandName': 'Jordan', 'goodsBrandId': 13},
-              {'brandName': 'adidas original', 'goodsBrandId': 494}
               #  {'brandName': 'OFF-WHITE', 'goodsBrandId': 1245},
               #  {'brandName': 'Vans', 'goodsBrandId': 9},
               #  {'brandName': 'CONVERSE', 'goodsBrandId': 176},
@@ -514,7 +533,7 @@ def make_thead(poison, brand):
     # TODO 效验文件是否存在
     if not os.path.isdir("res/{}".format(brand_name)):
         os.mkdir("res/{}".format(brand_name))
-        print("res/{} 创建成果!".format(brand_name))
+        print("Created successfully：res/{}!".format(brand_name))
 
     # 创建一个新的事件循环
     loop = asyncio.new_event_loop()
@@ -550,14 +569,13 @@ def init_lock(l):
     lock = l
 
 
-if __name__ == "__main__":
-
+def run(conf):
     with open("数据生成日期.txt", "a+", encoding="utf-8") as f:
         f.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())))
         f.write("\n")
-    config = Config()
-    # 实例化主程序对象
-    poison = Poison_spider(config)
+
+    # 实例化主程序对象 TODO
+    poison = Poison_spider(conf)
     # 创建进程池
     lock = multiprocessing.Lock()
     pool = multiprocessing.Pool(processes=3, initializer=init_lock, initargs=(lock,))
@@ -569,13 +587,13 @@ if __name__ == "__main__":
     pool.join()
 
     # 数据库连接
-    print("now is compare two table....")
+    poison.result_signal.emit("now is compare two table....")
     poison.db.compare_table()
     poison.db.change_db_name()
     poison.db.delete_same()
     print("table compare compleate!")
     # 生成数据汇总xlsx
-    if config.is_write_excel:
+    if conf.is_write_excel:
         print("now is writing excel...")
         import Excel_wirter_1
         bigexecl = Excel_wirter_1.BigExcel()
@@ -585,3 +603,119 @@ if __name__ == "__main__":
     with open("数据生成日期.txt", "a+", encoding="utf-8") as f:
         f.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())))
         f.write("\n")
+
+
+class CrawlWindow(QWidget):
+    def __init__(self):
+        super(CrawlWindow, self).__init__()
+        self.resize(800, 600)
+        self.setWindowTitle('毒APP数据采集')
+        self.setWindowIcon(QIcon(':res/logo.ico'))
+
+        # 初始化获取所有数据按钮
+        self.start_btn = QPushButton(self)
+        # 初始化获取xlsx按钮
+        self.xlsx_btn = QPushButton(self)
+        # 初始化输出文本框
+        self.log_browser = QTextBrowser(self)
+        # 初始化进度条
+        self.progressbar = QProgressBar(self)
+
+        # 初始化水平布局
+        self.h_layout = QHBoxLayout()
+        # 初始化垂直布局
+        self.v_layout = QVBoxLayout()
+
+        # 实例化启动程序
+        self.config = config
+
+        # 初始化音频播放
+        self.btn_sound = QSound(':res/btn.wav', self)
+        self.finish_sound = QSound(':res/finish.wav', self)
+
+        # 实例化
+        self.start_btn_init()
+        self.xlsx_btn_init()
+        self.log_browser_init()
+        self.progressbar_init()
+        self.layout_init()
+
+    def start_btn_init(self):
+        """ 获取所有数据按钮 配置"""
+        self.start_btn.setText('获取所有数据')
+        self.start_btn.clicked.connect(self.start_btn_slot)
+
+    def xlsx_btn_init(self):
+        """获取xlsx按钮 配置"""
+        self.xlsx_btn.setText('获取xlsx文档')
+        self.xlsx_btn.clicked.connect(self.xlsx_btn_slot)
+
+    def log_browser_init(self):
+        """输出文本框 配置"""
+        pass
+
+    def progressbar_init(self):
+        """进度条"""
+        self.progressbar.setRange(0, 10)
+        self.progressbar.setValue(0)
+
+    def layout_init(self):
+        """页面布局"""
+        self.h_layout.addWidget(self.start_btn)
+        self.h_layout.addWidget(self.xlsx_btn)
+
+        self.v_layout.addWidget(self.log_browser)
+        self.v_layout.addWidget(self.progressbar)
+        self.v_layout.addLayout(self.h_layout)
+        self.setLayout(self.v_layout)
+
+    def start_btn_slot(self):
+        """获取所有数据"""
+
+        self.xlsx_btn.setEnabled(False)
+        self.btn_sound.play()
+        self.log_browser.clear()
+        self.log_browser.append('<font color="red">获取所有数据</font>')
+        self.log_browser.append('<font color="red">下载中...</font>')
+        self.config = self.config.Config(is_write_excel=True, go_img=True, isfirst=True)
+        run(self.config)
+        self.finish_sound.play()
+        self.xlsx_btn.setEnabled(True)
+
+    def xlsx_btn_slot(self):
+        """获取xlsx汇总文档"""
+
+        self.start_btn.setEnabled(False)
+        self.btn_sound.play()
+        self.log_browser.clear()
+        self.log_browser.append('<font color="red">获取xlsx汇总文档</font>')
+        self.log_browser.append('<font color="red">下载中...</font>')
+        self.config = self.config.Config(is_write_excel=True, go_img=False, isfirst=True)
+        run(self.config)
+        self.finish_sound.play()
+        self.start_btn.setEnabled(True)
+
+    def crawl_slot(self):
+        poison = Poison_spider(self.config)
+        a = poison.result_signal
+        print(a)
+
+    def set_log_slot(self, s):
+        self.log_browser.append(s)
+
+
+def read_qss(style):
+    file = QFile(style)
+    file.open(QFile.ReadOnly)
+    return QTextStream(file).readAll()
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = CrawlWindow()
+
+    qss_style = read_qss(':res/style.qss')
+    window.setStyleSheet(qss_style)
+
+    window.show()
+    sys.exit(app.exec_())
