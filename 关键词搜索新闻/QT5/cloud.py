@@ -16,17 +16,17 @@ class Cloud:
     def __init__(self):
 
         # 背景图
-        self.bg = np.array(Image.open('res/4.jpg'))
+        self.bg = np.array(Image.open('reson/4.jpg'))
 
         # 获取当前的项目文件的路径
         # d = path.dirname(__file__)
         # 读取停用词表
-        self.stopwords_path = 'res/stop_words.txt'
+        self.stopwords_path = 'reson/stop_words.txt'
         # 添加需要自定义的分词
         jieba.add_word("华为")
 
         # 读取要分析的文本
-        self.text_path = "res/wordcloud.txt"
+        self.text_path = "reson/wordcloud.txt"
 
     # 定义个函数式用于分词
     def jiebaclearText(self):
@@ -82,11 +82,11 @@ class Cloud:
         plt.imshow(self.bg, cmap=plt.cm.gray)
 
         # 保存云图
-        wc.to_file("res/sanguo.png")
+        wc.to_file("reson/sanguo.png")
 
     def run(self):
         self.generate()
-        im = Image.open("res/sanguo.png")
+        im = Image.open("reson/sanguo.png")
         im.show()
 
 

@@ -134,7 +134,7 @@ class SearchNews:
 
 
 if __name__ == '__main__':
-    wd = input('输入关键词：')
+   # wd = input('输入关键词：')
     news = SearchNews()
     print(news.baidu_news('华为'))
 

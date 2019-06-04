@@ -17,9 +17,9 @@ from 关键词搜索新闻.QT5 import res
 class CrawlWindow(QWidget):
     def __init__(self):
         super(CrawlWindow, self).__init__()
-        self.resize(800, 600)
+        self.resize(1000, 600)
         self.setWindowTitle('关键词新闻搜索')
-        self.setWindowIcon(QIcon(':res/4.jpg'))
+        self.setWindowIcon(QIcon(':reson/4.jpg'))
 
         # 初始化搜索文本框
         self.movie_name = QLineEdit(self)
@@ -52,8 +52,8 @@ class CrawlWindow(QWidget):
         # 初始化数据库
         self.db = None
         # 初始化音频播放
-        self.btn_sound = QSound(':res/btn.wav', self)
-        self.finish_sound = QSound(':res/finish.wav', self)
+        self.btn_sound = QSound(':reson/btn.wav', self)
+        self.finish_sound = QSound(':reson/finish.wav', self)
 
         # 实例化
         self.movie_init()
@@ -66,7 +66,7 @@ class CrawlWindow(QWidget):
         self.progressbar_init()
         self.layout_init()
         self.crawl_init()
-        self.db_connect()
+        # self.db_connect()
 
     def movie_init(self):
         """搜索文本框默认配置"""
@@ -113,14 +113,14 @@ class CrawlWindow(QWidget):
         self.save_combobox.currentTextChanged.connect(self.combobox_slot)  # 1
 
     def table_init(self):
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(['新闻链接', '评论信息', '渠道来源', '发布日期'])
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels(['新闻链接', '新闻摘要', '评论信息', '渠道来源', '发布日期'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     def log_init(self):
         """输出文本框配置"""
         # 设置盒子尺寸
-        self.log_browser.setFixedSize(800, 150)
+        self.log_browser.setMaximumHeight(150)
 
     def progressbar_init(self):
         """进度条"""
@@ -192,18 +192,20 @@ class CrawlWindow(QWidget):
     def set_log_slot(self, new_log):
         self.log_browser.append(new_log)
 
-    def set_table_slot(self, img, name, star, time):
+    def set_table_slot(self, img, summary, name, star, time):
         row = self.table.rowCount()
         self.table.insertRow(row)
 
         self.table.setItem(row, 0, QTableWidgetItem(img))
-        self.table.setItem(row, 1, QTableWidgetItem(name))
-        self.table.setItem(row, 2, QTableWidgetItem(star))
-        self.table.setItem(row, 3, QTableWidgetItem(time))
+        self.table.setItem(row, 1, QTableWidgetItem(summary))
+        self.table.setItem(row, 2, QTableWidgetItem(name))
+        self.table.setItem(row, 3, QTableWidgetItem(star))
+        self.table.setItem(row, 4, QTableWidgetItem(time))
 
     def combobox_slot(self, text):
         if text == 'MySQL':
-            self.save_to_MySQL()
+            # self.save_to_MySQL()
+            pass
         elif text == 'csv':
             self.save_to_csv()
         elif text == 'txt':
@@ -211,74 +213,75 @@ class CrawlWindow(QWidget):
         elif text == 'json':
             self.save_to_json()
 
-    def db_connect(self):
-        """
-        SQL配置
-        db = QtSql.QSqlDatabase.addDatabase('QMYSQL')
-        db.setHostName('主机名')
-        db.setDatabaseName('数据库名')
-        db.setUserName('用户名')
-        db.setPassword('密码')
-        db.setPort(3306) # 端口号
-        db.open() # 判断是否连接数据库成功 返回布尔值
-        """
-        # 创建数据库连接并打开
-        self.db = QSqlDatabase.addDatabase('QMYSQL')
-        self.db.setHostName('localhost')
-        self.db.setDatabaseName('news')
-        self.db.setUserName('root')
-        self.db.setPassword('raspberry')
-        if not self.db.open():
-            QMessageBox.critical(self, 'Database Connection', self.db.lastError().text())
+    # def db_connect(self):
+    #     """
+    #     SQL配置
+    #     db = QtSql.QSqlDatabase.addDatabase('QMYSQL')
+    #     db.setHostName('主机名')
+    #     db.setDatabaseName('数据库名')
+    #     db.setUserName('用户名')
+    #     db.setPassword('密码')
+    #     db.setPort(3306) # 端口号
+    #     db.open() # 判断是否连接数据库成功 返回布尔值
+    #     """
+    #     # 创建数据库连接并打开
+    #     self.db = QSqlDatabase.addDatabase('QMYSQL')
+    #     self.db.setHostName('localhost')
+    #     self.db.setDatabaseName('news')
+    #     self.db.setUserName('root')
+    #     self.db.setPassword('raspberry')
+    #     if not self.db.open():
+    #         QMessageBox.critical(self, 'Database Connection', self.db.lastError().text())
 
     def closeEvent(self, QCloseEvent):
         self.db.close()
 
-    def save_to_MySQL(self):
-        query = QSqlQuery()
-
-        # query.exec_("CREATE TABLE IF NOT EXISTS movie "
-        #             "(img VARCHAR(100), name VARCHAR(50), star VARCHAR(100),"
-        #             " time VARCHAR(50), score VARCHAR(5))")
-
-        for row in range(self.table.rowCount()):
-            word = self.movie_name.text()
-            img = self.table.item(row, 0).text()
-            name = self.table.item(row, 1).text()
-            star = self.table.item(row, 2).text()
-            time = self.table.item(row, 3).text()
-            query.prepare("INSERT INTO words (keyword,new_url,new_tag,new_summary,source) "
-                          "VALUES (?, ?, ?, ?, ?)")
-            # sql = 'insert into words(keyword,new_url,new_tag,new_summary,source) VALUES ' \
-            #       '(%(keyword)s,%(url)s,%(tag)s,%(summary)s,%(source)s)'
-            # query.bindValue(0, word)
-            # query.bindValue(1, img)
-            # query.bindValue(2, name)
-            # query.bindValue(3, star)
-            # query.bindValue(4, time)
-            query.addBindValue(word)
-            query.addBindValue(img)
-            query.addBindValue(name)
-            query.addBindValue(star)
-            query.addBindValue(time)
-
-            query.exec_()
-
-        QMessageBox.information(self, '保存到MySQL', '保存成功！', QMessageBox.Ok)
+    # def save_to_MySQL(self):
+    #     query = QSqlQuery()
+    #
+    #     # query.exec_("CREATE TABLE IF NOT EXISTS movie "
+    #     #             "(img VARCHAR(100), name VARCHAR(50), star VARCHAR(100),"
+    #     #             " time VARCHAR(50), score VARCHAR(5))")
+    #
+    #     for row in range(self.table.rowCount()):
+    #         word = self.movie_name.text()
+    #         img = self.table.item(row, 0).text()
+    #         name = self.table.item(row, 1).text()
+    #         star = self.table.item(row, 2).text()
+    #         time = self.table.item(row, 3).text()
+    #         query.prepare("INSERT INTO words (keyword,new_url,new_tag,new_summary,source) "
+    #                       "VALUES (?, ?, ?, ?, ?)")
+    #         # sql = 'insert into words(keyword,new_url,new_tag,new_summary,source) VALUES ' \
+    #         #       '(%(keyword)s,%(url)s,%(tag)s,%(summary)s,%(source)s)'
+    #         # query.bindValue(0, word)
+    #         # query.bindValue(1, img)
+    #         # query.bindValue(2, name)
+    #         # query.bindValue(3, star)
+    #         # query.bindValue(4, time)
+    #         query.addBindValue(word)
+    #         query.addBindValue(img)
+    #         query.addBindValue(name)
+    #         query.addBindValue(star)
+    #         query.addBindValue(time)
+    #
+    #         query.exec_()
+    #
+    #     QMessageBox.information(self, '保存到MySQL', '保存成功！', QMessageBox.Ok)
 
     def save_to_csv(self):
         """保存为scv文件"""
         content = []
         for row in range(self.table.rowCount()):
             img = self.table.item(row, 0).text()
-            name = self.table.item(row, 1).text()
-            star = self.table.item(row, 2).text()
-            time = self.table.item(row, 3).text()
-            content.append([img, name, star, time])
+            summary = self.table.item(row, 1).text()
+            name = self.table.item(row, 2).text()
+            star = self.table.item(row, 3).text()
+            time = self.table.item(row, 4).text()
+            content.append([img, summary, name, star, time])
 
         with open('./关键词搜索.csv', 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
-            writer.writerow(['新闻链接', '渠道来源', '发布日期', '新闻摘要'])
+            writer.writerow(['新闻链接', '新闻摘要', '渠道来源', '发布日期', '新闻摘要'])
             writer.writerows(content)
 
         QMessageBox.information(self, '保存到csv', '保存成功！', QMessageBox.Ok)
@@ -288,11 +291,12 @@ class CrawlWindow(QWidget):
         content = ''
         for row in range(self.table.rowCount()):
             img = '新闻链接：{}\n'.format(self.table.item(row, 0).text())
-            name = '渠道来源：{}\n'.format(self.table.item(row, 1).text())
-            star = '发布日期：{}\n'.format(self.table.item(row, 2).text())
-            time = '新闻摘要：{}\n'.format(self.table.item(row, 3).text())
+            summary = '新闻摘要：{}\n'.format(self.table.item(row, 1).text())
+            name = '渠道来源：{}\n'.format(self.table.item(row, 2).text())
+            star = '发布日期：{}\n'.format(self.table.item(row, 3).text())
+            time = '新闻摘要：{}\n'.format(self.table.item(row, 4).text())
 
-            content += img + name + star + time + '\n'
+            content += img + summary + name + star + time + '\n'
 
         with open('./关键词搜索新闻.txt', 'w', encoding='utf-8') as f:
             f.write(content)
@@ -304,15 +308,17 @@ class CrawlWindow(QWidget):
         content = []
         for row in range(self.table.rowCount()):
             img = self.table.item(row, 0).text()
-            name = self.table.item(row, 1).text()
-            star = self.table.item(row, 2).text()
-            time = self.table.item(row, 3).text()
+            summary = self.table.item(row, 1).text()
+            name = self.table.item(row, 2).text()
+            star = self.table.item(row, 3).text()
+            time = self.table.item(row, 4).text()
             content.append(
                 {
                     '新闻链接': img,
+                    '新闻摘要': summary,
                     '渠道来源': name,
-                    '发布日期': star,
-                    '新闻摘要': time,
+                    '评论内容': star,
+                    '发布日期': time,
                 }
             )
 
@@ -340,7 +346,7 @@ class CrawlThread(QThread):
     total_nums = pyqtSignal(str)
     finished_signal = pyqtSignal()
     log_signal = pyqtSignal(str)
-    result_signal = pyqtSignal(str, str, str, str)
+    result_signal = pyqtSignal(str, str, str, str, str)
 
     def __init__(self):
         super(CrawlThread, self).__init__()
@@ -363,9 +369,10 @@ class CrawlThread(QThread):
 
             self.total_nums.emit(str(total))
             for i in range(len(url_list)):
-                self.result_signal.emit(str(url_list[i]), str(next(message)), str(sitename_list[i]),  str(pubtime_list[i]))
+                self.result_signal.emit(str(url_list[i]), str(summary_list[i]), str(next(message)), str(sitename_list[i]),  str(pubtime_list[i]))
 
         except Exception as e:
+
             self.log_signal.emit('<font color="red">状态码返回错误，请求失败请重试!</font>')
             self.log_signal.emit(e)
 
@@ -380,7 +387,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = CrawlWindow()
 
-    qss_style = read_qss(':res/style.qss')
+    qss_style = read_qss(':reson/style.qss')
     window.setStyleSheet(qss_style)
 
     window.show()

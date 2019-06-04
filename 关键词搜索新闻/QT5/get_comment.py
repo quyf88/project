@@ -70,7 +70,7 @@ class GetComment:
     def save_to_txt(self, comment):
         """保存为txt"""
 
-        with open('res/wordcloud.txt', 'a+', encoding='utf-8') as f:
+        with open('reson/wordcloud.txt', 'a+', encoding='utf-8') as f:
             try:
                 for i in comment:
                     f.write(i)
