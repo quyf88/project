@@ -12,4 +12,6 @@
     ```
   - ```python
     pyrcc5 test.ui –o test.py  # qrc 配置文件转py
+    pyinstaller -F name  # 打包成一个程序
+    pyinstaller -D -w -i logo路径  # 打包成文件 -w 是否启动命令窗口
     ```
