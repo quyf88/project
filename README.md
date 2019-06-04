@@ -11,5 +11,12 @@
     pip install selenium==4.0.0a1
     ```
   - ```python
+<<<<<<< Updated upstream
     pyrcc5 test.ui –o test.py  # qrc 配置文件转py
+=======
+    pyinstller 打包
+    
+    pyinstaller -D -w -i 图标路径 文件名  # 将程序打包成多个目录
+    pyinstaller -F -w -i 图标路径 文件名  # 将程序打包成一个目录 单py文件使用
+>>>>>>> Stashed changes
     ```
