@@ -10,3 +10,6 @@
     pip install Appium-Python-Client==0.41
     pip install selenium==4.0.0a1
     ```
+  - ```python
+    pyrcc5 test.ui –o test.py  # qrc 配置文件转py
+    ```
