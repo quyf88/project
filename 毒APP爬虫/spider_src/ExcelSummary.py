@@ -1,7 +1,7 @@
-import json
-import pandas
 import os
 import time
+import json
+import pandas
 
 
 class BigExcel:
@@ -33,7 +33,8 @@ class BigExcel:
         self.path = path
         try:
             os.mkdir(self.path)
-        except:
+        except Exception as e:
+            print(e)
             print("path {} has been exists!".format(self.path))
 
     def work_thead(self, time_name, k, v):
@@ -53,8 +54,9 @@ class BigExcel:
                         try:
                             price_list[0] = float(price_list[0])
                             new_list.append(price_list[0])
-                        except:
+                        except Exception as e:
                             str_list.append(price_list[0])
+                            print(e)
                     elif price_list[0].isdigit():
                         price_list[0] = int(price_list[0])
                         new_list.append(price_list[0])
@@ -70,11 +72,13 @@ class BigExcel:
             for key in i:
                 try:
                     i[key] = json.loads(i[key])
-                except:
+                except Exception as e:
+                    print(e)
                     pass
         try:
             brand_name = self.brand_dic[k]
-        except:
+        except Exception as e:
+            print(e)
             brand_name = k
         writer = pandas.ExcelWriter("{}/{}/{}.xlsx".format(self.path, time_name, brand_name))
         pdfrm = pandas.DataFrame(data=v)
