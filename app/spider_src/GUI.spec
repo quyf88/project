@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['GUI.py'],
-             pathex=['D:\\project\\¹Ø¼ü´ÊËÑË÷ÐÂÎÅ\\QT5'],
+             pathex=['D:\\project\\app\\spider_src'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -29,4 +29,4 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=False , icon='res\\maoyan.ico')
+          console=True )
