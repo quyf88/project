@@ -421,12 +421,12 @@ class Db:
                 f.write("{} {} {}".format("#idt", str(msg['productId']), str(e) + "\n"))
 
     def change_db_name(self):
-        """删除表detail_data 创建更新后的表 """
+        """删除表detail_data 修改表temp_table 为detail_data """
 
         conn, c = self.get_conn_c()
         sql_string = "DROP TABLE detail_data;"
         c.execute(sql_string)
-        sql_string = "alter table temp_table rename to detail_data;"
+        sql_string = "alter table temp_table rename to detail_data;"  # 修改表名
         c.execute(sql_string)
         conn.commit()
         c.close()
