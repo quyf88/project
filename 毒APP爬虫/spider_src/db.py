@@ -38,6 +38,7 @@ class Db:
     def connect_db(self):
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
+        # 对比中间表
         try:
             sql_string = '''CREATE TABLE diff_table
             (id Integer primary key AUTOINCREMENT ,
@@ -47,6 +48,7 @@ class Db:
         except Exception as e:
             self.my_log().exception(e)
             print("diff_data table exist!")
+        # 对比表 检测数据一致性
         try:
             sql_string = '''CREATE TABLE detail_data
             (id Integer primary key AUTOINCREMENT ,
@@ -68,6 +70,8 @@ class Db:
         except Exception as e:
             self.my_log().exception(e)
             print("detail_data table exist!")
+
+        # 主表
         try:
             sql_string = '''CREATE TABLE temp_table
             (id Integer primary key AUTOINCREMENT ,
@@ -244,6 +248,7 @@ class Db:
         return text
 
     def insert_detail(self, msg):
+        """ 写入数据库 所有数据 """
         try:
             data = msg['json_data']['data']
             result = {
@@ -338,8 +343,10 @@ class Db:
         """查询所有数据"""
 
         conn, c = self.get_conn_c()
-        sql = "SELECT * from detail_data;"
+        sql = "SELECT * FROM detail_data"
+
         dd = c.execute(sql)
+        print(dd.fetchone())
         data_list = []
         key_list = ["id", "name", "productId", "price", "size_list", "brand_id", "color", "articleNumber", "authPrice",
                     "sellDate", "exchangeDesc", "soldNum", "text_string", "img_list", "size_price"]
@@ -349,7 +356,6 @@ class Db:
                 try:
                     temp[key_list[i]] = json.loads(row[i])
                 except BaseException as e:
-                    self.my_log().exception(e)
                     temp[key_list[i]] = row[i]
             data_list.append(temp)
         c.close()
@@ -358,7 +364,8 @@ class Db:
         return data_list
 
     def insert_temp_table(self, msg):
-        conn, c = self.get_conn_c()
+        """ 数据写入 主表 """
+
         try:
             data = msg['json_data']['data']
             result = {
@@ -414,6 +421,8 @@ class Db:
                 f.write("{} {} {}".format("#idt", str(msg['productId']), str(e) + "\n"))
 
     def change_db_name(self):
+        """删除表detail_data 创建更新后的表 """
+
         conn, c = self.get_conn_c()
         sql_string = "DROP TABLE detail_data;"
         c.execute(sql_string)
@@ -424,6 +433,7 @@ class Db:
         conn.close()
 
     def delete_same(self):
+        """ 删除对比表"""
         conn, c = self.get_conn_c()
         sql_string = "delete from diff_table where rowid not in(select max(rowid) from diff_table group by productId)"
         c.execute(sql_string)
@@ -456,10 +466,11 @@ class Db:
                         change_diff_sql = "UPDATE diff_table SET diff = ? where productId = ?"
                         c.execute(change_diff_sql, [diff_data, productId])
                 except BaseException as e:
-                    # print(e)
-                    #  print("productID {} is not exists!".format(productId))
+                    print(e)
+                    print("productID {} is not exists!".format(productId))
                     pass
-            except BaseException as e:
+            except Exception as e:
+                print(e)
                 print("* {}".format(row))
 
         conn.commit()
