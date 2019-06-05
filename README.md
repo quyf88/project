@@ -12,4 +12,8 @@
     ```
   - ```python
     pyrcc5 test.ui –o test.py  # qrc 配置文件转py
+    
+    pyinstaller -F 文件  # 打包成一个exe
+    
+    pyisntaller -D -w -i logo文件 py文件  # 打包成一个文件夹
     ```
