@@ -46,7 +46,6 @@ class Db:
             diff int NOT NULL);'''
             c.execute(sql_string)
         except Exception as e:
-            self.my_log().exception(e)
             print("diff_data table exist!")
         # 对比表 检测数据一致性
         try:
@@ -68,7 +67,6 @@ class Db:
             size_price CHAR(300));'''
             c.execute(sql_string)
         except Exception as e:
-            self.my_log().exception(e)
             print("detail_data table exist!")
 
         # 主表
@@ -91,7 +89,6 @@ class Db:
             size_price CHAR(300));'''
             c.execute(sql_string)
         except Exception as e:
-            self.my_log().exception(e)
             print("temp_table table exist!")
         c.close()
         conn.commit()
@@ -346,7 +343,7 @@ class Db:
         sql = "SELECT * FROM detail_data"
 
         dd = c.execute(sql)
-        print(dd.fetchone())
+
         data_list = []
         key_list = ["id", "name", "productId", "price", "size_list", "brand_id", "color", "articleNumber", "authPrice",
                     "sellDate", "exchangeDesc", "soldNum", "text_string", "img_list", "size_price"]

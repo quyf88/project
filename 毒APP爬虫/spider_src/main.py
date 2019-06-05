@@ -14,9 +14,9 @@ from collections import OrderedDict
 from twisted.internet import iocpreactor
 
 
-from app.spider_src import db
-from app.spider_src import config
-from app.spider_src import frozen
+from 毒APP爬虫.spider_src import db
+from 毒APP爬虫.spider_src import config
+from 毒APP爬虫.spider_src import frozen
 
 # iocpreactor.install()
 requests.packages.urllib3.disable_warnings()
@@ -342,7 +342,7 @@ class Poison_spider:
         """多线程  写入数据库"""
         img_src = self.parse_html_img(item_msg['data']['imageAndText']) + self.get_json_img(item_msg)
         msg = {"productId": item_msg['data']['detail']['productId'], "json_data": item_msg, "img_list": img_src}
-        if self.config.is_first:
+        if not self.config.go_img:
             self.db.insert_detail(msg)
             self.db.insert_temp_table(msg)
             # await self.img_downloader(current_path, img_src, loop)
@@ -355,12 +355,12 @@ class Poison_spider:
         """多线程 xlsx文档写入"""
 
         try:
-            print("{} EXCEL WRITing....".format(path))
+            print("EXCEL WRITing:{}".format(path))
             excel_writer = pandas.ExcelWriter(path)
             pdfrm = pandas.DataFrame(data=msg)
             pdfrm.to_excel(excel_writer)
             excel_writer.save()
-            print("{} EXCEL WRITE OVER!".format(path))
+            print("EXCEL WRITE OVER: {}".format(path))
             del excel_writer
             del pdfrm
         except Exception as e:
@@ -549,7 +549,7 @@ def make_thead(poison, brand):
                 break
         for detail_list in split_list:
             # 设置并发量 TODO
-            sem = asyncio.Semaphore(5)
+            sem = asyncio.Semaphore(10)
             # ensure_future 创建task对象
             coros = [asyncio.ensure_future(poison.run(brand_name, item, loop, sem)) for item in detail_list]
             loop.run_until_complete(asyncio.gather(*coros))
@@ -566,7 +566,7 @@ def init_lock(l):
 
 
 def run(conf):
-    with open("数据生成日期.txt", "a+", encoding="utf-8") as f:
+    with open("数据生成时间日志.txt", "a+", encoding="utf-8") as f:
         f.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())))
         f.write("\n")
 
@@ -582,7 +582,7 @@ def run(conf):
     pool.close()
     pool.join()
 
-    # 数据库连接
+    # 数据对比
     print("now is compare two table....")
     poison.db.compare_table()
     poison.db.change_db_name()

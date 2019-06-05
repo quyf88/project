@@ -90,7 +90,7 @@ class BigExcel:
 
         all_data = {}
         for i in data:
-            # all_data['all_data'].append(i)
+
             if str(i['brand_id']) not in all_data:
                 all_data[str(i['brand_id'])] = [i]
             else:
