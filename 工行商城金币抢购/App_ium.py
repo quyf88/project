@@ -17,7 +17,7 @@ from appium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-"""新闻自动点击刷金币"""
+"""融e购商城"""
 
 
 def run_time(func):
@@ -31,70 +31,105 @@ def run_time(func):
 
     return new_func
 
-
-class News:
-    def __init__(self):
-        self.desired_caps = {
-              # "automationName": "uiautomator2",  # 引擎
+desired_caps = {
+              "automationName": "uiautomator2",  # 引擎
               "platformName": "Android",
-              "deviceName": "OS105",
+              "deviceName": "127.0.0.1:62001",
               "appPackage": "com.icbc.emallmobile",
               "appActivity": "com.icbc.ui.activiy.WelcomePageActivity",
               "noReset": True,
-              # "platformVersion": "5.1.1"  # 模拟器版本号
+              "platformVersion": "5.1.1"  # 模拟器版本号
             }
-        self.driver_server = 'http://127.0.0.1:4723/wd/hub'
-        print('APP启动...')
-        # 启动APP
-        self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
-        # 设置等待
-        self.wait = WebDriverWait(self.driver, 30, 1)
+driver_server = 'http://127.0.0.1:4723/wd/hub'
+print('APP启动...')
+# 启动APP
+driver = webdriver.Remote(driver_server, desired_caps)
+# 设置等待
+wait = WebDriverWait(driver, 30, 0.5)
 
-    @run_time
-    def loop_look(self):
-        time.sleep(6)  # 等待广告关闭
-        try:
-            print("关闭弹窗")
-            self.driver.keyevent(4)
-            print("切换到热点栏目")
-            self.driver.swipe(800, 500, 300, 500, 500)
-            while True:
-                print("————————刷新页面中————————")
-                news = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'cn.youth.news:id/lr_more_article')))
-                len_news = 1
-                print("获取到：{}条新闻".format(len(news)))
-                for new in news:
-                    time.sleep(0.5)
-                    print("读取第：{}条新闻中...".format(len_news))
-                    new.click()
+time.sleep(8)
+# 进入工银金行家
+secondary_page_xpath = '//*[@resource-id="com.icbc.emallmobile:id/ll_platform"]/android.widget.TableRow[1]/android.widget.LinearLayout[4]'
+secondary_page = wait.until(EC.presence_of_element_located((By.XPATH, secondary_page_xpath)))
+secondary_page.click()
 
-                    count = 0
-                    while True:
-                        fang = True
-                        time.sleep(2)
-                        self.driver.swipe(500, 1200, 500, 1050, 1000)
-                        time.sleep(2)
-                        count += 1
-                        if count == 15:
-                            fang = False
-                        if fang is False:
-                            self.driver.keyevent(4)
-                            break
-                    print("第：{}条新闻读取完毕...".format(len_news))
-                    print("-" * 15)
-                    len_news += 1
+# 进入邮币馆
+postal_hall_id = 'com.icbc.emallmobile:id/sdv_ad'
+postal_hall = wait.until(EC.presence_of_element_located((By.ID, postal_hall_id)))
+postal_hall.click()
+print(driver.contexts)
 
-                print("当前屏幕读取完成,刷新下一屏")
-                print("*" * 30)
-                self.driver.swipe(500, 1800, 500, 500, 800)
-        except Exception as e:
-            print(e)
-            winsound.Beep(500, 1000)  # 提示音
-            self.driver.keyevent(4)
-            self.driver.swipe(500, 1800, 500, 500, 800)
-            self.loop_look()
+# 识别webview
+time.sleep(8)
+for i in driver.contexts:
+    if i == 'WEBVIEW_com.icbc.emallmobile':
+        while True:
+            try:
+                driver.switch_to.context(i)
+                now = driver.current_context
+                print('进入', now)
+                break
+            except Exception as e:
+                print(e)
+                continue
+        break
+    else:
+        continue
+
+# 进入商品详情页
+commodity_xpath = "//*[@id=\"sale1\"]/ul/li[1]"
+secondary_page = wait.until(EC.presence_of_element_located((By.XPATH, commodity_xpath)))
+secondary_page.click()
+
+# 切换为原生状态
+driver.switch_to.context("NATIVE_APP")
+print('进入', driver.current_context)
+
+# 选择商品规格
+home_buy_id = "com.icbc.emallmobile:id/comm_right_to_buy_tv"
+home_buy = wait.until(EC.presence_of_element_located((By.ID, home_buy_id)))
+home_buy.click()
+print('点击立即购买')
+
+# 获取所有商品规格
+text = '金银套（8克金+30克银*3）'
+option_id = "com.icbc.emallmobile:id/radio_color"
+option_list = wait.until(EC.presence_of_all_elements_located((By.ID, option_id)))
+for option in option_list:
+    print(option.get_attribute("text"))
+    if option.get_attribute("text") == text:
+        option.click()
+        break
+    else:
+        continue
+
+# 立即购买
+popup_buy_id = "com.icbc.emallmobile:id/text_sku_gotobuy"
+popup_buy = wait.until(EC.presence_of_element_located((By.ID, popup_buy_id)))
+popup_buy.click()
 
 
-if __name__ == '__main__':
-    loop = News()
-    loop.loop_look()
+# 提交订单 H5
+print(driver.contexts)
+for i in driver.contexts:
+    if i == 'WEBVIEW_com.vphone.launcher':
+        while True:
+            try:
+                driver.switch_to.context(i)
+                now = driver.current_context
+                print('进入', now)
+                break
+            except Exception as e:
+                print(e)
+                continue
+        break
+    else:
+        continue
+
+submit_id = "submit"
+submit = wait.until(EC.presence_of_element_located((By.ID, submit_id)))
+submit.click()
+
+# 获取当前页面HTML代码
+# html = driver.find_element_by_xpath("//*").get_attribute("outerHTML")
+# print(html)
