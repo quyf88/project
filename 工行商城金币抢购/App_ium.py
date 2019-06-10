@@ -11,7 +11,6 @@
 # @File    : 中青看点.py
 # @Software: PyCharm
 import time
-import winsound
 from datetime import datetime
 from appium import webdriver
 from selenium.webdriver.common.by import By
@@ -75,6 +74,12 @@ for i in driver.contexts:
         break
     else:
         continue
+time.sleep(1)
+
+# 切换二级目录
+# ppp_xpa = '//div[@id="LoutiNav"]/ul/li[2]'
+# pp = wait.until(EC.presence_of_element_located((By.XPATH, ppp_xpa)))
+# pp.click()
 
 # 进入商品详情页
 commodity_xpath = "//*[@id=\"sale1\"]/ul/li[1]"
@@ -84,6 +89,8 @@ secondary_page.click()
 # 切换为原生状态
 driver.switch_to.context("NATIVE_APP")
 print('进入', driver.current_context)
+
+time.sleep(2)
 
 # 选择商品规格
 home_buy_id = "com.icbc.emallmobile:id/comm_right_to_buy_tv"
@@ -109,7 +116,7 @@ popup_buy = wait.until(EC.presence_of_element_located((By.ID, popup_buy_id)))
 popup_buy.click()
 
 
-# 提交订单 H5
+# 提交订单 H5页面
 print(driver.contexts)
 for i in driver.contexts:
     if i == 'WEBVIEW_com.vphone.launcher':
@@ -126,10 +133,60 @@ for i in driver.contexts:
     else:
         continue
 
-submit_id = "submit"
-submit = wait.until(EC.presence_of_element_located((By.ID, submit_id)))
-submit.click()
-
+time.sleep(4)
 # 获取当前页面HTML代码
 # html = driver.find_element_by_xpath("//*").get_attribute("outerHTML")
 # print(html)
+print('dengdai ')
+
+# 发票
+# a_xpath = '//div[@class="cols011"]'
+# a_list = driver.find_elements_by_xpath(a_xpath)
+# a_list = wait.until(EC.presence_of_all_elements_located((By.XPATH, a_xpath)))
+# a_list[4].click()
+a_id = wait.until(EC.presence_of_element_located((By.ID, 'invoiceHeadCommit')))
+a_id.click()
+
+# 发票类型
+commoninvoice = wait.until(EC.presence_of_element_located((By.ID, 'commoninvoice')))
+commoninvoice.click()
+# 发票抬头
+personal = wait.until(EC.presence_of_element_located((By.ID, 'personal')))
+personal.click()
+# 发票内容
+invoiceDetail_xpath = '//div[@id="invoiceDetail"]/a'
+invoiceDetail = wait.until(EC.presence_of_element_located((By.XPATH, invoiceDetail_xpath)))
+invoiceDetail.click()
+
+time.sleep(2)
+xxx = "//div[@id='invoiceDetail']/following-sibling::div[1]/a/span"
+aaa = wait.until(EC.presence_of_element_located((By.XPATH, xxx)))
+aaa.click()
+
+time.sleep(2)
+# 提交订单
+# submit_id = "submitOrderBtn"
+# submit = wait.until(EC.presence_of_element_located((By.ID, submit_id)))
+# submit.click()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
