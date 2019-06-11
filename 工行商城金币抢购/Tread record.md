@@ -47,3 +47,20 @@ Solution:
 
 """
 ```
+```python
+
+"""
+# 获取当前页面HTML代码
+html = driver.find_element_by_xpath("//*").get_attribute("outerHTML")
+print(driver)
+# 匹配页面中a标签下所有href 替换链接地址
+pattern = re.compile(r'<a href="([a-zA-z]+://[^\s]*)"')
+b = pattern.findall(html)
+out = re.sub(pattern, 'https://mall.icbc.com.cn/products/pd_9000869792.jhtml', html)
+print(out)
+
+# 滑动屏幕
+# touchaction = TouchAction(driver)
+# touchaction.press(x=500, y=1500).move_to(x=500, y=200).wait(500).release().perform()
+"""
+```
