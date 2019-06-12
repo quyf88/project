@@ -36,7 +36,6 @@ class Spider:
         self.wait = WebDriverWait(self.driver, 20)
         self.driver.maximize_window()
 
-
     def main(self):
         # 登录
         self.login_by_scan()
