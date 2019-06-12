@@ -3,10 +3,11 @@
 # @Author  : project
 # @File    : App_ium.py
 # @Software: PyCharm
-
+import os
 import time
-from datetime import datetime
+import configparser
 from appium import webdriver
+from datetime import datetime
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from appium.webdriver.common.touch_action import TouchAction
@@ -104,17 +105,17 @@ class PanicBuying:
             try:
                 # 正常价格
                 price_id = 'com.icbc.emallmobile:id/goods_detail_price'
-                price = WebDriverWait(self.driver, 3, 0.5).until(EC.presence_of_element_located((By.ID, price_id)))
+                price = WebDriverWait(self.driver, 2, 0.5).until(EC.presence_of_element_located((By.ID, price_id)))
                 print("商品价格：{}".format(price.get_attribute("text")))
             except Exception as e:
                 # 带下划线价格
                 price_id = 'com.icbc.emallmobile:id/tv_time_detail_price'
-                price = WebDriverWait(self.driver, 3, 0.5).until(EC.presence_of_element_located((By.ID, price_id)))
+                price = WebDriverWait(self.driver, 2, 0.5).until(EC.presence_of_element_located((By.ID, price_id)))
                 print("商品价格：{}".format(price.get_attribute("text")))
             try:
                 # 立即购买
                 status_id = 'com.icbc.emallmobile:id/comm_right_to_buy_tv'
-                status = self.wait.until(EC.presence_of_element_located((By.ID, status_id)))
+                status = WebDriverWait(self.driver, 2, 0.5).until(EC.presence_of_element_located((By.ID, status_id)))
                 status.click()
                 break
             except Exception as e:
@@ -123,9 +124,10 @@ class PanicBuying:
                 # status = WebDriverWait(self.driver, 3, 0.5).until(EC.presence_of_element_located((By.ID, status_id)))
 
                 # 活动倒计时
-                start_time = 'com.icbc.emallmobile:id/tv_start_time'
-                start = self.wait.until(EC.presence_of_element_located((By.ID, start_time)))
-                print("抢购暂未开始!", start.get_attribute("text"))
+                # start_time = 'com.icbc.emallmobile:id/tv_start_time'
+                # start = self.wait.until(EC.presence_of_element_located((By.ID, start_time)))
+                # print("抢购暂未开始!", start.get_attribute("text"))
+                print("抢购暂未开始!")
                 # TODO 活动倒计时计算
                 self.driver.keyevent(4)
 
@@ -194,10 +196,29 @@ class PanicBuying:
         # # submit = wait.until(EC.presence_of_element_located((By.ID, submit_id)))
         # # submit.click()
 
+    def red_config(self):
+        cf = configparser.ConfigParser()
+        path = os.path.abspath('.') + '\config\config.ini'
+        cf.read(path, encoding='utf-8')
+        column_id = cf.get('brower', 'column_id')
+        commodity_ID = cf.get('brower', 'commodity_ID')
+        norm = cf.get('brower', 'norm')
+        amt = cf.get('brower', 'amt')
+
+        # workbook = load_workbook(path)
+        # sheet = workbook["Sheet1"]
+        # column_id = sheet.cell(3, 1).value
+        # commodity_ID = sheet.cell(3, 2).value
+        # norm = sheet.cell(3, 3).value
+        # amt = sheet.cell(3, 4).value
+        # workbook.close()
+        return column_id, commodity_ID, norm, amt
+
     @run_time
     def run(self):
+        column_id, commodity_ID, norm, amt = self.red_config()
         self.postal_hall()
-        self.submit_order(1, 9, '银币套（30克银*3）', 1)  # TODO 配置文件
+        self.submit_order(column_id, commodity_ID, norm, amt)
         self.confirm_order()
 
 
