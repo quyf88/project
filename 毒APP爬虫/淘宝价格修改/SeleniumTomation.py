@@ -18,6 +18,7 @@ class Spider:
         self.log = self.init_log()
         self.log.info("程序启动中...请输入针对所有商品进行加减价的具体金额:(如不需修改请写'0')")
         self.edit_count = 0
+        self.counts = 0
         self.good_ids = []
         self.goods_urls = {}
         self.size_price_dict = {}
@@ -48,7 +49,7 @@ class Spider:
             spend = (end - start) // 60
             self.log.info("所有商品更新完成")
             self.log.info("总计更新{}条商品信息,耗时：{}分钟".format(self.edit_count, spend))
-            self.driver.quit()
+
         except:
             traceback.print_exc()
             self.log.debug("程序出现异常,请联系开发者")
@@ -116,6 +117,11 @@ class Spider:
         total_page = int(self.total_page_num)
         total_page = total_page + 1
         for i in range(1, total_page):
+            # 点击下一页
+            if i > 1:
+                next_page = self.driver.find_elements_by_xpath(
+                    '//*[@class="next-btn next-btn-normal next-btn-medium next-pagination-item next"]')
+                next_page[0].click()
             # 产品ID
             trs = self.driver.find_elements_by_class_name("list-table-desc-extend-cell")
             for tr in trs:
@@ -130,11 +136,6 @@ class Spider:
                     self.edit_min_price(key)
                     time.sleep(2)
                     break
-            # 点击下一页
-            if total_page > 2:
-                next_page = self.driver.find_element_by_class_name(
-                    'next-btn next-btn-normal next-btn-medium next-pagination-item next')
-                next_page.click()
 
     def get_other_page_urls(self, total_page):
         """获取所有页面商品url"""
@@ -225,62 +226,71 @@ class Spider:
         """修改商品价格"""
         all_price = []
         count = 0
+
         # 定位隐藏属性
-        mouse = self.driver.find_element_by_xpath('//tr[@class="next-table-row last first"]')
-        ActionChains(self.driver).move_to_element(mouse).perform()
-        self.driver.find_elements_by_xpath('//i[@class="next-icon next-icon-edit2 next-icon-small table-cell-edit-icon"]')[0].click()
+        time.sleep(3)
+        mouses = self.driver.find_elements_by_xpath('//div[@class="list-table-desc-extend-cell"]')
+        for mouse in mouses:
+            gsid = re.search(r'编码:(.*)', mouse.text).group().replace('编码:', '')
+            if gsid == key:
+                ActionChains(self.driver).move_to_element(mouse).perform()
+                self.driver.find_elements_by_xpath('//i[@class="next-icon next-icon-edit2 next-icon-small table-cell-edit-icon"]')[self.counts].click()
 
-        # 尺码
-        SKUS = self.driver.find_elements_by_xpath('//*[@class="next-table-cell first"]')
-        # 价格
-        input_box = self.driver.find_elements_by_xpath('//td[@class="next-table-cell last"]/div/div/div/span/span//span/input')
-        original_price = str(input_box[count].get_attribute("value")).replace(".00", "")
-        # excel 价目表
-        price_dict = self.size_price_dict[key]
+                time.sleep(3)
+                # 尺码
+                SKUS = self.driver.find_elements_by_xpath('//*[@class="next-table-cell first"]')
+                # 价格
+                input_box = self.driver.find_elements_by_xpath('//td[@class="next-table-cell last"]/div/div/div/span/span//span/input')
+                original_price = str(input_box[count].get_attribute("value")).replace(".00", "")
+                # excel 价目表
+                price_dict = self.size_price_dict[key]
 
-        for size in SKUS:
-            size = size.text
-            if size not in price_dict.keys():
-                self.log.info("商品编号：{} 尺码：{}==》原价：{} 未匹配到excel中的数据,不做修改".format(key, size, original_price))
-                continue
-            if self.in_add_price:
-                edit_value = int(price_dict[size]) + self.in_add_price
+                for size in SKUS:
+                    size = str(size.text).split('/')[-1]
+
+                    if size not in price_dict.keys():
+                        self.log.info("商品编号：{} 尺码：{}==》原价：{} 未匹配到excel中的数据,不做修改".format(key, size, original_price))
+                        continue
+                    if self.in_add_price:
+                        edit_value = int(price_dict[size]) + self.in_add_price
+                    else:
+                        edit_value = price_dict[size]
+                    input_box[count].send_keys(Keys.CONTROL, 'a')
+                    time.sleep(0.2)
+                    input_box[count].send_keys(Keys.BACK_SPACE)
+                    time.sleep(0.2)
+
+                    input_box[count].send_keys(edit_value)
+                    self.log.info('修改成功：商家编码[{}], 尺码[{}]，初始金额[{}]，Excel金额[{}], 增减金额[{}], '
+                                  '修改后金额[{}]'.format(key, size, original_price, price_dict[size], self.in_add_price, edit_value))
+                    # self.log.info("商品编号：{} 尺码：{} 原价 ：{} 修改为==》{}".format(key, size, original_price, edit_value))
+                    # edit_value = str(edit_value).replace(".00", "")
+                    all_price.append(int(edit_value))
+                    count += 1
+                list.sort(all_price)
+
+                min_price = all_price[0]
+                # 一口价
+                price = self.driver.find_element_by_xpath('//*[@name="price"]')
+                price_str = str(price.get_attribute("value")).replace('.00', '')
+                price.send_keys(Keys.CONTROL, 'a')
+                time.sleep(0.2)
+                price.send_keys(Keys.BACK_SPACE)
+                time.sleep(0.2)
+                price.send_keys(min_price)
+                self.log.info("商品编号：{} 一口价修改 {}==》{}".format(key, price_str, min_price))
+                time.sleep(1)
+
+                # 提交
+                submit_btn = self.driver.find_elements_by_xpath('//*[@class="next-btn next-btn-normal next-btn-medium"]')
+                time.sleep(0.5)
+                submit_btn[0].click()
+                time.sleep(1)
+
+                self.edit_count = self.edit_count + 1
+                self.counts += 2
             else:
-                edit_value = price_dict[size]
-            input_box[count].send_keys(Keys.CONTROL, 'a')
-            time.sleep(0.2)
-            input_box[count].send_keys(Keys.BACK_SPACE)
-            time.sleep(0.2)
-
-            input_box[count].send_keys(edit_value)
-            self.log.info('修改成功：商家编码[{}], 尺码[{}]，初始金额[{}]，Excel金额[{}], 增减金额[{}], '
-                          '修改后金额[{}]'.format(key, size, original_price, price_dict[size], self.in_add_price, edit_value))
-            # self.log.info("商品编号：{} 尺码：{} 原价 ：{} 修改为==》{}".format(key, size, original_price, edit_value))
-            # edit_value = str(edit_value).replace(".00", "")
-            all_price.append(int(edit_value))
-            count += 1
-        list.sort(all_price)
-
-        min_price = all_price[0]
-        # 一口价
-        price_xpath = '//*[@id="dialog-body-1"]/div/div/div/div/div/div[2]/div[2]/div/div/span/span/span[1]/span/input'
-        price = self.driver.find_element_by_xpath(price_xpath)
-        price_str = str(price.get_attribute("value")).replace('.00', '')
-        price.send_keys(Keys.CONTROL, 'a')
-        time.sleep(0.2)
-        price.send_keys(Keys.BACK_SPACE)
-        time.sleep(0.2)
-        price.send_keys(min_price)
-        self.log.info("商品编号：{} 一口价修改 {}==》{}".format(key, price_str, min_price))
-        time.sleep(1)
-
-        # 提交
-        submit_btn = self.driver.find_element_by_xpath('//*[@id="dialog-footer-2"]/div/button[1]')
-        time.sleep(0.5)
-        submit_btn.click()
-        time.sleep(1)
-
-        self.edit_count = self.edit_count + 1
+                continue
 
 
 if __name__ == '__main__':
