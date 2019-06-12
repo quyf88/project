@@ -5,6 +5,7 @@ import time
 import logging
 import openpyxl
 import traceback
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
@@ -35,21 +36,23 @@ class Spider:
         self.wait = WebDriverWait(self.driver, 20)
         self.driver.maximize_window()
 
+
     def main(self):
         # 登录
         self.login_by_scan()
         try:
-            start = time.time()
+            start_time = datetime.now()
+            self.log.info("程序开始时间：{}".format(start_time))
             # 获取在售商品信息
             self.get_goods_urls()
             # 在售商品匹配excel表格数据
             self.read_excel()
             self.edit()
-            end = time.time()
-            spend = (end - start) // 60
+            end_time = datetime.now()
             self.log.info("所有商品更新完成")
-            self.log.info("总计更新{}条商品信息,耗时：{}分钟".format(self.edit_count, spend))
-
+            self.log.info("总计更新{}条商品信息".format(self.edit_count))
+            self.log.info("程序结束时间：{}".format(end_time))
+            self.log.info("程序执行用时：{}s".format((end_time - start_time)))
         except:
             traceback.print_exc()
             self.log.debug("程序出现异常,请联系开发者")
