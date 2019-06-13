@@ -17,4 +17,11 @@
 #### js 获取当前页面HTML
 html = self.driver.execute_script("return document.documentElement.outerHTML")
 print(html)
+
+
+#### 翻页后获取不到元素
+# 翻页后刷新一下页面 在定位
+driver.refresh()
+
+# 如果是在页面底部翻页获取不到元素的话
 ```

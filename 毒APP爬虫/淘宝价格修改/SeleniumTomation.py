@@ -29,6 +29,8 @@ class Spider:
         self.page_nums = None
         # 商品总数
         self.good_nums = None
+        # 价格修改按钮
+        self.counts = 0
         # 在售商品和表格成功匹配的数据 商品编码：尺寸价格
         self.size_price_dict = {}
 
@@ -61,15 +63,24 @@ class Spider:
                 self.log.info("当前进入第：{}页，共：{}页".format(page_num, self.page_nums))
                 # 点击下一页
                 if page_num > 1:
-                    next_page = self.driver.find_elements_by_xpath(
-                        '//*[@class="next-btn next-btn-normal next-btn-medium next-pagination-item next"]')
-                    next_page[0].click()
-                # 获取当前页面商品编码
-                self.get_gdis()
-                # 当前页面在售商品匹配excel表格数据
-                self.read_excel()
-                # 修改商品价格
+                    url = 'https://item.publish.taobao.com/taobao/manager/render.htm?pagination.current={}&pagination.pageSize=20&tab=on_sale'.format(page_num)
+                    self.driver.get(url)
+                    # next_page = self.driver.find_elements_by_xpath(
+                    #     '//*[@class="next-btn next-btn-normal next-btn-medium next-pagination-item next"]')
+                    # next_page[0].click()
+
+                    # 初始化 商品编码列表
+                    self.good_ids = []
+                    # 初始化 在售商品和表格成功匹配的数据 商品编码：尺寸价格
+                    self.size_price_dict = {}
+                    # 初始化 价格修改按钮
+                    self.counts = 0
+                    # 页面刷新
+                    # self.driver.refresh()
+                    time.sleep(2)
+
                 self.edit()
+
             end_time = datetime.now()
             self.log.info("所有商品更新完成")
             self.log.info("总计更新{}条商品信息".format(self.edit_count))
@@ -105,8 +116,8 @@ class Spider:
         if goods_num is None:
             self.log.info("获取出售中的商品数量失败")
             return None
-        self.good_nums = goods_num
-        self.log.info("出售中的商品数量：{}".format(goods_num))
+        self.good_nums = goods_num.group()
+        self.log.info("出售中的商品数量：{}".format(goods_num.group()))
 
         # 在售商品总页数
         page_num_xpath = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="pagination-toolbar"]/div[2]/div/span')))
@@ -123,48 +134,55 @@ class Spider:
 
         trs = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="list-table-desc-extend-cell"]')))
         for tr in trs:
-            tr_num = re.search(r'编码:(.*)', tr.text)
-            if tr_num is None:
-                continue
-            gsid = tr_num.group().replace('编码:', '')
-            self.good_ids.append(gsid)
+            try:
+                tr_num = re.search(r'编码:(.*)', tr.text)
+                gsid = tr_num.group().replace('编码:', '')
+                self.good_ids.append(gsid)
+            except Exception as e:
+                tr_id = re.search(r'ID:(.*)', tr.text)
+                self.log.error("获取商品编码失败：{}".format(tr_id.group()))
 
         if len(self.good_ids) == 0:
             self.log.info("没有获取到有效的商品编码")
             return None
-        self.log.info("当前页面共获取到有效编码：{},获取失败：{}".format(len(self.good_ids), len(self.good_ids) - int(self.page_nums)))
+        self.log.info("当前页面共获取到有效编码：{}".format(len(self.good_ids)))
+        self.read_excel()
+
+        return trs
 
     def edit(self):
-        """        修改商品价格        """
-        counts = 0
+        """修改商品价格"""
+
         good_ids = []
-        trs = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="list-table-desc-extend-cell"]')))
+        trs = self.get_gdis()
+
         for tr in trs:
-            tr_num = re.search(r'编码:(.*)', tr.text)
-            try:
-                gsid = tr_num.group().replace('编码:', '')
-                for key in self.size_price_dict.keys():
-                    if str(gsid) != key:
-                        continue
+            gsids = re.findall(r'编码:(.*)', tr.text)
+            if not len(gsids):
+                self.counts += 2
+                continue
 
-                    # 定位隐藏属性
-                    ActionChains(self.driver).move_to_element(tr).perform()
-                    amend_xpath = '//i[@class="next-icon next-icon-edit2 next-icon-small table-cell-edit-icon"]'
-                    amend = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, amend_xpath)))
-                    time.sleep(1)
-                    amend[counts].click()
+            for key in self.size_price_dict.keys():
+                if str(gsids[0]) != key:
+                    continue
 
-                    time.sleep(2)
-                    self.log.info("\n\n开始修改商品：{}".format(key))
-                    self.edit_min_price(key)
-                    time.sleep(2)
-                    good_ids.append(key)
-                    break
-            except Exception as e:
-                self.log.info("商品编码有误跳过：{}".format(e))
+                # 定位隐藏属性
+                ActionChains(self.driver).move_to_element(tr).perform()
+                amend_xpath = '//i[@class="next-icon next-icon-edit2 next-icon-small table-cell-edit-icon"]'
+                amend = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, amend_xpath)))
+                print(amend[self.counts].is_displayed())
+                amend[self.counts].click()
 
-            counts += 2
+                time.sleep(2)
+                self.log.info("\n\n开始修改商品：{}".format(key))
+                self.edit_min_price(key)
+                time.sleep(2)
+                good_ids.append(key)
+                break
 
+            self.counts += 2
+        ActionChains(self.driver).move_to_element(self.driver.find_element_by_id('qn-workbench-head')).perform()
+        time.sleep(10)
         self.log.info("出售中的商品匹配到Excel中的编号：{}".format(good_ids))
 
     def read_excel(self):
