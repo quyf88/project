@@ -97,7 +97,7 @@ class Poison_spider:
         self.db = db.Db('test.db')
 
         try:
-            os.mkdir("res")
+            os.mkdir("reson")
         except:
             pass
 
@@ -303,7 +303,7 @@ class Poison_spider:
             with (await sem):
                 async with ClientSession(loop=loop, headers=self.header, cookies=self.cookie) as session:
                     item_msg = await self.fetch_json(session, item['productId'])
-            current_path = "res/{}/{}".format(brand_name, self.save_file_name(item_msg['data']['detail']['title']))
+            current_path = "reson/{}/{}".format(brand_name, self.save_file_name(item_msg['data']['detail']['title']))
 
             # 效验文件 是否存在 TODO
             if not os.path.isdir(current_path):
@@ -527,9 +527,9 @@ def make_thead(poison, brand):
     detail_list = poison.get_one_detail_all(brand_id, 0, 0)
 
     # TODO 效验文件是否存在
-    if not os.path.isdir("res/{}".format(brand_name)):
-        os.mkdir("res/{}".format(brand_name))
-        print("Created successfully：res/{}!".format(brand_name))
+    if not os.path.isdir("reson/{}".format(brand_name)):
+        os.mkdir("reson/{}".format(brand_name))
+        print("Created successfully：reson/{}!".format(brand_name))
 
     # 创建一个新的事件循环
     loop = asyncio.new_event_loop()

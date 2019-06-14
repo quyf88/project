@@ -34,7 +34,10 @@ class Spider:
         # 在售商品和表格成功匹配的数据 商品编码：尺寸价格
         self.size_price_dict = {}
 
+        # 增减价
         self.in_add_price = None
+        # 运行间隔时间
+        self.remove_time = None
         chrome_options = Options()
         desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
         desired_capabilities["pageLoadStrategy"] = "none"  # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
@@ -47,45 +50,43 @@ class Spider:
         self.wait = WebDriverWait(self.driver, 30, 0.5)
         self.driver.maximize_window()
 
-    def main(self):
+    def main(self, price, remove_time):
+        self.in_add_price = int(price)
+        self.remove_time = int(remove_time)
         # 登录
-        self.in_add_price = int(input("输入金额：(减价'-')"))
         self.login_by_scan()
         try:
             start_time = datetime.now()
             self.log.info("程序开始时间：{}".format(start_time))
             # 获取在售商品信息
             self.get_total_page()
+            # 获取所有在售商品编码
+            self.get_gdis()
 
             # 开始主循环
             page_nums = int(self.page_nums) + 1
             for page_num in range(1, page_nums):
-                self.log.info("当前进入第：{}页，共：{}页".format(page_num, self.page_nums))
-                # 点击下一页
+                self.log.info("开始修改第：{}页，共：{}页".format(page_num, self.page_nums))
+                url = 'https://item.publish.taobao.com/taobao/manager/render.htm?pagination.current={}&pagination.pageSize=20&tab=on_sale'.format(
+                    page_num)
+                self.driver.get(url)
+                # 进入下一页初始化价格修改位置按钮
                 if page_num > 1:
-                    url = 'https://item.publish.taobao.com/taobao/manager/render.htm?pagination.current={}&pagination.pageSize=20&tab=on_sale'.format(page_num)
-                    self.driver.get(url)
-                    # next_page = self.driver.find_elements_by_xpath(
-                    #     '//*[@class="next-btn next-btn-normal next-btn-medium next-pagination-item next"]')
-                    # next_page[0].click()
-
-                    # 初始化 商品编码列表
-                    self.good_ids = []
-                    # 初始化 在售商品和表格成功匹配的数据 商品编码：尺寸价格
-                    self.size_price_dict = {}
-                    # 初始化 价格修改按钮
                     self.counts = 0
-                    # 页面刷新
-                    # self.driver.refresh()
-                    time.sleep(2)
-
                 self.edit()
+                # # 初始化 商品编码列表
+                # self.good_ids = []
+                # # 初始化 在售商品和表格成功匹配的数据 商品编码：尺寸价格
+                # self.size_price_dict = {}
+                # 页面刷新
+                # self.driver.refresh()
 
             end_time = datetime.now()
             self.log.info("所有商品更新完成")
             self.log.info("总计更新{}条商品信息".format(self.edit_count))
             self.log.info("程序结束时间：{}".format(end_time))
             self.log.info("程序执行用时：{}s".format((end_time - start_time)))
+            self.driver.close()
         except:
             traceback.print_exc()
             self.log.debug("程序出现异常,请联系开发者")
@@ -103,7 +104,7 @@ class Spider:
                 break
             else:
                 self.log.info("等待扫码中...")
-                time.sleep(2)
+                time.sleep(5)
 
     def get_total_page(self):
         """获取在售商品 总数 总页数 商品编码"""
@@ -130,60 +131,72 @@ class Spider:
         self.log.info("出售中的商品总页数：{}".format(page_num))
 
     def get_gdis(self):
-        """获取在售商品编码"""
+        """获取所有在售商品编码"""
+        gsid_num = 0
+        page_nums = int(self.page_nums) + 1
+        for page_num in range(1, page_nums):
+            if page_num > 1:
+                url = 'https://item.publish.taobao.com/taobao/manager/render.htm?pagination.current={}&pagination.pageSize=20&tab=on_sale'.format(page_num)
+                self.driver.get(url)
+            self.log.info("获取第：{}页商品编码，共：{}页".format(page_num, self.page_nums))
+            trs = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="list-table-desc-extend-cell"]')))
+            for tr in trs:
+                try:
+                    tr_num = re.search(r'编码:(.*)', tr.text)
+                    gsid = tr_num.group().replace('编码:', '')
+                    self.good_ids.append(gsid)
+                    gsid_num += 1
+                except Exception as e:
+                    tr_id = re.search(r'ID:(.*)', tr.text)
+                    self.log.error("获取商品编码失败：{}".format(tr_id.group()))
 
-        trs = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="list-table-desc-extend-cell"]')))
-        for tr in trs:
-            try:
-                tr_num = re.search(r'编码:(.*)', tr.text)
-                gsid = tr_num.group().replace('编码:', '')
-                self.good_ids.append(gsid)
-            except Exception as e:
-                tr_id = re.search(r'ID:(.*)', tr.text)
-                self.log.error("获取商品编码失败：{}".format(tr_id.group()))
-
-        if len(self.good_ids) == 0:
-            self.log.info("没有获取到有效的商品编码")
-            return None
-        self.log.info("当前页面共获取到有效编码：{}".format(len(self.good_ids)))
+            if len(self.good_ids) == 0:
+                self.log.info("没有获取到有效的商品编码")
+                return None
+            self.log.info("当前页面获取到有效商品编码：{}".format(gsid_num))
+        self.log.info("共获取到有效商品编码：{}".format(len(self.good_ids)))
         self.read_excel()
-
-        return trs
 
     def edit(self):
         """修改商品价格"""
-
+        modify = 0
         good_ids = []
-        trs = self.get_gdis()
-
-        for tr in trs:
-            gsids = re.findall(r'编码:(.*)', tr.text)
-            if not len(gsids):
-                self.counts += 2
-                continue
-
-            for key in self.size_price_dict.keys():
-                if str(gsids[0]) != key:
+        trs = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="list-table-desc-extend-cell"]')))
+        try:
+            for tr in trs:
+                gsids = re.findall(r'编码:(.*)', tr.text)
+                if not len(gsids):
+                    tr_id = re.search(r'ID:(.*)', tr.text)
+                    self.log.error("{}获取商品编码失败,跳过修改".format(tr_id.group()))
+                    self.counts += 2
                     continue
 
-                # 定位隐藏属性
-                ActionChains(self.driver).move_to_element(tr).perform()
-                amend_xpath = '//i[@class="next-icon next-icon-edit2 next-icon-small table-cell-edit-icon"]'
-                amend = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, amend_xpath)))
-                print(amend[self.counts].is_displayed())
-                amend[self.counts].click()
+                for key in self.size_price_dict.keys():
+                    if str(gsids[0]) != key:
+                        # self.log.info("商品编码：{}没有匹配到数据,跳过修改".format(gsids[0]))
+                        continue
+                    good_ids.append(key)
+                    # 定位隐藏属性
+                    ActionChains(self.driver).move_to_element(tr).perform()
+                    amend_xpath = '//i[@class="next-icon next-icon-edit2 next-icon-small table-cell-edit-icon"]'
+                    amend = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, amend_xpath)))
+                    print(amend[self.counts].is_displayed())
+                    amend[self.counts].click()
 
-                time.sleep(2)
-                self.log.info("\n\n开始修改商品：{}".format(key))
-                self.edit_min_price(key)
-                time.sleep(2)
-                good_ids.append(key)
-                break
+                    time.sleep(self.remove_time)
+                    self.log.info("\n\n开始修改商品：{}".format(key))
+                    self.edit_min_price(key)
+                    time.sleep(self.remove_time)
+                    modify += 1
+                    break
+        except Exception as e:
+            self.log.error(e)
 
             self.counts += 2
-        ActionChains(self.driver).move_to_element(self.driver.find_element_by_id('qn-workbench-head')).perform()
-        time.sleep(10)
-        self.log.info("出售中的商品匹配到Excel中的编号：{}".format(good_ids))
+        # ActionChains(self.driver).move_to_element(self.driver.find_element_by_id('qn-workbench-head')).perform()
+        # time.sleep(10)
+        self.log.info("当前页面商品编码共匹配到Excel数据：{}条,修改成功{}条".format(len(good_ids), modify))
+        self.log.info("修改成功商品编码：{}".format(good_ids))
 
     def read_excel(self):
         """匹配出在售商品数据"""
@@ -205,7 +218,7 @@ class Spider:
                     product = str(row[8].value)
                     is_match = False
                     for key in self.good_ids:
-                        if product in key:
+                        if product == key:
                             is_match = True
                             product = key
                             break
@@ -216,7 +229,7 @@ class Spider:
                     # 在售商品和表格成功匹配的数据
                     self.size_price_dict[product] = size_price
 
-        self.log.info("当前页面出售中的商品成功匹配excel数据{}条".format(len(self.size_price_dict.keys())))
+        self.log.info("出售中的商品成功匹配excel数据{}条".format(len(self.size_price_dict.keys())))
 
     def parse_price(self, datas):
         """取出有价格的尺码数据"""
