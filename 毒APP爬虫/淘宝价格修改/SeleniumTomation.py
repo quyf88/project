@@ -44,14 +44,15 @@ class Spider:
         '''设置浏览器是否显示图片'''
         prefs = {"profile.managed_default_content_settings.images": 1}
         chrome_options.add_experimental_option("prefs", prefs)
-        chrome_options.add_argument(
-            "user-data-dir=C:\\Users\\Coolio\\AppData\\Local\\Google\\Chrome\\User Data\\Default")
-        self.driver = webdriver.Chrome(chrome_options=chrome_options, executable_path="chromedriver.exe")
+
+        self.driver = webdriver.Chrome(chrome_options=chrome_options, executable_path="chromedriver.exe", keep_alive=False)
         self.wait = WebDriverWait(self.driver, 30, 0.5)
         self.driver.maximize_window()
 
     def main(self, price, remove_time):
+        # 增减价格
         self.in_add_price = int(price)
+        # 程序间隔时间
         self.remove_time = int(remove_time)
         # 登录
         self.login_by_scan()
@@ -65,11 +66,14 @@ class Spider:
 
             # 开始主循环
             page_nums = int(self.page_nums) + 1
+
             for page_num in range(1, page_nums):
                 self.log.info("开始修改第：{}页，共：{}页".format(page_num, self.page_nums))
                 url = 'https://item.publish.taobao.com/taobao/manager/render.htm?pagination.current={}&pagination.pageSize=20&tab=on_sale'.format(
                     page_num)
                 self.driver.get(url)
+                time.sleep(self.remove_time)
+
                 # 进入下一页初始化价格修改位置按钮
                 if page_num > 1:
                     self.counts = 0
@@ -97,10 +101,11 @@ class Spider:
         while True:
             if 'login.taobao.com' not in self.driver.current_url:
                 self.log.info("登录成功")
-                cookies = self.driver.get_cookies()
-                self.log.info(cookies)
+                # cookies = self.driver.get_cookies()
+                # self.log.info(cookies)
                 # 进入在售商品页面
                 self.driver.get("https://sell.taobao.com/auction/merchandise/auction_list.htm?type=11")
+
                 break
             else:
                 self.log.info("等待扫码中...")
@@ -134,6 +139,7 @@ class Spider:
         """获取所有在售商品编码"""
         gsid_num = 0
         page_nums = int(self.page_nums) + 1
+
         for page_num in range(1, page_nums):
             if page_num > 1:
                 url = 'https://item.publish.taobao.com/taobao/manager/render.htm?pagination.current={}&pagination.pageSize=20&tab=on_sale'.format(page_num)
@@ -154,6 +160,7 @@ class Spider:
                 self.log.info("没有获取到有效的商品编码")
                 return None
             self.log.info("当前页面获取到有效商品编码：{}".format(gsid_num))
+            gsid_num = 0
         self.log.info("共获取到有效商品编码：{}".format(len(self.good_ids)))
         self.read_excel()
 
@@ -190,9 +197,9 @@ class Spider:
                     modify += 1
                     break
         except Exception as e:
-            self.log.error(e)
-
+            self.log.exception(e)
             self.counts += 2
+
         # ActionChains(self.driver).move_to_element(self.driver.find_element_by_id('qn-workbench-head')).perform()
         # time.sleep(10)
         self.log.info("当前页面商品编码共匹配到Excel数据：{}条,修改成功{}条".format(len(good_ids), modify))
@@ -319,4 +326,4 @@ class Spider:
 
 if __name__ == '__main__':
     bot = Spider()
-    bot.main()
+    bot.main(0, 3)
