@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2019/6/4 8:51
 # @Author  : project
-# @File    : 测试测试.py
+# @File    : GUI.py
 # @Software: PyCharm
 
 import sys
@@ -26,10 +26,10 @@ class CrawlWindow(QWidget):
         self.setWindowTitle('淘宝在售商品价格修改')
         self.setWindowIcon(QIcon(':reson/maoyan.ico'))
 
-        # 初始化搜索文本框
-        self.movie_name = QLineEdit(self)
+        # 初始化增减价文本框
+        self.price = QLineEdit(self)
         # 初始化运行时间间隔文本框
-        self.remove_name = QLineEdit(self)
+        self.counts = QLineEdit(self)
         # 初始化启动按钮
         self.start_btn = QPushButton(self)
         # 初始化输出文本框
@@ -57,31 +57,31 @@ class CrawlWindow(QWidget):
     def movie_init(self):
         """增减价格输入框默认配置"""
         # 设置文本框尺寸
-        self.movie_name.setFixedSize(150, 30)
+        self.price.setFixedSize(150, 30)
         # 设置默认文本
-        self.movie_name.setPlaceholderText("输入增减价格(元)")
+        self.price.setPlaceholderText("输入增减价格(元)")
         # 限制10个中文字符
-        self.movie_name.setMaxLength(10)
+        self.price.setMaxLength(10)
 
     def remove_init(self):
         """运行时间间隔文本框默认配置"""
         # 设置文本框尺寸
-        self.remove_name.setFixedSize(150, 30)
+        self.counts.setFixedSize(150, 30)
         # 设置默认文本
-        self.remove_name.setPlaceholderText("输入程序运行间隔(默认10)")
+        self.counts.setPlaceholderText("输入程序运行间隔(默认10)")
         # 限制10个中文字符
-        self.remove_name.setMaxLength(10)
+        self.counts.setMaxLength(10)
 
     def start_btn_init(self):
         """ 启动按钮按钮 配置"""
         self.start_btn.setText('启动')
-        self.start_btn.setFixedSize(300, 30)
+        # self.start_btn.setFixedSize(300, 30)
         self.start_btn.clicked.connect(self.start_btn_slot)
 
     def layout_init(self):
         """页面布局"""
-        self.h_layout.addWidget(self.movie_name)
-        self.h_layout.addWidget(self.remove_name)
+        self.h_layout.addWidget(self.price)
+        self.h_layout.addWidget(self.counts)
         self.h_layout.addWidget(self.start_btn)
 
         self.v_layout.addWidget(self.log_browser)
@@ -90,18 +90,16 @@ class CrawlWindow(QWidget):
 
     def start_btn_slot(self):
         """程序启动"""
-        # 判断运行间隔时间
-        self.btn_sound.play()
-        counts, price = self.input_process()
 
-        self.log_browser.append('<font color="red">程序启动</font>')
-        self.log_browser.append('<font color="red">增减价：{}元,运行间隔：{}</font>'.format(price, counts))
+        self.btn_sound.play()
+        self.log_browser.append('<font color="green">{}程序启动{}</font>'.format('*'*20, '*'*20))
+        self.input_process()
         # 设置按钮状态
-        self.start_btn.setEnabled(True)
+        self.start_btn.setEnabled(False)
         # 启动线程
         self.worker.start()
         self.finish_sound.play()
-        self.start_btn.setEnabled(False)
+        self.start_btn.setEnabled(True)
 
     def set_log_init(self):
         self.worker.log_signal.connect(self.set_log_slot)
@@ -110,26 +108,24 @@ class CrawlWindow(QWidget):
         self.log_browser.append(log)
 
     def input_process(self):
-        if self.remove_name.text():
-            counts = int(self.remove_name.text())
-            if counts < 10:
-                counts = 10
+        if self.counts.text():
+            counts = int(self.counts.text())
         else:
             counts = 10
 
-        if self.movie_name.text():
-            price = self.remove_name.text()
+        if self.price.text():
+            price = int(self.price.text())
         else:
             price = 0
 
-        # 配置文件修改
+        # 配置文件修改 set修改类型必须为str set后必须write写入保存
         cf = configparser.ConfigParser()
         path = os.path.abspath('.') + '\config\config.ini'
         cf.read(path, encoding='utf-8')
         cf.set('brower', 'price', str(price))
         cf.set('brower', 'counts', str(counts))
-
-        return counts, price
+        cf.write(open(path, "r+"))
+        self.log_browser.append('<font color="red">增减价：{}元,运行间隔：{}</font>'.format(price, counts))
 
 
 class MyThread(QThread):
@@ -142,7 +138,17 @@ class MyThread(QThread):
         super(MyThread, self).__init__()
 
     def run(self):
-        # print输出重定向 stdout 打印信息管道 stderr 错误和日志信息管道 bufsize 缓冲设置
+        # 重写run方法
+        # stdout PIPE 输出信息管道（把print信息重定向至管道）
+        # stderr STDOUT 错误和日志信息管道
+        # bufsize 缓冲设置默认值0 -- 表示不缓冲 1 -- 表示缓冲  NOTE: 如果遇到性能问题，建议将bufsize设置成 -1 或足够大的正数(如 4096）
+        # r.poll()   检查子进程状态
+        # r.kill()   终止子进程
+        # r.send_signal() 向子进程发送信号
+        # r.terminate()   终止子进程
+        # r.returncode 子进程的退出状态
+        # r.stdout.flush() 如果出现子进程假死 管道阻塞 手动刷新缓冲
+
         r = subprocess.Popen(['python', r'Main_PIPE.py'],  # 需要执行的文件路径
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
@@ -150,15 +156,13 @@ class MyThread(QThread):
         while r.poll() is None:
             line = str(r.stdout.readline(), encoding='utf-8')
             line = line.strip()
-            self.log_signal.emit(line)
-            # 刷新缓冲 如果出现子进程假死 管道阻塞
-            # r.stdout.flush()
             if line:
-                print('Subprogram output: [{}]'.format(line))
-        # if r.returncode == 0:
-        #     print('Subprogram success')
-        # else:
-        #     print('Subprogram failed')
+                self.log_signal.emit(line)
+        # 判断子进程状态
+        if r.returncode == 0:
+            self.log_signal.emit('<font color="green">Subprogram success</font>')
+        else:
+            self.log_signal.emit('<font color="red">Subprogram failed</font>')
 
 
 def read_qss(style):

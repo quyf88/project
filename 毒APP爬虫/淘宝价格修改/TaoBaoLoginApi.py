@@ -54,7 +54,7 @@ class Spider(object):
         self.conf()
         start_time = datetime.now()
         self.log.info("程序开始时间：{}".format(start_time))
-        print('<font color="red">增减价：{}元,运行间隔：{}</font>'.format(self.add_price, self.counts))
+        self.log.info('<font color="red">增减价：{}元,运行间隔：{}</font>'.format(self.add_price, self.counts))
         self.get_goods_urls()
         self.read_excel()
         self.edit()
@@ -143,6 +143,7 @@ class Spider(object):
     #     time.sleep(1)
     #     self.driver.refresh()
     def conf(self):
+        # 读取配置文件
         cf = configparser.ConfigParser()
         path = os.path.abspath('.') + '\config\config.ini'
         cf.read(path, encoding='utf-8')
@@ -155,13 +156,13 @@ class Spider(object):
         while True:
             if 'data' in self.driver.current_url:
                 self.log.info("等待扫码中...")
-                time.sleep(2)
+                time.sleep(5)
             if 'login.taobao.com' not in self.driver.current_url:
                 self.log.info("登录成功")
                 break
             else:
                 self.log.info("等待扫码中...")
-                time.sleep(2)
+                time.sleep(5)
 
     def get_total_page(self):
 
