@@ -31,13 +31,13 @@ class Spider(object):
         self.log = self.init_log()
         # cookies
         self.cookie = ''
+
+        # __browser_url = r'C:\Users\Administrator\AppData\Roaming\360se6\Application\360se.exe'
         # chrome_options = Options()
-        # desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
-        # desired_capabilities["pageLoadStrategy"] = "none"  # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
-        # '''设置浏览器是否显示图片'''
-        # prefs = {"profile.managed_default_content_settings.images": 1}
-        # chrome_options.add_experimental_option("prefs", prefs)
+        # chrome_options.binary_location = __browser_url
         # self.driver = webdriver.Chrome(chrome_options=chrome_options)
+
+
         self.driver = webdriver.Ie()
         self.wait = WebDriverWait(self.driver, 30, 0.5)
         self.driver.maximize_window()
@@ -74,36 +74,46 @@ class Spider(object):
                 time.sleep(5)
 
     def get_token(self):
+
+        time.sleep(5)
+        self.driver.get('https://mall.icbc.com.cn/products/pd_9000874368.jhtml')
+        standard = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="img_sku"]/em')))
+
+        if len(standard):
+            standard[1].click()
+        time.sleep(5)
+        enit = self.wait.until(EC.presence_of_element_located((By.ID, 'buynow')))
+        enit.click()
         # html = self.driver.page_source.replace(' ', '').replace("'", '"')
 
         # print(html)
         # 获取登录成功后cookie
-        for k in self.driver.get_cookies():
-            self.cookie += '{}={}; '.format(k['name'], k['value'])
-        print(self.cookie)
+        # for k in self.driver.get_cookies():
+        #     self.cookie += '{}={}; '.format(k['name'], k['value'])
+        # print(self.cookie)
 
-        headers = {
-            'user-agent': 'User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko',
-
-            'cookie': self.cookie
-        }
-        data = {
-            'sleep': 0,
-            'verifyCodeValue': '',
-            'submitRequestStr': {"submitRequestOrders":[{"orderProdType":"2","logisticType":"10000000","deliveryType":"1","deliveryDateId":"3","isNeedReceipt":"1","invoiceTitleType":"0","invoiceTitle":"个人","invoiceContent":"0000000501","invoiceType":"0","companyName":"","taxpayerId":"","registerAddress":"","registerTel":"","depositBank":"","bankAccount":"","fulfilPromotionId":"","freePostPromotionId":"","freePostFreight":"0","orderMemberMemo":"","minsNum":"","selectCouponIds":"","refundCouponAmount":"0","selectVendorCouponIds":"","refundVendorCouponAmount":"0","consigneeName":"","idCardNum":"","consigneeMobile":"","consigneeEmail":"","merDefines":"{\"merDefined1\":\"\",\"merDefined2\":\"\",\"merDefined3\":\"\"}","consigneeTelephone":"","mobileChannelDetail":"","ifGiveInsu":"","storeVO":{"mercId":"10002377","storeId":"011385","storeName":"工银金行家直营店","prodType":"2","orderProductMaxCount":"","isSupportOverseas":"","logstorId":"","shjdMode":"","orderKey":"","prods":[{"prodId":"9000874368","prodChannelType":"","mercProdId":"","prodName":"2019年中国北京世界园艺博览会贵金属纪念币","finaProdType":"2","prodStat":"0","skuId":"90000000000019634871","weight":"0","volume":"0","skuInfo":"规格:30克银币单枚装","originPrice":"590.00","price":"590","currType":"001","count":"1","prodImg":"https://image6.mall.icbc.com.cn/oaasImage/10002377/0/1557364288067_2.jpg","promSerial":"9bef27df-735d-47fa-b97a-9f7c3c0b695a","promId":"201906149087096","promType":"14","addTime":"","tringKey":"90000000000019634871","trings":[],"gifts":[],"logstId":"","areaId":"110106","maxBuyNum":"","prodStorage":"","balanceType":"","isDelivery":"","shippingTemplatesID":"","salesType":"","prodKey":"","prodPrvId":"","prodFlag":"","orderKey":"","futuresInfoYear":"","futuresInfoNum":""}],"returnFlag":"0"},"isIntegralOrder":"false","useIntegralOrder":"0","useIntegralAmountOrder":"0.00","areaCode":"","brCode":"","dataId":"","saleCode":"","recommendType":""}],"paymentType":"01","consigneeId":"900009541264","orderCreateType":"01","isIntegral":"false","useIntegral":"0","useIntegralAmount":"0.00","integralRate":"0","isHandDiscount":"0","prodTakeAddressId":"110106","channelSeq":"","logStartTime":"1560746058937","flashSaleSecret":"12449e4b-e7cc-42e2-b65e-751506d6fb1d"},
-            'struts.token.name': 'tokenCommit',
-            'tokenCommit': '330OU11SJKEZHRM5O995RZOOCT3WAE5T'
-        }
-        url = 'https://mall.icbc.com.cn/order/createOrder.jhtml'
-
-        res1 = requests.post(url, data=data, headers=headers, verify=False)
-        html = res1.text
-
-        print(1)
-        print(res1)
-        print(res1.cookies)
-        print(2)
-        print(html)
+        # headers = {
+        #     'user-agent': 'User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko',
+        #
+        #     'cookie': self.cookie
+        # }
+        # data = {
+        #     'sleep': 0,
+        #     'verifyCodeValue': '',
+        #     'submitRequestStr': {"submitRequestOrders":[{"orderProdType":"2","logisticType":"10000000","deliveryType":"1","deliveryDateId":"3","isNeedReceipt":"1","invoiceTitleType":"0","invoiceTitle":"个人","invoiceContent":"0000000501","invoiceType":"0","companyName":"","taxpayerId":"","registerAddress":"","registerTel":"","depositBank":"","bankAccount":"","fulfilPromotionId":"","freePostPromotionId":"","freePostFreight":"0","orderMemberMemo":"","minsNum":"","selectCouponIds":"","refundCouponAmount":"0","selectVendorCouponIds":"","refundVendorCouponAmount":"0","consigneeName":"","idCardNum":"","consigneeMobile":"","consigneeEmail":"","merDefines":"{\"merDefined1\":\"\",\"merDefined2\":\"\",\"merDefined3\":\"\"}","consigneeTelephone":"","mobileChannelDetail":"","ifGiveInsu":"","storeVO":{"mercId":"10002377","storeId":"011385","storeName":"工银金行家直营店","prodType":"2","orderProductMaxCount":"","isSupportOverseas":"","logstorId":"","shjdMode":"","orderKey":"","prods":[{"prodId":"9000874368","prodChannelType":"","mercProdId":"","prodName":"2019年中国北京世界园艺博览会贵金属纪念币","finaProdType":"2","prodStat":"0","skuId":"90000000000019634871","weight":"0","volume":"0","skuInfo":"规格:30克银币单枚装","originPrice":"590.00","price":"590","currType":"001","count":"1","prodImg":"https://image6.mall.icbc.com.cn/oaasImage/10002377/0/1557364288067_2.jpg","promSerial":"9bef27df-735d-47fa-b97a-9f7c3c0b695a","promId":"201906149087096","promType":"14","addTime":"","tringKey":"90000000000019634871","trings":[],"gifts":[],"logstId":"","areaId":"110106","maxBuyNum":"","prodStorage":"","balanceType":"","isDelivery":"","shippingTemplatesID":"","salesType":"","prodKey":"","prodPrvId":"","prodFlag":"","orderKey":"","futuresInfoYear":"","futuresInfoNum":""}],"returnFlag":"0"},"isIntegralOrder":"false","useIntegralOrder":"0","useIntegralAmountOrder":"0.00","areaCode":"","brCode":"","dataId":"","saleCode":"","recommendType":""}],"paymentType":"01","consigneeId":"900009541264","orderCreateType":"01","isIntegral":"false","useIntegral":"0","useIntegralAmount":"0.00","integralRate":"0","isHandDiscount":"0","prodTakeAddressId":"110106","channelSeq":"","logStartTime":"1560746058937","flashSaleSecret":"12449e4b-e7cc-42e2-b65e-751506d6fb1d"},
+        #     'struts.token.name': 'tokenCommit',
+        #     'tokenCommit': '330OU11SJKEZHRM5O995RZOOCT3WAE5T'
+        # }
+        # url = 'https://mall.icbc.com.cn/order/createOrder.jhtml'
+        #
+        # res1 = requests.post(url, data=data, headers=headers, verify=False)
+        # html = res1.text
+        #
+        # print(1)
+        # print(res1)
+        # print(res1.cookies)
+        # print(2)
+        # print(html)
 
 
 
