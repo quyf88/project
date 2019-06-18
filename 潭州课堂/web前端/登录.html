@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <style>
+        *{
+            /*初始化边框*/
+            padding: 0;
+            margin: 0;
+        }
+        div{
+            width: 500px; /* 宽度 */
+            height: 500px; /* 高度 */
+            /*border: 2px solid gray; !* 盒子边框2px 实心 灰色 *!*/
+            padding: 10px 20px;
+            margin: auto; /* 居中 */
+            /*background: antiquewhite;*/
+            margin-top: 100px;
+        }
+        div p{
+            border-bottom: 2px solid gray; /* 盒子下边框4px 实心 紫色 */
+            padding-bottom: 8px;
+        }
+        div p span{
+            border-bottom: 4px solid rebeccapurple;
+            padding: 0 0 5px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        div p a{
+            float: right; /* 浮动 */
+            text-decoration: none; /* 去除下划线 */
+            color: coral;  /* 颜色 */
+        }
+        div form input{
+            width: 480px;
+            height: 45px;
+            margin: 10px 0;
+            font-size: 18px;
+            padding: 0 10px;
+            border-radius: 5px;
+            border: 1px solid gray;
+        }
+        div form .box{
+            width: 1rem;
+            height: 1rem;
+        }
+        div form a{
+            border: 1px solid rebeccapurple;
+            border-radius: 5px;
+            height: 45px;
+            width: 160px;
+            float: right;  /* 右浮动 */
+            display: block; /* 改变为块元素 */
+            line-height: 45px;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 10px;
+            color: brown;
+        }
+        div form #box{
+            background: darkcyan;
+            height: 55px;
+            width: 500px;
+            font-size: 20px;
+            color: aliceblue;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <p><span>请登录</span><a href="注册.html">立即注册&nbsp;&gt;</a></p>
+        <form action="">
+            <input type="text" name="" placeholder="请输入手机号"><br>
+            <input type="password" name="" placeholder="请输入密码"><br>
+            <input class="box" type="checkbox">七天内自动登录<a href="#">忘记密码？</a><br>
+            <input id="box" type="submit" name="" value="登录">
+        </form>
+    </div>
+</body>
+</html>

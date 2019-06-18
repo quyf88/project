@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>注册</title>
+    <style>
+        *{
+            /*初始化边框*/
+            padding: 0;
+            margin: 0;
+        }
+        div{
+            width: 500px; /* 宽度 */
+            height: 500px; /* 高度 */
+            /*border: 2px solid gray; !* 盒子边框2px 实心 灰色 *!*/
+            padding: 10px 20px;
+            margin: auto; /* 居中 */
+            /*background: antiquewhite;*/
+        }
+        div p{
+            border-bottom: 2px solid gray; /* 盒子下边框4px 实心 紫色 */
+            padding-bottom: 8px;
+        }
+        div p span{
+            border-bottom: 4px solid rebeccapurple;
+            padding: 0 0 5px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        div p a{
+            float: right; /* 浮动 */
+            text-decoration: none; /* 去除下划线 */
+            color: coral;
+        }
+        div form input{
+            width: 480px;
+            height: 45px;
+            margin: 10px 0;
+            font-size: 18px;
+            padding: 0 10px;
+            border-radius: 5px;
+            border: 1px solid gray;
+        }
+        div form .msg_img{
+            width: 300px;
+        }
+        div form a{
+            background: darkcyan;
+
+            border-radius: 5px;
+            height: 45px;
+            width: 160px;
+            display: block;
+            float: right;
+            line-height: 45px;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 10px;
+            color:aliceblue;
+        }
+        div form #box{
+            background: darkcyan;
+            height: 55px;
+            width: 500px;
+            font-size: 20px;
+            color: aliceblue;
+        }
+
+
+
+    </style>
+</head>
+<body>
+    <div>
+        <p><span>请注册</span><a href="登录.html">立即登录&nbsp;&gt;</a></p>
+        <form action="">
+            <input type="text" name="" placeholder="请输入手机号"><br>
+            <input class="msg_img" type="text" name="" placeholder="请输入短信验证码"><a href="#">发送短信验证码</a><br>
+            <input type="text" name="" placeholder="请输用户名"><br>
+            <input type="text" name="" placeholder="请输入密码"><br>
+            <input type="text" name="" placeholder="请再次输入密码"><br>
+            <input class="msg_img" type="text" name="" placeholder="请输入验证码"><a href="#">获取图片验证码</a><br>
+            <input id="box" type="submit" name="" value="立即注册">
+        </form>
+    </div>
+</body>
+</html>
