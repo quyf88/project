@@ -1,18 +1,60 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2019/6/17 13:05
 # @Author  : project
-# @File    : 123.py
+# @File    : 根据商品ID下载商品详情图片.py
 # @Software: PyCharm
+"""淘宝 根据商品ID 下载商品详情图片"""
+import hashlib
+import requests
+import re
+import time
+import json
 
 
-from urllib.parse import quote
+def get_images_from_mtop(num_iid):
+
+    APPKEY = '12574478'
+    DATA = '{"item_num_id":"%s"}' % num_iid
+    URL = 'https://h5api.m.taobao.com/h5/mtop.wdetail.getitemdescx/4.9/'
+    params = {'jsv': '2.4.11', 'appKey': APPKEY, 't': int(time.time()*1000),
+              'sign': 'FAKE_SIGN_WITH_ANYTHING', 'api': 'mtop.wdetail.getItemDescx', 'v': '4.9',
+              'type': 'jsonp', 'dataType': 'jsonp', 'callback': 'mtopjsonp2',
+              'data': DATA}
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_3_4 like Mac OS X) AppleWebKit/601.1.46 ' + \
+                      '(KHTML, like Gecko) Version/9.0 Mobile/13G35 Safari/601.1',
+    }
+    images = []
+    try:
+        # get token in first request
+        r1 = requests.get(URL, params=params, headers=headers, verify=False)
+        token_with_time = r1.cookies.get('_m_h5_tk')
+        print(token_with_time)
+        token = token_with_time.split('_')[0]
+        enc_token = r1.cookies.get('_m_h5_tk_enc')
+        print(r1.cookies)
+        # get results in second request
+        t2 = str(int(time.time() * 1000))
+        c = '&'.join([token, t2, APPKEY, DATA])
+        m = hashlib.md5()
+        m.update(c.encode('utf-8'))
+        params.update({'t': t2, 'sign': m.hexdigest()})
+        print(params)
+        cookies = {'_m_h5_tk': token_with_time, '_m_h5_tk_enc': enc_token}
+
+        r2 = requests.get(URL, params=params, headers=headers, cookies=cookies, verify=False)
+        # print(r2.text)
+        json_text = re.match(r'(.*\()(.*)(\))', r2.text).group(2)
+        images = dict(json.loads(json_text))['data']['images']
+        print(images)
+    except Exception as e:
+        print(e)
 
 
-a = [{'domain': 'mall.icbc.com.cn', 'expiry': 1560832432, 'httpOnly': False, 'name': 'BROWSE_GOODS', 'path': '//', 'secure': False, 'value': 'e9a7c962-da87-46df-81b1-d43ccd60189c'}, {'domain': 'mall.icbc.com.cn', 'expiry': 1560770105, 'httpOnly': False, 'name': 'MALLID', 'path': '//', 'secure': False, 'value': '85851fda-0c20-44a4-9045-af0436fa2d9d'}, {'domain': 'mall.icbc.com.cn', 'httpOnly': False, 'name': 'MALL_SHOPCAR', 'path': '//', 'secure': False, 'value': '35876138-d221-4328-831f-75ffd67e80fa'}, {'domain': 'mall.icbc.com.cn', 'httpOnly': True, 'name': 'SESSION', 'path': '//', 'secure': False, 'value': '6a40e228-86b5-46a0-a26a-268bb76af330'}, {'domain': 'icbc.com.cn', 'httpOnly': False, 'name': 'ar_stat_ss', 'path': '//', 'secure': False, 'value': '4273772146_1_1560784506_9999'}, {'domain': 'icbc.com.cn', 'expiry': 1875329315, 'httpOnly': False, 'name': 'ar_stat_uv', 'path': '//', 'secure': False, 'value': '65685819188582272697|9999'}, {'domain': 'mall.icbc.com.cn', 'expiry': 1563338455, 'httpOnly': False, 'name': 'deliveryInfo', 'path': '//', 'secure': False, 'value': '{"cityId":"110000","provinceId":"119999","coutryId":"110106"}'}, {'domain': 'mall.icbc.com.cn', 'expiry': 1560832432, 'httpOnly': False, 'name': 'historyLookUp', 'path': '//', 'secure': False, 'value': '9000874368_9000727005_9000936967'}, {'domain': 'mall.icbc.com.cn', 'expiry': 1875065096, 'httpOnly': False, 'name': 'usertrack', 'path': '//', 'secure': False, 'value': '10.161.17.61.1559705096463573'}, {'domain': 'mall.icbc.com.cn', 'expiry': 1561349949, 'httpOnly': False, 'name': 'zoneNo', 'path': '//', 'secure': False, 'value': '%E5%8C%97%E4%BA%AC_0200'}]
+shop_id = '554401452734'  # 商品ID
+get_images_from_mtop(shop_id)
 
 
-for k in a:
-    print('{}={}; '.format(k['name'], k['value']))
-
-
-
+# 淘宝商家电话
+"mtop.taobao.shop.impression.intro.get&sellerId=1777552687&shopId=105976338"
+data = {"sellerId": "1777552687", "shopId": "105976338"}
