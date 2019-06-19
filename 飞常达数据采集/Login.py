@@ -73,6 +73,30 @@ class News:
         logger.addHandler(fh)
         return logger
 
+    def login(self):
+        """账号登录"""
+        self.log.info("监测账号是否登录...")
+        dialog = self.wait.until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/radio_chat')))
+        dialog.click()
+        try:
+            login = self.driver.find_element_by_id('com.feeyo.vz.pro.cdm:id/guide_btn_login')
+            self.log.info("账号未登录...请登录账号")
+            login.click()
+            self.log.info("账号登录中...")
+            username = self.wait.until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/login_edt_phone_number')))
+            username.click()
+            username.send_keys('18672366488')
+            password = self.wait.until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/login_edt_user_password')))
+            password.click()
+            password.send_keys('19790107')
+            login_end = self.wait.until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/login_btn_login')))
+            login_end.click()
+            self.log.info("账号登录成功!")
+
+        except Exception as e:
+            self.log.info("账号已登录!")
+            self.log.error(e)
+
     def loop_look(self):
         """进入关注机场页面"""
         airport_page = self.wait.until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/radio_airport')))
@@ -126,7 +150,6 @@ class News:
                     mora_page = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/tab_layout_display_txt_count')))
                     mora_page[2].click()
 
-                    # moras_flight = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_layout_root')))
                     # 航班号
                     flight_id = self.wait.until(EC.presence_of_all_elements_located(
                         (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_route')))
@@ -174,10 +197,13 @@ class News:
                                             departure_text, destination_text, planned_time_text, estimated_time_text, mora_time_text))
 
                             # 短信发送
-                            content = "[{}]机场,[{}]航班,[{}]出发,目的地[{}],延误时间[{}]".format(airport_name_text, flight_number_text,
-                                                                                     departure_text, destination_text, mora_time_text)
-                            send_sms.send_sms('18210836362', content)
-                            self.flight_id.append(flight_number_text)
+                            if flight_number_text not in self.flight_id:
+
+                                content = "[{}]机场,[{}]航班,[{}]出发,目的地[{}],延误时间[{}]".format(airport_name_text, flight_number_text,
+                                                                                         departure_text, destination_text, mora_time_text)
+                                print('发送成功')
+                                # send_sms.send_sms('18210836362', content)
+                                self.flight_id.append(flight_number_text)
 
                             self.driver.keyevent(4)  # 返回延误航班页面
 
@@ -201,7 +227,5 @@ class News:
 
 if __name__ == '__main__':
     loop = News()
-    loop.main()
+    loop.login()
 
-'18672366488'
-'19790107'
