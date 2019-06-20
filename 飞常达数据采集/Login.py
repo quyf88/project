@@ -14,6 +14,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 import send_sms
+import adb_server
 # 手动启动模拟器 adb connect 127.0.0.1:62001
 # 查看连接 adb devices
 
@@ -33,6 +34,8 @@ def run_time(func):
 class News:
     def __init__(self):
         self.log = self.log_init()
+        self.adb = adb_server.run()
+        self.log.info("设备：[{}]正常运行中".format(self.adb))
         # 关注机场数量
         self.ports_num = None
         # 统计已查看机场列表
@@ -51,7 +54,7 @@ class News:
         # 启动APP
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
         # 设置等待
-        self.wait = WebDriverWait(self.driver, 10, 0.5)
+        self.wait = WebDriverWait(self.driver, 30, 0.5)
 
     def log_init(self):
         """日志模块"""
@@ -88,14 +91,13 @@ class News:
             username.send_keys('18672366488')
             password = self.wait.until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/login_edt_user_password')))
             password.click()
-            password.send_keys('19790107')
+            password.send_keys('18672366488')
             login_end = self.wait.until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/login_btn_login')))
             login_end.click()
             self.log.info("账号登录成功!")
 
         except Exception as e:
             self.log.info("账号已登录!")
-            self.log.error(e)
 
     def loop_look(self):
         """进入关注机场页面"""
@@ -126,6 +128,12 @@ class News:
                 airports_name = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/airport_dynamic_new_txt_state')))
                 for airport_name in airports_name:
                     airport_name_text = airport_name.text.split('-')[0]
+                    # 判断当前当前机场是否有机场名
+                    if not airport_name_text:
+                        self.airport_names.append(airport_name_text)
+                        # self.log.info('<font color="green">空机场名跳过</font>')
+                        continue
+                    # 效验是否已处理
                     if airport_name_text in self.airport_names:
                         continue
                     self.log.info("[{}]：机场航班信息获取中...".format(airport_name_text))
@@ -150,6 +158,9 @@ class News:
                     mora_page = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/tab_layout_display_txt_count')))
                     mora_page[2].click()
 
+                    # 延误航班信息
+                    # pro_num = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_layout_root')))
+
                     # 航班号
                     flight_id = self.wait.until(EC.presence_of_all_elements_located(
                         (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_route')))
@@ -160,13 +171,19 @@ class News:
                     self.log.info("[{}]机场出场延误航班数：{}".format(airport_name_text, len(flight_id)))
                     count = 0
                     for flight in flight_id:
-
-                        mora_time_text = mora_time[count].text
+                        try:
+                            mora_time_text = mora_time[count].text
+                        except:
+                            break
+                            self.driver.keyevent(4)  # 返回当前机场详情页面
+                            time.sleep(1)
+                            self.driver.keyevent(4)  # 返回机场列表页面
+                        print(mora_time_text)
                         count += 1
                         self.log.info('机场[{}]航班号[{}]延误时间[{}]'.format(airport_name_text, flight.text, mora_time_text))
                         if not mora_time_text:
                             continue
-                        if int(mora_time_text) < 180:
+                        if int(mora_time_text) < 180 or int(mora_time_text) > 800:
                             continue
                         else:
                             # 进入航班详情页面
@@ -201,11 +218,13 @@ class News:
 
                                 content = "[{}]机场,[{}]航班,[{}]出发,目的地[{}],延误时间[{}]".format(airport_name_text, flight_number_text,
                                                                                          departure_text, destination_text, mora_time_text)
-                                print('发送成功')
+                                print("content:{}".format(content))
+                                self.log.info('<font color="green">{}</font>'.format(content))
                                 # send_sms.send_sms('18210836362', content)
                                 self.flight_id.append(flight_number_text)
 
                             self.driver.keyevent(4)  # 返回延误航班页面
+                            time.sleep(1)
 
                     self.driver.keyevent(4)  # 返回当前机场详情页面
                     time.sleep(1)
@@ -213,7 +232,7 @@ class News:
 
                 # 上滑一屏
                 self.driver.swipe(500, 1800, 500, 600, 800)
-                time.sleep(2)
+                time.sleep(1)
             except Exception as e:
                 self.log.error(e)
                 # self.log.exception(e)
@@ -221,11 +240,12 @@ class News:
 
     @run_time
     def main(self):
+        self.login()
         self.loop_look()
         self.run()
 
 
 if __name__ == '__main__':
     loop = News()
-    loop.login()
+    loop.main()
 
