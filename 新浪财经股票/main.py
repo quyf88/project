@@ -27,6 +27,8 @@ def run_time(func):
 
 class Spider:
     def __init__(self):
+        self.conn = mysql_conn.BaseDao()
+        self.conn.del_data()
         self.log = self.log_init()
         self.headers = {'User-Agent':
                             'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.104 Safari/537.36'
@@ -62,7 +64,7 @@ class Spider:
         total = etree_html.xpath('//div[@id="list_pages_top2"]/a')  # 总页数
 
     def run(self):
-        for i in range(10):
+        for i in range(92):
             url = 'http://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData?page={}&num=40&sort=changepercent&asc=0&node=hs_a&symbol=&_s_r_a=init'.format(i)
             response = requests.get(url, headers=self.headers, timeout=3)
             contents = response.content.decode('gbk')
@@ -102,9 +104,14 @@ class Spider:
             self.sql_save(data)
 
     def sql_save(self, data):
+
         for d in data:
-            conn = mysql_conn.BaseDao()
-            conn.add_update_del_seek(d)
+            with open('1.txt', 'a+', encoding='utf-8') as f:
+                f.write(str(d))
+                f.write('\n')
+                print("成功写入1")
+
+            # self.conn.add_update_del_seek(d)
 
 
 if __name__ == '__main__':

@@ -37,6 +37,25 @@ class BaseDao(object):
         finally:
             self.coon.close()
 
+    def del_data(self):
+
+        try:
+            with self.coon.cursor() as cursor:
+                sql = 'truncate table words'
+                count = cursor.execute(sql)
+                self.coon.commit()
+                """
+                fetchall 返回所有的查询结果 fetchone只返回一条查询的结果 这里选用fetchall 
+                当然你也可以用fetchone但它最多只返回一条查询语句
+                """
+                print("清空数据库：{}".format(count))
+
+        except Exception as e:
+            print(e)
+            self.coon.rollback()
+        finally:
+            self.coon.close()
+
 
 
 
