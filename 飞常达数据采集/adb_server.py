@@ -27,9 +27,7 @@ def run():
             print("读取到设备：[{}]正常运行中".format(result))
             return result
         else:
-            print("请检查设备是否打开")
-
-        break
+            break
 
 
 

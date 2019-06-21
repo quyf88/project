@@ -13,7 +13,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtCore import QThread, pyqtSignal, QFile, QTextStream
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QTextBrowser, QTableWidget, \
-    QTableWidgetItem, QHeaderView, QProgressBar, QHBoxLayout, QVBoxLayout, QMessageBox, QLineEdit
+    QTableWidgetItem, QHeaderView, QProgressBar, QHBoxLayout, QVBoxLayout, QMessageBox, QLineEdit, QComboBox
 
 import res
 
@@ -25,10 +25,10 @@ class CrawlWindow(QWidget):
         self.setWindowTitle('机场航班信息实时监测')
         self.setWindowIcon(QIcon(':reson/maoyan.ico'))
 
-        # 初始化增减价文本框
+        # 初始化手机号码文本框
         self.price = QLineEdit(self)
-        # 初始化运行时间间隔文本框
-        self.counts = QLineEdit(self)
+        # 初始化短信选择下拉框
+        self.save_combobox = QComboBox(self)
         # 初始化启动按钮
         self.start_btn = QPushButton(self)
         # 初始化表格控件
@@ -50,33 +50,38 @@ class CrawlWindow(QWidget):
 
         # 实例化
         self.movie_init()
+        self.combobox_init()
         self.start_btn_init()
-        self.remove_init()
+
         self.layout_init()
         self.table_init()
         self.set_log_init()
 
     def movie_init(self):
-        """增减价格输入框默认配置"""
+        """手机号码输入框默认配置"""
         # 设置文本框尺寸
-        self.price.setFixedSize(150, 30)
+        self.price.setFixedSize(300, 30)
         # 设置默认文本
-        self.price.setPlaceholderText("输入增减价格(元)")
+        self.price.setPlaceholderText("输入手机号码,多个号码以英文','隔开")
+        # 默认设置不可输入
+        # self.price.setEnabled(False)
         # 限制10个中文字符
-        self.price.setMaxLength(10)
+        self.price.setMaxLength(100)
 
-    def remove_init(self):
-        """运行时间间隔文本框默认配置"""
-        # 设置文本框尺寸
-        self.counts.setFixedSize(150, 30)
-        # 设置默认文本
-        self.counts.setPlaceholderText("输入程序运行间隔(默认10)")
-        # 限制10个中文字符
-        self.counts.setMaxLength(10)
+    def combobox_init(self):
+        """是否启用短信下拉框配置"""
+        save_list = ['是否启用短信通知', '是', '否']
+        self.save_combobox.addItems(save_list)
+        # 设置标签状态为不可用
+        self.save_combobox.setEnabled(True)
+
+        #  当下拉索引发生改变时发射信号触发绑定的事件
+        self.save_combobox.currentTextChanged.connect(self.combobox_slot)
 
     def start_btn_init(self):
         """ 启动按钮按钮 配置"""
         self.start_btn.setText('启动')
+        self.start_btn.setEnabled(False)
         # self.start_btn.setFixedSize(300, 30)
         self.start_btn.clicked.connect(self.start_btn_slot)
 
@@ -92,11 +97,13 @@ class CrawlWindow(QWidget):
         self.worker.log_signal.connect(self.set_log_slot)
         # 输出至表格控件
         self.worker.result_signal.connect(self.set_table_slot)
+        # 调用清屏槽
+        self.worker.start_q.connect(self.set_start_slot)
 
     def layout_init(self):
         """页面布局"""
         self.h_layout.addWidget(self.price)
-        self.h_layout.addWidget(self.counts)
+        self.h_layout.addWidget(self.save_combobox)
         self.h_layout.addWidget(self.start_btn)
 
         self.v_layout.addWidget(self.table)
@@ -109,12 +116,37 @@ class CrawlWindow(QWidget):
 
         self.btn_sound.play()
         self.log_browser.append('<font color="green">{}程序启动{}</font>'.format('*'*20, '*'*20))
-        # self.input_process()
         # 设置按钮状态
         self.start_btn.setEnabled(False)
         # 启动线程
         self.worker.start()
         self.finish_sound.play()
+        self.start_btn.setEnabled(True)
+
+    def combobox_slot(self, text):
+        if text == '是':
+            sms = True
+            if not self.price.text():
+                self.log_browser.append('<font color="red">请正确填写短信通知号码</font>')
+                return
+            self.conf_slot(sms, self.price.text())
+        else:
+            sms = False
+            self.conf_slot(sms)
+
+    def conf_slot(self, sms, phone=None):
+        """配置文件"""
+        # 配置文件修改 set修改类型必须为str set后必须write写入保存
+        cf = configparser.ConfigParser()
+        path = os.path.abspath('.') + '\config\config.ini'
+        cf.read(path, encoding='utf-8')
+        cf.set('brower', 'sms', str(sms))
+        cf.set('brower', 'phone', str(phone))
+        cf.write(open(path, "r+"))
+        if sms:
+            self.log_browser.append('<font color="red">启用短信通知：[{}]</font>'.format(phone))
+        else:
+            self.log_browser.append('<font color="red">关闭短信通知</font>')
         self.start_btn.setEnabled(True)
 
     def set_log_slot(self, log):
@@ -130,30 +162,17 @@ class CrawlWindow(QWidget):
         self.table.setItem(row, 3, QTableWidgetItem(destination))
         self.table.setItem(row, 4, QTableWidgetItem(mora_time))
 
-    def input_process(self):  # TODO
-        if self.counts.text():
-            counts = int(self.counts.text())
-        else:
-            counts = 10
-
-        if self.price.text():
-            price = int(self.price.text())
-        else:
-            price = 0
-
-        # 配置文件修改 set修改类型必须为str set后必须write写入保存
-        cf = configparser.ConfigParser()
-        path = os.path.abspath('.') + '\config\config.ini'
-        cf.read(path, encoding='utf-8')
-        cf.set('brower', 'price', str(price))
-        cf.set('brower', 'counts', str(counts))
-        cf.write(open(path, "r+"))
-        self.log_browser.append('<font color="red">增减价：{}元,运行间隔：{}</font>'.format(price, counts))
+    def set_start_slot(self):
+        # 表格清空 输出框窗口清空
+        self.table.clearContents()
+        self.table.setRowCount(0)
+        self.log_browser.clear()
 
 
 class MyThread(QThread):
     result_signal = pyqtSignal(str, str, str, str, str)
     log_signal = pyqtSignal(str)
+    start_q = pyqtSignal(bool)
 
     def __init__(self):
         super(MyThread, self).__init__()
@@ -169,21 +188,23 @@ class MyThread(QThread):
         # r.terminate()   终止子进程
         # r.returncode 子进程的退出状态
         # r.stdout.flush() 如果出现子进程假死 管道阻塞 手动刷新缓冲
+        while True:
+            self.start_q.emit(True)
+            r = subprocess.Popen(['python', r'Login.py'],  # 需要执行的文件路径
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT,
+                                 bufsize=0)
+            while r.poll() is None:
+                line = str(r.stdout.readline(), encoding='utf-8')
+                line = line.strip()
+                if line:
+                    self.log_data(line)
+            # 判断子进程状态
+            if r.returncode == 0:
+                self.log_signal.emit('<font color="green">Subprogram success</font>')
 
-        r = subprocess.Popen(['python', r'Login.py'],  # 需要执行的文件路径
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             bufsize=0)
-        while r.poll() is None:
-            line = str(r.stdout.readline(), encoding='utf-8')
-            line = line.strip()
-            if line:
-                self.log_data(line)
-        # 判断子进程状态
-        if r.returncode == 0:
-            self.log_signal.emit('<font color="green">Subprogram success</font>')
-        else:
-            self.log_signal.emit('<font color="red">Subprogram failed</font>')
+            else:
+                self.log_signal.emit('<font color="red">Subprogram failed</font>')
 
     def log_data(self, line):
         if 'content' in line:

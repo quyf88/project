@@ -28,7 +28,7 @@ def send_sms(phone, content):
     if result['Message'] == 'ok':
         log.info("通知短信发送成功：{}{}".format(phone, content))
     else:
-        log.error(result['message'])
+        log.error("通知短信发送失败：{}").format(result['message'])
     if result['RemainPoint'] < 5000:
         log.info("短信余额不足请及时充值!")
 
