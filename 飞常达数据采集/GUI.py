@@ -4,16 +4,15 @@
 # @File    : GUI.py
 # @Software: PyCharm
 import re
+import os
 import sys
 import subprocess
 import configparser
-
-import os
 from PyQt5.QtGui import QIcon
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtCore import QThread, pyqtSignal, QFile, QTextStream
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QTextBrowser, QTableWidget, \
-    QTableWidgetItem, QHeaderView, QProgressBar, QHBoxLayout, QVBoxLayout, QMessageBox, QLineEdit, QComboBox
+    QTableWidgetItem, QHeaderView, QHBoxLayout, QVBoxLayout, QLineEdit, QComboBox
 
 import res
 
@@ -195,10 +194,11 @@ class MyThread(QThread):
                                  stderr=subprocess.STDOUT,
                                  bufsize=0)
             while r.poll() is None:
-                line = str(r.stdout.readline(), encoding='utf-8')
+                line = str(r.stdout.readline(), encoding='gbk')
                 line = line.strip()
                 if line:
                     self.log_data(line)
+
             # 判断子进程状态
             if r.returncode == 0:
                 self.log_signal.emit('<font color="green">Subprogram success</font>')

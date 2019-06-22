@@ -15,8 +15,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 import send_sms
-import adb_server
-from 飞常达数据采集.MD5.MD5_Dao import Md5Dao
 
 # 手动启动模拟器 adb connect 127.0.0.1:62001
 # 查看连接 adb devices
@@ -45,21 +43,11 @@ class Spider:
         self.ports_num = None
         # 统计已查看机场列表
         self.airport_names = []
-        self.desired_caps = {
-            "platformName": "Android",
-            "deviceName": "OS105",
-            "appPackage": "com.feeyo.vz.pro.cdm",
-            "appActivity": "com.feeyo.vz.pro.activity.cdm.WelcomeActivity",
-            "noReset": True
-        }
-        self.driver_server = 'http://127.0.0.1:4723/wd/hub'
         self.log.info('机场航班信息实时监测系统启动中...')
-        # 读取设备信息
-        self.adb_serve()
         # 启动APP
-        self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
+        self.driver = None
         # 设置等待
-        self.wait = WebDriverWait(self.driver, 40, 0.5)
+        self.wait = None
 
     def conf(self):
         """读取配置文件"""
@@ -91,14 +79,6 @@ class Spider:
         logger.addHandler(console)
         logger.addHandler(fh)
         return logger
-
-    def adb_serve(self):
-        """读取设备信息"""
-        adb = adb_server.run()
-        if not adb:
-            self.log.error('<font color="red">{}</font>'.format('请检查设备是否打开'))
-            return
-        print('<font color="green">设备：[{}]正常运行中</font>'.format(adb))
 
     def login(self):
         """账号登录"""
@@ -311,15 +291,45 @@ class Spider:
             print("<font color='green'>短信发送成功：{}</font>".format(content))
             # send_sms.send_sms(i, content)
 
-    @run_time
-    def main(self):
-        self.conf()  # 读取配置文件
-        self.login()  # 登录
-        self.loop_look()  # 进入关注航班
-        self.run()  # 主程序
+
+@run_time
+def main():
+    loop = Spider()
+    desired_caps = {
+        "platformName": "Android",
+        "deviceName": "127.0.0.1:{}".format(62025),
+        "appPackage": "com.feeyo.vz.pro.cdm",
+        "appActivity": "com.feeyo.vz.pro.activity.cdm.WelcomeActivity"
+        # "noReset": True
+    }
+    driver_server = 'http://127.0.0.1:{}/wd/hub'.format(4730)
+    # 启动APP
+    loop.driver = webdriver.Remote(driver_server, desired_caps)
+    # 设置等待
+    loop.wait = WebDriverWait(loop.driver, 40, 0.5)
+
+    loop.conf()  # 读取配置文件
+    loop.login()  # 登录
+    loop.loop_look()  # 进入关注航班
+    loop.run()  # 主程序
 
 
 if __name__ == '__main__':
-    loop = Spider()
-    loop.main()
+    main()
+#     """多进程启动"""
+#     # 加载appium进程
+#     # 构建appium进程组
+#     for i in range(2):
+#         port = 4730 + 5 * i
+#         devi_port = 62025 + i
+#         result = Process(target=main, args=(port, devi_port))
+#         print('process start')
+#         result.start()
+#
+#     result.join()
+#     print('Process close')
+
+
+
+
 
