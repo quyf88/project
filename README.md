@@ -15,5 +15,5 @@
     
     pyinstaller -F 文件  # 打包成一个exe
     
-    pyisntaller -D -w -i logo文件 py文件  # 打包成一个文件夹
+    pyisntaller -D -w -i logo文件 py文件  # 打包成一个文件夹 -w 不显示命令行窗口
     ```
