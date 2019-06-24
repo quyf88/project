@@ -1,13 +1,16 @@
-# -*- coding: utf-8 -*-
+# -*- coding: UTF-8 -*-
 # @Time    : 2019/6/20 8:51
 # @Author  : project
 # @File    : GUI.py
 # @Software: PyCharm
+import logging
 import re
 import os
 import sys
 import subprocess
 import configparser
+
+import time
 from PyQt5.QtGui import QIcon
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtCore import QThread, pyqtSignal, QFile, QTextStream
@@ -115,23 +118,24 @@ class CrawlWindow(QWidget):
 
         self.btn_sound.play()
         self.log_browser.append('<font color="green">{}程序启动{}</font>'.format('*'*20, '*'*20))
-        # 设置按钮状态
-        self.start_btn.setEnabled(False)
         # 启动线程
         self.worker.start()
         self.finish_sound.play()
-        self.start_btn.setEnabled(True)
 
     def combobox_slot(self, text):
-        if text == '是':
+        if not text == '是':
+            sms = False
+            self.conf_slot(sms)
+        else:
             sms = True
             if not self.price.text():
                 self.log_browser.append('<font color="red">请正确填写短信通知号码</font>')
                 return
             self.conf_slot(sms, self.price.text())
-        else:
-            sms = False
-            self.conf_slot(sms)
+        # 选择短信设置后 改变设置按钮状态 输入框 下拉框 启动按钮
+        self.price.setEnabled(False)
+        self.start_btn.setEnabled(True)
+        self.save_combobox.setEnabled(False)
 
     def conf_slot(self, sms, phone=None):
         """配置文件"""
@@ -139,8 +143,8 @@ class CrawlWindow(QWidget):
         cf = configparser.ConfigParser()
         path = os.path.abspath('.') + '\config\config.ini'
         cf.read(path, encoding='utf-8')
-        cf.set('brower', 'sms', str(sms))
-        cf.set('brower', 'phone', str(phone))
+        cf.set('sms', 'sms', str(sms))
+        cf.set('phone', 'phone', str(phone))
         cf.write(open(path, "r+"))
         if sms:
             self.log_browser.append('<font color="red">启用短信通知：[{}]</font>'.format(phone))
@@ -187,24 +191,28 @@ class MyThread(QThread):
         # r.terminate()   终止子进程
         # r.returncode 子进程的退出状态
         # r.stdout.flush() 如果出现子进程假死 管道阻塞 手动刷新缓冲
+
         while True:
-            self.start_q.emit(True)
-            r = subprocess.Popen(['python', r'Login.py'],  # 需要执行的文件路径
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT,
-                                 bufsize=0)
-            while r.poll() is None:
-                line = str(r.stdout.readline(), encoding='gbk')
-                line = line.strip()
-                if line:
-                    self.log_data(line)
+            try:
+                self.start_q.emit(True)
+                r = subprocess.Popen(['python', r'Login.py'],  # 需要执行的文件路径
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT,
+                                     bufsize=0)
+                while r.poll() is None:
+                    line = str(r.stdout.readline(), encoding='utf-8')  #TODO 打包时改为GBK
+                    line = line.strip()
+                    if line:
+                        self.log_data(line)
 
-            # 判断子进程状态
-            if r.returncode == 0:
-                self.log_signal.emit('<font color="green">Subprogram success</font>')
+                # 判断子进程状态
+                if r.returncode == 0:
+                    self.log_signal.emit('<font color="green">Subprogram success</font>')
 
-            else:
-                self.log_signal.emit('<font color="red">Subprogram failed</font>')
+                else:
+                    self.log_signal.emit('<font color="red">Subprogram failed</font>')
+            except Exception as e:
+                self.log_init().error(e)
 
     def log_data(self, line):
         if 'content' in line:
@@ -217,6 +225,26 @@ class MyThread(QThread):
             self.result_signal.emit(airport, flight, departure, destination, mora_time)
 
         self.log_signal.emit(line)
+
+    def log_init(self):
+        """日志模块"""
+        path = os.path.abspath('.') + r'\log\GUI.log'
+        formatter = logging.Formatter('%(asctime)s | %(name)-6s | %(levelname)-6s| %(message)s')
+        console = logging.StreamHandler()
+        console.setLevel(logging.DEBUG)
+        fh = logging.FileHandler(path, encoding='utf-8', mode='a+')
+        fh.setLevel(logging.DEBUG)
+        fh.setFormatter(formatter)
+        console.setFormatter(formatter)
+        # 如果需要同時需要在終端上輸出，定義一個streamHandler
+        # print_handler = logging.StreamHandler()  # 往屏幕上输出
+        # print_handler.setFormatter(formatter)  # 设置屏幕上显示的格式
+        logger = logging.getLogger("Spider")
+        # logger.addHandler(print_handler)
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(console)
+        logger.addHandler(fh)
+        return logger
 
 
 def read_qss(style):

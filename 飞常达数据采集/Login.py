@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: UTF-8 -*-
 # 作者    ： Administrator
 # 文件    ：Login.py
 # IED    ：PyCharm
@@ -10,6 +10,7 @@ import logging
 import configparser
 from appium import webdriver
 from datetime import datetime
+from dateutil.parser import parse
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -54,9 +55,9 @@ class Spider:
         cf = configparser.ConfigParser()
         path = os.path.abspath('.') + '\config\config.ini'
         cf.read(path, encoding='utf-8')
-        sms = cf.get('brower', 'sms')
+        sms = cf.get('sms', 'sms')
         self.sms = eval(sms)
-        phone = cf.get('brower', 'phone')
+        phone = cf.get('phone', 'phone')
         self.phone = str(phone).split(',')
         print('<font color="green">配置文件读取成功!通知号码：[{}]</font>'.format(phone))
 
@@ -66,7 +67,7 @@ class Spider:
         formatter = logging.Formatter('%(asctime)s | %(name)-6s | %(levelname)-6s| %(message)s')
         console = logging.StreamHandler()
         console.setLevel(logging.DEBUG)
-        fh = logging.FileHandler(path, encoding='utf-8', mode='w+')
+        fh = logging.FileHandler(path, encoding='utf-8', mode='a+')
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(formatter)
         console.setFormatter(formatter)
@@ -127,12 +128,16 @@ class Spider:
         while True:
             # 关注机场列表
             if len(self.airport_names) >= self.ports_num:
-                self.driver.swipe(500, 500, 500, 1800, 500)
-                time.sleep(0.5)
-                self.driver.swipe(500, 500, 500, 1800, 500)
-                time.sleep(0.5)
-                self.driver.swipe(500, 500, 500, 1800, 500)
+                time.sleep(2)
+                self.driver.swipe(500, 500, 500, 1200, 500)
+                time.sleep(2)
+                self.driver.swipe(500, 500, 500, 1200, 500)
+                time.sleep(2)
+                self.driver.swipe(500, 500, 500, 1200, 500)
                 self.airport_names = []
+                print("防止刷新太快,刷新一遍后等待30秒再次启动")
+                time.sleep(15)
+
             try:
                 # 机场名
                 airports_name = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/airport_dynamic_new_txt_state')))
@@ -151,7 +156,11 @@ class Spider:
                     airport_name.click()
 
                     # 出场延误航班数量
-                    mora_num = self.wait.until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/detail_flow_delay_text')))
+                    mora_num = self.get_attr(airport_name, 'com.feeyo.vz.pro.cdm:id/detail_flow_delay_text')
+                    if not mora_num:
+                        print("[{}]机场信息获取失败".format(airport_name_text))
+                        continue
+                    # mora_num = WebDriverWait(self.driver, 3, 0.5).until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/detail_flow_delay_text')))
                     num = re.findall(r'\d', mora_num.text)
                     if not int(num[0]):
                         print("[{}]机场暂无延误航班,出场延误航班数：{}".format(airport_name_text, num[0]))
@@ -161,7 +170,7 @@ class Spider:
                     # 进入机场航班信息页面
                     flight_page = self.wait.until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/vznairport_detail_diaplay')))
                     flight_page.click()
-
+                    # 出场
                     flight_out = self.wait.until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/airport_display_img_port')))
                     flight_out.click()
                     # 延误航班页面
@@ -175,52 +184,23 @@ class Spider:
                         self.driver.keyevent(4)  # 返回机场列表页面
                         continue
 
-                    # 航班号
-                    flight_id = self.wait.until(EC.presence_of_all_elements_located(
-                        (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_route')))
-
-                    print("[{}]机场出场延误航班数：{}".format(airport_name_text, len(flight_id)))
-                    count = 0
-                    for flight in flight_id:
-                        try:
-                            # 延误时间
-                            mora_time = self.wait.until(EC.presence_of_all_elements_located(
-                                (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_delay_time_plus')))
-                            mora_time_text = mora_time[count].text
-                        except:
-                            self.driver.keyevent(4)  # 返回当前机场详情页面
-                            time.sleep(1)
-                            self.driver.keyevent(4)  # 返回机场列表页面
-                            break
-
-                        count += 1
-                        self.log.info('机场[{}]航班号[{}]延误时间[{}]'.format(airport_name_text, flight.text, mora_time_text))
-                        if not mora_time_text:
-                            continue
-                        if int(mora_time_text) < 180 or int(mora_time_text) > 800:
-                            continue
-                        else:
-                            # 进入航班详情页面
-                            flight.click()
-                            # 获取延误航班详细信息
-                            self.get_flight_content(mora_time_text, airport_name_text)
-                            self.driver.keyevent(4)  # 返回延误航班页面
-                            time.sleep(1)
+                    # 计算航班延误时间
+                    self.time_calculation(airport_name_text)
 
                     self.driver.keyevent(4)  # 返回当前机场详情页面
                     time.sleep(1)
                     self.driver.keyevent(4)  # 返回机场列表页面
-
-                try:
-                    # 上滑一屏
-                    self.driver.swipe(500, 1400, 500, 600, 800)
-                    print(self.airport_names, self.ports_num)
                     time.sleep(1)
-                except Exception as e:
-                    print(e)
+
+                # 滑动前添加等待时间 防止滑动出错
+                time.sleep(1)
+                self.driver.swipe(500, 1150, 500, 500, 1000)
+                print(len(self.airport_names), self.ports_num)
+                time.sleep(1)
+
             except Exception as e:
                 self.log.error(e)
-                # self.log.exception(e)
+                self.log.exception(e)
                 break
 
     def get_flight_content(self, mora_time_text, airport_name_text):
@@ -269,8 +249,70 @@ class Spider:
         if self.sms:
             self.sms_MD5(content, flight_number_text)
 
+    def time_calculation(self, airport_name):
+        """
+        计算航班延误时间
+        :param airport_name: 机场名
+        :return:
+        """
+        # 航班号
+        flight_id = self.wait.until(EC.presence_of_all_elements_located(
+            (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_route')))
+        flight_id = [i.text for i in flight_id]
+        # 计划起飞时间
+        plan_time = self.wait.until(EC.presence_of_all_elements_located(
+            (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_plane_position')))
+        plan_time = [i.text for i in plan_time]
+        # 预计起飞时间
+        estimate = self.wait.until(EC.presence_of_all_elements_located(
+            (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_delay_time')))
+        estimate = [i.text for i in estimate]
+
+        data_list = zip(flight_id, plan_time, estimate)
+
+        print("[{}]机场出场延误航班数：{}".format(airport_name, len(flight_id)))
+        count = 0
+        for data in data_list:
+
+            mora_time = int((parse(data[2]) - parse(data[1])).total_seconds()/60)
+
+            if not mora_time > 180 or not mora_time < 800:
+                if not count:
+                    print('<font color="red">暂无符合条件航班</font>')
+                else:
+                    print("已无符合条件航班")
+            else:
+                content = '机场[{}]航班号[{}]延误时间[{}]'.format(airport_name, data[0], mora_time)
+                self.log.info('<font color="green">content:{}</font>'.format(content))
+                # 短信发送
+                if self.sms:
+                    self.sms_MD5(content, data[0])
+                count += 1
+                time.sleep(1)
+                # 进入航班详情页面
+                # flight.click()
+                # # 获取延误航班详细信息
+                # self.get_flight_content(mora_time_text, airport_name_text)
+
+    def get_attr(self, old_page, by_id):
+        """页面刷新"""
+        for i in range(3):
+            try:
+                res = WebDriverWait(self.driver, 3, 0.5).until(EC.presence_of_element_located((By.ID, by_id)))
+                return res
+            except:
+                print("获取不到页面信息,重新刷新页面")
+                self.driver.keyevent(4)
+                old_page.click()
+        self.driver.keyevent(4)
+        return None
+
     def sms_MD5(self, content, flight_number):
-        """"效验当日已发送短信航班信息"""
+        """"
+        效验当日已发送短信航班信息
+        content  短信内容
+        flight_number  航班号
+        """
         # 实例化
         # md5 = Md5Dao()
         # 短信发送日志信息
@@ -281,6 +323,8 @@ class Spider:
             if flight_number not in a:
                 f.write(flight_number + '\n')
                 self.sms_post(content)
+            else:
+                print("航班号[{}]短信已发送".format(flight_number))
         # 效验是否发送 False 已发送 True 未发送
         # res = md5.dateupdate(path)
         # return res
@@ -297,19 +341,20 @@ def main():
     loop = Spider()
     desired_caps = {
         "platformName": "Android",
-        "deviceName": "127.0.0.1:{}".format(62025),
+        # "deviceName": "127.0.0.1:{}".format(62025),
+        "deviceName": "OS105",
         "appPackage": "com.feeyo.vz.pro.cdm",
-        "appActivity": "com.feeyo.vz.pro.activity.cdm.WelcomeActivity"
-        # "noReset": True
+        "appActivity": "com.feeyo.vz.pro.activity.cdm.WelcomeActivity",
+        "noReset": True
     }
-    driver_server = 'http://127.0.0.1:{}/wd/hub'.format(4730)
+    driver_server = 'http://127.0.0.1:{}/wd/hub'.format(4723)
     # 启动APP
     loop.driver = webdriver.Remote(driver_server, desired_caps)
     # 设置等待
     loop.wait = WebDriverWait(loop.driver, 40, 0.5)
-
+    time.sleep(5)
     loop.conf()  # 读取配置文件
-    loop.login()  # 登录
+    # loop.login()  # 登录
     loop.loop_look()  # 进入关注航班
     loop.run()  # 主程序
 
@@ -329,7 +374,8 @@ if __name__ == '__main__':
 #     result.join()
 #     print('Process close')
 
-
+# 15926309718
+# 19801216
 
 
 
