@@ -18,10 +18,15 @@ from dateutil.parser import parse
 # print(a-b)
 # print(int((parse('22:00') - parse('20:05')).total_seconds()/60))
 #
-#
+# import os
+# path = os.path.abspath('.') + r'\log\airport_names.txt'
+# with open(path, 'a+', encoding='utf-8')as f:
+#     f.seek(0)
+#     a = [i.replace('\n', '') for i in f.readlines()]
+#     print(a)
+#     f.seek(0)
+#     f.truncate()
+#     print(a)
+a = str(-180.0).lstrip('-')
 
-a = 210
-
-print(str(a)[0])
-
-
+print(int(eval(a)))

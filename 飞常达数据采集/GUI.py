@@ -199,6 +199,7 @@ class MyThread(QThread):
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT,
                                      bufsize=0)
+
                 while r.poll() is None:
                     line = str(r.stdout.readline(), encoding='utf-8')  #TODO 打包时改为GBK
                     line = line.strip()
@@ -213,6 +214,7 @@ class MyThread(QThread):
                     self.log_signal.emit('<font color="red">Subprogram failed</font>')
             except Exception as e:
                 self.log_init().error(e)
+                self.log_init().exception(e)
 
     def log_data(self, line):
         if 'content' in line:
