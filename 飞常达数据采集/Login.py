@@ -342,8 +342,6 @@ class Spider:
             if str(mora_time)[0] == '-':
                 mora_time = (24*60 - int(str(mora_time)[1:]))
 
-            else:
-                print(2)
             content = '机场[{}]航班号[{}]出发地[{}]目的地[{}]延误时间[{}]'.format(airport_name, data[0], airport_name, data[3], mora_time)
             if mora_time < 150:
                 self.log.info('<font color="red">{},不符合条件跳过</font>'.format(content))
@@ -404,30 +402,27 @@ class Spider:
 
     def sms_post(self, content):
         """短信发送"""
+        for i in range(len(self.phone)):
+            url = 'http://sms.kingtto.com:9999/sms.aspx'
+            content = '【智能航班】{}'.format(content)
+            params = {
+                'action': 'send',
+                'account': 'hongkegu',
+                'password': 'chenxiaoli2013',
+                'userid': '4112',
+                'mobile': self.phone[i],
+                'content': content,
+                'rt': 'json'
+            }
 
-        url = 'http://sms.kingtto.com:9999/sms.aspx'
-        content = '【智能航班】{}'.format(content)
-        params = {
-            'action': 'send',
-            'account': 'hongkegu',
-            'password': 'chenxiaoli2013',
-            'userid': '4112',
-            'mobile': self.phone[0],
-            'content': content,
-            'rt': 'json'
-        }
-
-        response = requests.post(url, data=params)
-        result = response.json()
-        if result['Message'] == 'ok':
-            self.log.info("通知短信发送成功：{}{}".format(self.phone[0], content))
-        else:
-            self.log.error("通知短信发送失败：{}").format(result['message'])
-        if result['RemainPoint'] < 5000:
-            self.log.info("短信余额不足请及时充值!")
-        # for i in range(len(self.phone)):
-        #     # print("<font color='green'>短信发送成功：{}</font>".format(content))
-        #     sms_phone.sms_phone(self.phone[i], content)
+            response = requests.post(url, data=params)
+            result = response.json()
+            if result['Message'] == 'ok':
+                self.log.info("通知短信发送成功：{}{}".format(self.phone[i], content))
+            else:
+                self.log.error("通知短信发送失败：{}").format(result['message'])
+            if result['RemainPoint'] < 5000:
+                self.log.info("短信余额不足请及时充值!")
 
 
 @run_time
