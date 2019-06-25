@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2019/6/19 10:10
 # @Author  : project
-# @File    : send_sms.py
+# @File    : sms_phone.py
 # @Software: PyCharm
 import os
 import logging
 import requests
 
 
-def send_sms(phone, content):
+def sms_phone(phone, content):
     """凯信通短信"""
     log = log_init()
     url = 'http://sms.kingtto.com:9999/sms.aspx'
@@ -55,4 +55,4 @@ def log_init():
 
 
 if __name__ == '__main__':
-    send_sms('18210836362', '您的验证码为：148625')
+    sms_phone('18210836362', '您的验证码为：148625')

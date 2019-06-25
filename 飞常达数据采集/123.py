@@ -27,6 +27,28 @@ from dateutil.parser import parse
 #     f.seek(0)
 #     f.truncate()
 #     print(a)
-a = str(-180.0).lstrip('-')
+import os
+import time
+import datetime
+# filePath = os.path.abspath('.') + r'\log\send_sms.txt'
+# if os.path.exists(filePath):
+#     print(1)
+# else:
+#     print(2)
+# filetime = os.path.getctime(filePath)
+# print(filetime)
+# mailtime = datetime.datetime.fromtimestamp(filetime).strftime('%Y-%m-%d')  # 格式化时间
+# currdate = time.time()  # 当前时间
+# mailtime1 = datetime.datetime.fromtimestamp(currdate).strftime('%Y-%m-%d')
+#
+# print(mailtime1)
+# a = mailtime
+# b = mailtime1
+# if a == b:
+#     os.remove(filePath)
+#     print(1)
+# else:
+#     print(2)
 
-print(int(eval(a)))
+
+print(str(None))

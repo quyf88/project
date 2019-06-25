@@ -3,14 +3,12 @@
 # @Author  : project
 # @File    : GUI.py
 # @Software: PyCharm
-import logging
+
 import re
 import os
 import sys
+import logging
 import subprocess
-import configparser
-
-import time
 from PyQt5.QtGui import QIcon
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtCore import QThread, pyqtSignal, QFile, QTextStream
@@ -121,6 +119,7 @@ class CrawlWindow(QWidget):
         # 启动线程
         self.worker.start()
         self.finish_sound.play()
+        self.start_btn.setEnabled(False)
 
     def combobox_slot(self, text):
         if not text == '是':
@@ -139,18 +138,15 @@ class CrawlWindow(QWidget):
 
     def conf_slot(self, sms, phone=None):
         """配置文件"""
-        # 配置文件修改 set修改类型必须为str set后必须write写入保存
-        cf = configparser.ConfigParser()
-        path = os.path.abspath('.') + '\config\config.ini'
-        cf.read(path, encoding='utf-8')
-        cf.set('sms', 'sms', str(sms))
-        cf.set('phone', 'phone', str(phone))
-        cf.write(open(path, "r+"))
+        path = os.path.abspath('.') + '\config\config.txt'
+        with open(path, 'w+', encoding='utf-8') as f:
+            f.write(str(sms))
+            f.write('\n')
+            f.write(str(phone))
         if sms:
             self.log_browser.append('<font color="red">启用短信通知：[{}]</font>'.format(phone))
         else:
             self.log_browser.append('<font color="red">关闭短信通知</font>')
-        self.start_btn.setEnabled(True)
 
     def set_log_slot(self, log):
         self.log_browser.append(log)
@@ -201,7 +197,7 @@ class MyThread(QThread):
                                      bufsize=0)
 
                 while r.poll() is None:
-                    line = str(r.stdout.readline(), encoding='utf-8')  #TODO 打包时改为GBK
+                    line = str(r.stdout.readline(), encoding='GBK')  #TODO 打包时改为GBK
                     line = line.strip()
                     if line:
                         self.log_data(line)
@@ -234,7 +230,7 @@ class MyThread(QThread):
         formatter = logging.Formatter('%(asctime)s | %(name)-6s | %(levelname)-6s| %(message)s')
         console = logging.StreamHandler()
         console.setLevel(logging.DEBUG)
-        fh = logging.FileHandler(path, encoding='utf-8', mode='a+')
+        fh = logging.FileHandler(path, encoding='utf-8', mode='w+')
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(formatter)
         console.setFormatter(formatter)
