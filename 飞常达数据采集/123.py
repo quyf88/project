@@ -13,11 +13,16 @@
 #     print(list(i))
 from datetime import datetime
 from dateutil.parser import parse
-# a = parse('22:00')
-# b = parse('20:05')
-# print(a-b)
-# print(int((parse('22:00') - parse('20:05')).total_seconds()/60))
-#
+
+a = (parse('01:07') - parse('20:35')).total_seconds()/60
+print(str(a))
+print(240 +32)
+# if str(a)[0] == '-':
+#     print(24*60 - int(str(a)[1:]))
+#     print(24 * 60 - int(str(a)[1:]))
+# else:
+#     print(2)  365 +37
+# print(24*60 - 1254)
 # import os
 # path = os.path.abspath('.') + r'\log\airport_names.txt'
 # with open(path, 'a+', encoding='utf-8')as f:
@@ -50,5 +55,5 @@ import datetime
 # else:
 #     print(2)
 
-
-print(str(None))
+# for i in range(5):
+#     print(i)

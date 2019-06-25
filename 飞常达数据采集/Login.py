@@ -7,14 +7,14 @@ import os
 import re
 import time
 import logging
+
+import requests
 from appium import webdriver
 from datetime import datetime
 from dateutil.parser import parse
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-import sms_phone
 
 # 手动启动模拟器 adb connect 127.0.0.1:62001
 # 查看连接 adb devices
@@ -243,51 +243,51 @@ class Spider:
         self.log.info("防止刷新太快,刷新一遍后等待30秒再次启动")
         time.sleep(20)
 
-    def get_flight_content(self, mora_time_text, airport_name_text):
-        """获取延误航班详细信息"""
-        # 航班号
-        flight_number = self.wait.until(
-            EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/tab_layout_txt_title')))
-        flight_number_text = flight_number[0].text
-        # 出发地
-        departure = self.wait.until(
-            EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_start_airport_name')))
-        departure_text = departure.text
-        # 计划起飞时间
-        planning_time = self.wait.until(
-            EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_start_plan_fly_time')))
-        planning_time_text = planning_time.text
-        # 实际起飞时间
-        departure_time = self.wait.until(
-            EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_start_fly_time')))
-        departure_time_text = departure_time.text
-        # 目的地
-        destination = self.wait.until(
-            EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_end_airport_name')))
-        destination_text = destination.text
-        # 计划到达时间
-        planned_time = self.wait.until(
-            EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_end_plan_fly_time')))
-        planned_time_text = planned_time.text
-        # 预计达到时间
-        estimated_time = self.wait.until(
-            EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_end_fly_time')))
-        estimated_time_text = estimated_time.text
-
-        # self.log.info("航班：[{}],[{}],实际起飞时间：[{}],出发地：[{}],目的地：[{}],{} 预计到达：[{}],延误时间：[{}]".format(flight_number_text,
-        #                                                                                          planning_time_text,
-        #                                                                                          departure_time_text,
-        #                                                                                          departure_text,
-        #                                                                                          destination_text,
-        #                                                                                          planned_time_text,
-        #                                                                                          estimated_time_text,
-        #                                                                                          mora_time_text))
-        content = "[{}]机场,[{}]航班,[{}]出发,目的地[{}],延误时间[{}]".format(airport_name_text, flight_number_text,
-                                                                 departure_text, destination_text, mora_time_text)
-        self.log.info('<font color="green">content:{}</font>'.format(content))
-        # 短信发送
-        if self.sms:
-            self.sms_MD5(content, flight_number_text)
+    # def get_flight_content(self, mora_time_text, airport_name_text):
+    #     """获取延误航班详细信息"""
+    #     # 航班号
+    #     flight_number = self.wait.until(
+    #         EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/tab_layout_txt_title')))
+    #     flight_number_text = flight_number[0].text
+    #     # 出发地
+    #     departure = self.wait.until(
+    #         EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_start_airport_name')))
+    #     departure_text = departure.text
+    #     # 计划起飞时间
+    #     planning_time = self.wait.until(
+    #         EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_start_plan_fly_time')))
+    #     planning_time_text = planning_time.text
+    #     # 实际起飞时间
+    #     departure_time = self.wait.until(
+    #         EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_start_fly_time')))
+    #     departure_time_text = departure_time.text
+    #     # 目的地
+    #     destination = self.wait.until(
+    #         EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_end_airport_name')))
+    #     destination_text = destination.text
+    #     # 计划到达时间
+    #     planned_time = self.wait.until(
+    #         EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_end_plan_fly_time')))
+    #     planned_time_text = planned_time.text
+    #     # 预计达到时间
+    #     estimated_time = self.wait.until(
+    #         EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_end_fly_time')))
+    #     estimated_time_text = estimated_time.text
+    #
+    #     # self.log.info("航班：[{}],[{}],实际起飞时间：[{}],出发地：[{}],目的地：[{}],{} 预计到达：[{}],延误时间：[{}]".format(flight_number_text,
+    #     #                                                                                          planning_time_text,
+    #     #                                                                                          departure_time_text,
+    #     #                                                                                          departure_text,
+    #     #                                                                                          destination_text,
+    #     #                                                                                          planned_time_text,
+    #     #                                                                                          estimated_time_text,
+    #     #                                                                                          mora_time_text))
+    #     content = "[{}]机场,[{}]航班,[{}]出发,目的地[{}],延误时间[{}]".format(airport_name_text, flight_number_text,
+    #                                                              departure_text, destination_text, mora_time_text)
+    #     self.log.info('<font color="green">content:{}</font>'.format(content))
+    #     # 短信发送
+    #     if self.sms:
+    #         self.sms_MD5(content, flight_number_text)
 
     def time_calculation(self, airport_name):
         """
@@ -335,7 +335,15 @@ class Spider:
 
         for data in data_list:
             # 计算时间差
-            mora_time = int(eval(str((parse(data[2]) - parse(data[1])).total_seconds()/60).lstrip('-')))
+
+            # mora_time = int(eval(str((parse(data[2]) - parse(data[1])).total_seconds()/60).lstrip('-')))
+            mora_time = int((parse(data[2]) - parse(data[1])).total_seconds() / 60)
+            # 判断是否隔天航班
+            if str(mora_time)[0] == '-':
+                mora_time = (24*60 - int(str(mora_time)[1:]))
+
+            else:
+                print(2)
             content = '机场[{}]航班号[{}]出发地[{}]目的地[{}]延误时间[{}]'.format(airport_name, data[0], airport_name, data[3], mora_time)
             if mora_time < 150:
                 self.log.info('<font color="red">{},不符合条件跳过</font>'.format(content))
@@ -390,13 +398,36 @@ class Spider:
                 f.write(flight_number + '\n')
                 self.sms_post(content)
             else:
-                print("航班号[{}]短信已发送".format(flight_number))
+                self.log.info("航班号[{}]今日短信已发送一条,避免重复发送跳过!".format(flight_number))
+
+        return None
 
     def sms_post(self, content):
         """短信发送"""
-        for i in self.phone:
-            # print("<font color='green'>短信发送成功：{}</font>".format(content))
-            sms_phone.sms_phone(i, content)
+
+        url = 'http://sms.kingtto.com:9999/sms.aspx'
+        content = '【智能航班】{}'.format(content)
+        params = {
+            'action': 'send',
+            'account': 'hongkegu',
+            'password': 'chenxiaoli2013',
+            'userid': '4112',
+            'mobile': self.phone[0],
+            'content': content,
+            'rt': 'json'
+        }
+
+        response = requests.post(url, data=params)
+        result = response.json()
+        if result['Message'] == 'ok':
+            self.log.info("通知短信发送成功：{}{}".format(self.phone[0], content))
+        else:
+            self.log.error("通知短信发送失败：{}").format(result['message'])
+        if result['RemainPoint'] < 5000:
+            self.log.info("短信余额不足请及时充值!")
+        # for i in range(len(self.phone)):
+        #     # print("<font color='green'>短信发送成功：{}</font>".format(content))
+        #     sms_phone.sms_phone(self.phone[i], content)
 
 
 @run_time
@@ -404,13 +435,13 @@ def main():
     loop = Spider()
     desired_caps = {
         "platformName": "Android",
-        # "deviceName": "127.0.0.1:{}".format(62025),
-        "deviceName": "LZ7LSCZTYS9DNZEQ",
+        "deviceName": "127.0.0.1:{}".format(62025),
+        # "deviceName": "LZ7LSCZTYS9DNZEQ",
         "appPackage": "com.feeyo.vz.pro.cdm",
         "appActivity": "com.feeyo.vz.pro.activity.cdm.WelcomeActivity",
         "noReset": True
     }
-    driver_server = 'http://127.0.0.1:{}/wd/hub'.format(4735)
+    driver_server = 'http://127.0.0.1:{}/wd/hub'.format(4730)
     # 启动APP
     loop.driver = webdriver.Remote(driver_server, desired_caps)
     # 设置等待

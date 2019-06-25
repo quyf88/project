@@ -197,7 +197,7 @@ class MyThread(QThread):
                                      bufsize=0)
 
                 while r.poll() is None:
-                    line = str(r.stdout.readline(), encoding='GBK')  #TODO 打包时改为GBK
+                    line = str(r.stdout.readline(), encoding='UTF-8')  #TODO 打包时改为GBK
                     line = line.strip()
                     if line:
                         self.log_data(line)
@@ -237,7 +237,7 @@ class MyThread(QThread):
         # 如果需要同時需要在終端上輸出，定義一個streamHandler
         # print_handler = logging.StreamHandler()  # 往屏幕上输出
         # print_handler.setFormatter(formatter)  # 设置屏幕上显示的格式
-        logger = logging.getLogger("Spider")
+        logger = logging.getLogger("GUI")
         # logger.addHandler(print_handler)
         logger.setLevel(logging.DEBUG)
         logger.addHandler(console)
