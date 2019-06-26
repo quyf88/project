@@ -14,9 +14,9 @@
 from datetime import datetime
 from dateutil.parser import parse
 
-a = (parse('01:07') - parse('20:35')).total_seconds()/60
-print(str(a))
-print(240 +32)
+# a = (parse('01:07') - parse('20:35')).total_seconds()/60
+# print(str(a))
+# print(240 +32)
 # if str(a)[0] == '-':
 #     print(24*60 - int(str(a)[1:]))
 #     print(24 * 60 - int(str(a)[1:]))
@@ -57,3 +57,22 @@ import datetime
 
 # for i in range(5):
 #     print(i)
+
+import os
+
+a = os.system("adb devices")
+
+# output = str(a).replace('\r', '').split('\n')
+# # 剔除列表中空字符串
+# output = list(filter(None, output))
+# if not len(output) > 1:
+#     print("读取设备信息失败,自动重启中...")
+#
+# # 连接设备列表
+# devices = [i.split('\t') for i in output[1:]]
+# # 读取成功列表
+# success = [i[0] for i in devices if i[1] == 'device']
+# for i in success:
+#     print("设备连接成功：[{}]".format(i))
+#
+

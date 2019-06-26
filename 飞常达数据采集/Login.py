@@ -7,8 +7,8 @@ import os
 import re
 import time
 import logging
-
 import requests
+import subprocess
 from appium import webdriver
 from datetime import datetime
 from dateutil.parser import parse
@@ -41,6 +41,8 @@ class Spider:
         self.phone = None
         # 关注机场数量
         self.ports_num = None
+        # 延误航班效验临时列表
+        self.flight = []
         # 屏幕尺寸
         self.x = None
         self.y = None
@@ -49,6 +51,37 @@ class Spider:
         self.driver = None
         # 设置等待
         self.wait = None
+
+    def adb_devices(self):
+        """读取设备列表"""
+        get_cmd = "adb devices"  # 查询连接设备列表
+        count = 0
+        while True:
+            # 连接设备
+            if count > 2:
+                self.log.info("读取设备信息失败,请检查设备是否成功启动")
+                break
+            # 读取连接设备信息
+            p = subprocess.Popen(get_cmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 stdin=subprocess.PIPE, shell=True)
+
+            (output, err) = p.communicate()
+            # 分割多条信息为列表
+            output = output.decode().replace('\r', '').split('\n')
+            # 剔除列表中空字符串
+            output = list(filter(None, output))
+            if not len(output) > 1:
+                self.log.info("读取设备信息失败,自动重启中...")
+                count += 1
+                continue
+            # 连接设备列表
+            devices = [i.split('\t') for i in output[1:]]
+            # 读取成功列表
+            success = [i[0] for i in devices if i[1] == 'device']
+            for i in success:
+                self.log.info("设备连接成功：[{}]".format(i))
+            break
 
     def get_size(self):
         """获取屏幕尺寸"""
@@ -72,7 +105,7 @@ class Spider:
         formatter = logging.Formatter('%(asctime)s | %(name)-6s | %(levelname)-6s| %(message)s')
         console = logging.StreamHandler()
         console.setLevel(logging.DEBUG)
-        fh = logging.FileHandler(path, encoding='utf-8', mode='w+')
+        fh = logging.FileHandler(path, encoding='utf-8', mode='a+')
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(formatter)
         console.setFormatter(formatter)
@@ -133,7 +166,6 @@ class Spider:
         while True:
             flang = False
             try:
-
                 # 机场名
                 airports_name = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/airport_dynamic_new_txt_state')))
 
@@ -146,7 +178,7 @@ class Spider:
                         print("当前循环已完成,开启下一轮监控")
                         break
                     elif not res == 2:
-                        print("{}已处理".format(airport_name_text))
+                        print("[{}]机场已处理".format(airport_name_text))
                         continue
                     self.log.info("[{}]：机场航班信息获取中...".format(airport_name_text))
                     airports_name[i].click()
@@ -243,53 +275,7 @@ class Spider:
         self.log.info("防止刷新太快,刷新一遍后等待30秒再次启动")
         time.sleep(20)
 
-    # def get_flight_content(self, mora_time_text, airport_name_text):
-    #     """获取延误航班详细信息"""
-    #     # 航班号
-    #     flight_number = self.wait.until(
-    #         EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/tab_layout_txt_title')))
-    #     flight_number_text = flight_number[0].text
-    #     # 出发地
-    #     departure = self.wait.until(
-    #         EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_start_airport_name')))
-    #     departure_text = departure.text
-    #     # 计划起飞时间
-    #     planning_time = self.wait.until(
-    #         EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_start_plan_fly_time')))
-    #     planning_time_text = planning_time.text
-    #     # 实际起飞时间
-    #     departure_time = self.wait.until(
-    #         EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_start_fly_time')))
-    #     departure_time_text = departure_time.text
-    #     # 目的地
-    #     destination = self.wait.until(
-    #         EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_end_airport_name')))
-    #     destination_text = destination.text
-    #     # 计划到达时间
-    #     planned_time = self.wait.until(
-    #         EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_end_plan_fly_time')))
-    #     planned_time_text = planned_time.text
-    #     # 预计达到时间
-    #     estimated_time = self.wait.until(
-    #         EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/item_end_fly_time')))
-    #     estimated_time_text = estimated_time.text
-    #
-    #     # self.log.info("航班：[{}],[{}],实际起飞时间：[{}],出发地：[{}],目的地：[{}],{} 预计到达：[{}],延误时间：[{}]".format(flight_number_text,
-    #     #                                                                                          planning_time_text,
-    #     #                                                                                          departure_time_text,
-    #     #                                                                                          departure_text,
-    #     #                                                                                          destination_text,
-    #     #                                                                                          planned_time_text,
-    #     #                                                                                          estimated_time_text,
-    #     #                                                                                          mora_time_text))
-    #     content = "[{}]机场,[{}]航班,[{}]出发,目的地[{}],延误时间[{}]".format(airport_name_text, flight_number_text,
-    #                                                              departure_text, destination_text, mora_time_text)
-    #     self.log.info('<font color="green">content:{}</font>'.format(content))
-    #     # 短信发送
-    #     if self.sms:
-    #         self.sms_MD5(content, flight_number_text)
-
-    def time_calculation(self, airport_name):
+    def time_calculation(self, airport_name):  # TODO
         """
         计算航班延误时间
         :param airport_name: 机场名
@@ -298,64 +284,57 @@ class Spider:
         count = 1
         while True:
             if count >= 3:
+                self.log.info('<font color="red">读取航班时间失败!暂时跳过...</font>'.format(count))
                 return
             try:
-                flight_id_list = []
-                destination_list = []
-                plan_time_list = []
-                estimate_list = []
                 # 航班号
-                flight_id = self.wait.until(EC.presence_of_all_elements_located(
+                flights = self.wait.until(EC.presence_of_all_elements_located(
                     (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_route')))
-                # 目的地
-                destination = self.wait.until(EC.presence_of_all_elements_located(
-                    (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_departure_or_destination')))
-                # 计划起飞时间
-                plan_time = self.wait.until(EC.presence_of_all_elements_located(
-                    (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_plane_position')))
-                # 预计起飞时间
-                estimate = self.wait.until(EC.presence_of_all_elements_located(
-                    (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_delay_time')))
-                for i in range(len(flight_id)-1):
-                    self.log.info("[{}]航班延误时间计算中...".format(flight_id[i].text))
-                    if flight_id[i].text in flight_id_list:
-                        continue
-                    flight_id_list.append(flight_id[i].text)
-                    destination_list.append(destination[i].text)
-                    plan_time_list.append(plan_time[i].text)
-                    estimate_list.append(estimate[i].text)
 
-                data_list = zip(flight_id_list, plan_time_list, estimate_list, destination_list)
-                print("[{}]机场出场延误航班数：{}".format(airport_name, len(flight_id)))
+                for i in range(len(flights)):
+                    flight = flights[i].text  # 航班号
+                    # 航班已处理过跳过
+                    if flight in self.flight:
+                        print("[{}]航班已处理".format(flight))
+                        continue
+                    self.log.info('<font color="green">[{}]航班延误时间计算中...</font>'.format(flight))
+
+                    # 目的地
+                    destinations = self.wait.until(EC.presence_of_all_elements_located(
+                        (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_departure_or_destination')))
+                    # 计划起飞时间
+                    plans_time = self.wait.until(EC.presence_of_all_elements_located(
+                        (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_plane_position')))
+                    # 预计起飞时间
+                    estimates = self.wait.until(EC.presence_of_all_elements_located(
+                        (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_delay_time')))
+                    destination = destinations[i].text  # 目的地
+                    plan_time = plans_time[i].text  # 计划起飞
+                    estimate = estimates[i].text  # 预计起飞
+
+                    # 计算时间差
+                    mora_time = int((parse(estimate) - parse(plan_time)).total_seconds() / 60)
+                    # 判断是否隔天航班
+                    if str(mora_time)[0] == '-':
+                        mora_time = (24 * 60 - int(str(mora_time)[1:]))
+
+                    content = '机场[{}]航班号[{}]出发地[{}]目的地[{}]延误时间[{}]'.format(airport_name, flight, airport_name, destination,
+                                                                           mora_time)
+                    if mora_time < 150:
+                        self.log.info('<font color="red">{},不符合条件</font>'.format(content))
+                        continue
+                    self.log.info('<font color="green">content:{}</font>'.format(content))
+                    # 短信发送
+                    if self.sms:
+                        print("短信发送成功{}".format(content))
+                        # self.sms_post(content)
+                    # 航班号写入文件
+                    self.flight_MD5(flight)
                 break
             except Exception as e:
+                self.log.info('<font color="red">读取航班时间失败!重试[{}]...</font>'.format(count))
                 count += 1
-                self.log.info('<font color="red">读取航班时间失败!重试中...</font>')
                 continue
-
-        for data in data_list:
-            # 计算时间差
-
-            # mora_time = int(eval(str((parse(data[2]) - parse(data[1])).total_seconds()/60).lstrip('-')))
-            mora_time = int((parse(data[2]) - parse(data[1])).total_seconds() / 60)
-            # 判断是否隔天航班
-            if str(mora_time)[0] == '-':
-                mora_time = (24*60 - int(str(mora_time)[1:]))
-
-            content = '机场[{}]航班号[{}]出发地[{}]目的地[{}]延误时间[{}]'.format(airport_name, data[0], airport_name, data[3], mora_time)
-            if mora_time < 150:
-                self.log.info('<font color="red">{},不符合条件跳过</font>'.format(content))
-                continue
-            self.log.info('<font color="green">content:{}</font>'.format(content))
-            # 短信发送
-            if self.sms:
-                self.sms_MD5(content, data[0])
-
-            # 进入航班详情页面
-            # flight.click()
-            # # 获取延误航班详细信息
-            # self.get_flight_content(mora_time_text, airport_name_text)
-            # print('<font color="red">已无符合条件航班</font>')
 
     def get_attr(self, old_page, by_id):
         """页面刷新"""
@@ -370,35 +349,31 @@ class Spider:
         self.driver.keyevent(4)
         return None
 
-    def sms_MD5(self, content, flight_number):
+    def flight_MD5(self, flight=None):
         """"
-        效验当日已发送短信航班信息
-        content  短信内容
-        flight_number  航班号
+        效验当日已发送短信航班信息 避免重复读取
+        flight  航班号
         """
         # 短信发送日志信息
-        path = os.path.abspath('.') + '\log\send_sms.txt'
+        path = os.path.abspath('.') + r'\log\flight_MD5.txt'
         if os.path.exists(path):
             # 获取文件创建日期
             filetime = os.path.getctime(path)
             mailtime = datetime.fromtimestamp(filetime).strftime('%Y-%m-%d')
-            # 当前系统时间
+            # 当前系统日期
             currdate = time.time()
             mailtime1 = datetime.fromtimestamp(currdate).strftime('%Y-%m-%d')
-            # 清空前一天的发送记录
+            # 判断文件创建日期是否等于当前系统日期 如不相等 删除前一天的发送记录
             if mailtime != mailtime1:
                 os.remove(path)
 
         with open(path, 'a+', encoding='utf-8')as f:
+            if flight:
+                f.write(flight + '\n')
+                self.log.info('更新航班记录成功!')
             f.seek(0)
-            a = [i.replace('\n', '') for i in f.readlines()]
-            if flight_number not in a:
-                f.write(flight_number + '\n')
-                self.sms_post(content)
-            else:
-                self.log.info("航班号[{}]今日短信已发送一条,避免重复发送跳过!".format(flight_number))
-
-        return None
+            self.flight = [i.replace('\n', '') for i in f.readlines()]
+            self.log.info('读取已处理航班记录成功!')
 
     def sms_post(self, content):
         """短信发送"""
@@ -427,11 +402,15 @@ class Spider:
 
 @run_time
 def main():
+
     loop = Spider()
+    loop.adb_devices()  # 读取设备信息
+    loop.flight_MD5()  # 读取航班记录
+    loop.conf()  # 读取配置文件
     desired_caps = {
         "platformName": "Android",
-        "deviceName": "127.0.0.1:{}".format(62025),
-        # "deviceName": "LZ7LSCZTYS9DNZEQ",
+        # "deviceName": "127.0.0.1:{}".format(62025),
+        "deviceName": "d750dac5",
         "appPackage": "com.feeyo.vz.pro.cdm",
         "appActivity": "com.feeyo.vz.pro.activity.cdm.WelcomeActivity",
         "noReset": True
@@ -441,8 +420,8 @@ def main():
     loop.driver = webdriver.Remote(driver_server, desired_caps)
     # 设置等待
     loop.wait = WebDriverWait(loop.driver, 20, 0.5)
-    time.sleep(8)
-    loop.conf()  # 读取配置文件
+    time.sleep(10)
+
     # loop.login()  # 登录
     loop.get_size()  # 获取屏幕尺寸
     loop.loop_look()  # 进入关注航班
