@@ -197,7 +197,7 @@ class MyThread(QThread):
                                      bufsize=0)
 
                 while r.poll() is None:
-                    line = str(r.stdout.readline(), encoding='GBK')  #TODO 打包时改为GBK
+                    line = str(r.stdout.readline(), encoding='UTF-8')  #TODO 打包时改为GBK
                     line = line.strip()
                     if line:
                         self.log_data(line)

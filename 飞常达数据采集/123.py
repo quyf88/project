@@ -14,9 +14,16 @@
 from datetime import datetime
 from dateutil.parser import parse
 """时间计算"""
-a = int((parse('15:16') - parse('23:00')).total_seconds()/60)
-print(a)
-print(24*60 - int(str(a)[1:]))
+# a = int((parse('15:16') - parse('23:00')).total_seconds()/60)
+# print(a)
+# print(24*60 - int(str(a)[1:]))
+a = '+517'
+
+if '+' in a:
+    print(1)
+else:
+    print(2)
+
 
 # if str(a)[0] == '-':
 #     print(24*60 - int(str(a)[1:]))
