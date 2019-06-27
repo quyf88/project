@@ -332,16 +332,13 @@ class Spider:
                     if '9C' in flight:
                         self.log.info("[{}]航班9c开头航班 跳过".format(flight))
                         flight_list.append(flight)
-                        time.sleep(0.5)
                         continue
                     # 航班已处理过跳过
                     if flight in self.flight:
                         self.log.info("[{}]航班已处理".format(flight))
-                        time.sleep(0.5)
                         continue
                     elif flight in flight_list:
                         self.log.info("[{}]航班已处理".format(flight))
-                        time.sleep(0.5)
                         continue
 
                     # 本次处理航班号存入临时列表 等待当前页面处理完成统一写入文件
