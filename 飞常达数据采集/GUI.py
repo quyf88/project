@@ -163,8 +163,8 @@ class CrawlWindow(QWidget):
 
     def set_start_slot(self):
         # 表格清空 输出框窗口清空
-        self.table.clearContents()
-        self.table.setRowCount(0)
+        # self.table.clearContents()
+        # self.table.setRowCount(0)
         self.log_browser.clear()
 
 
@@ -197,7 +197,7 @@ class MyThread(QThread):
                                      bufsize=0)
 
                 while r.poll() is None:
-                    line = str(r.stdout.readline(), encoding='UTF-8')  #TODO 打包时改为GBK
+                    line = str(r.stdout.readline(), encoding='GBK')  #TODO 打包时改为GBK
                     line = line.strip()
                     if line:
                         self.log_data(line)

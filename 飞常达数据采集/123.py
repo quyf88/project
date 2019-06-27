@@ -13,9 +13,9 @@
 #     print(list(i))
 from datetime import datetime
 from dateutil.parser import parse
-
-a = int((parse('22:29') - parse('22:35')).total_seconds()/60)
-print(a, type(a))
+"""时间计算"""
+a = int((parse('15:16') - parse('23:00')).total_seconds()/60)
+print(a)
 print(24*60 - int(str(a)[1:]))
 
 # if str(a)[0] == '-':
@@ -24,6 +24,8 @@ print(24*60 - int(str(a)[1:]))
 # else:
 #     print(2)  365 +37
 # print(24*60 - 1254)
+
+"""读取文件"""
 # import os
 # path = os.path.abspath('.') + r'\log\airport_names.txt'
 # with open(path, 'a+', encoding='utf-8')as f:
@@ -33,28 +35,49 @@ print(24*60 - int(str(a)[1:]))
 #     f.seek(0)
 #     f.truncate()
 #     print(a)
+
+
+"""根据文件创建日期 删除文件"""
 import os
 import time
-import datetime
-# filePath = os.path.abspath('.') + r'\log\send_sms.txt'
-# if os.path.exists(filePath):
-#     print(1)
-# else:
-#     print(2)
-# filetime = os.path.getctime(filePath)
-# print(filetime)
-# mailtime = datetime.datetime.fromtimestamp(filetime).strftime('%Y-%m-%d')  # 格式化时间
-# currdate = time.time()  # 当前时间
-# mailtime1 = datetime.datetime.fromtimestamp(currdate).strftime('%Y-%m-%d')
+from datetime import datetime
+
+# class a:
 #
-# print(mailtime1)
-# a = mailtime
-# b = mailtime1
-# if a == b:
-#     os.remove(filePath)
-#     print(1)
-# else:
-#     print(2)
+#     def update_data(self):
+#         path = os.path.abspath('.') + r'\log\config.txt'
+#         self.remove_data(path)
+#         with open(path, 'a+', encoding='utf-8')as f:
+#             f.write('123' + '\n')
+#             print('更新航班记录成功!')
+#             f.seek(0)
+#             flight = [i.replace('\n', '') for i in f.readlines()]
+#             print(flight)
+#             print('读取已处理航班记录成功!')
+#             # 获取文件创建日期
+#             filetime = os.path.getctime(path)
+#             mailtime = datetime.fromtimestamp(filetime).strftime('%Y-%m-%d')
+#             print(filetime, mailtime)
+#
+#     def remove_data(self, path):
+#         if os.path.exists(path):
+#             # 获取文件创建日期
+#             filetime = os.path.getctime(path)
+#             mailtime = datetime.fromtimestamp(filetime).strftime('%Y-%m-%d')
+#             print(filetime, mailtime)
+#             # 当前系统日期
+#             currdate = time.time()
+#             mailtime1 = datetime.fromtimestamp(currdate).strftime('%Y-%m-%d')
+#
+#             # 判断文件创建日期是否等于当前系统日期 如不相等 删除前一天的发送记录
+#             if mailtime != mailtime1:
+#                 os.remove(path)
+#                 print("删除成功")
+#                 time.sleep(15)
+#
+#
+# a().update_data()
+
 
 # for i in range(5):
 #     print(i)
@@ -76,4 +99,11 @@ import datetime
 # for i in success:
 #     print("设备连接成功：[{}]".format(i))
 #
+#
+# if '9C' in '9C8824':
+#     print(1)
+# else:
+#     print(2)
+
+
 

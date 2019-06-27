@@ -34,7 +34,10 @@ def run_time(func):
 
 class Spider:
     def __init__(self):
+        # 日志
         self.log = self.log_init()
+        # 效验航班记录文件
+        self.flight_MD5()
         # 是否启用短信通知
         self.sms = None
         # 短信通知号码
@@ -186,6 +189,7 @@ class Spider:
                 airports_name = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/airport_dynamic_new_txt_state')))
 
                 for i in range(len(airports_name)):
+                    time.sleep(1)
                     airport_name_text = airports_name[i].text.split('-')[0]
                     # 效验是否已处理
                     res = self.validation(airport_name_text)
@@ -194,7 +198,7 @@ class Spider:
                         print("当前循环已完成,开启下一轮监控")
                         break
                     elif not res == 2:
-                        print("[{}]机场已处理".format(airport_name_text))
+                        self.log.info("[{}]机场已处理".format(airport_name_text))
                         continue
                     self.log.info("[{}]：机场航班信息获取中...".format(airport_name_text))
                     airports_name[i].click()
@@ -259,7 +263,7 @@ class Spider:
                 print(e)
                 self.log.error(e)
                 self.log.exception(e)
-                break
+                continue
 
     def validation(self, airport_name):
         """
@@ -306,16 +310,40 @@ class Spider:
             flight_list = []
             try:
                 # 航班号
-                flights = self.wait.until(EC.presence_of_all_elements_located(
-                    (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_route')))
+                # flights = self.wait.until(EC.presence_of_all_elements_located(
+                #     (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_route')))
+                # 机号
+                machine_number = self.wait.until(EC.presence_of_all_elements_located(
+                    (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_planeno')))
 
-                for i in range(len(flights)):
-                    flight = flights[i].text  # 航班号
+                for i in range(len(machine_number)):
+                    machine = machine_number[i].text  # 机号
+                    if machine == '--':
+                        self.log.info("机号为空跳过")
+                        continue
 
+                    # 航班号
+                    flights_xpath = '//androidx.recyclerview.widget.RecyclerView[@resource-id="com.feeyo.' \
+                                    'vz.pro.cdm:id/recycler_view"]/android.widget.LinearLayout[{}]/android.widget' \
+                                    '.TextView[1]'.format(i + 1)
+                    flights = self.wait.until(EC.presence_of_element_located((By.XPATH, flights_xpath)))
+                    flight = flights.text  # 航班号
+
+                    if '9C' in flight:
+                        self.log.info("[{}]航班9c开头航班 跳过".format(flight))
+                        flight_list.append(flight)
+                        time.sleep(0.5)
+                        continue
                     # 航班已处理过跳过
                     if flight in self.flight:
                         self.log.info("[{}]航班已处理".format(flight))
+                        time.sleep(0.5)
                         continue
+                    elif flight in flight_list:
+                        self.log.info("[{}]航班已处理".format(flight))
+                        time.sleep(0.5)
+                        continue
+
                     # 本次处理航班号存入临时列表 等待当前页面处理完成统一写入文件
                     flight_list.append(flight)
                     self.log.info('<font color="green">[{}]航班延误时间计算中...</font>'.format(flight))
@@ -339,7 +367,7 @@ class Spider:
                     plan_time = plans_time.text  # 计划起飞
                     estimate = estimates.text  # 预计起飞
                     # TODO
-                    self.log.info('{}{}{}{}'.format(flight, destination,plan_time,estimate))
+                    self.log.info('{} {} {} {}'.format(flight, destination,plan_time,estimate))
                     # 计算时间差
                     mora_time = int((parse(estimate) - parse(plan_time)).total_seconds() / 60)
                     # 判断是否隔天航班
@@ -354,13 +382,13 @@ class Spider:
                     self.log.info('<font color="green">content:{}</font>'.format(content))
                     # 短信发送
                     if self.sms:
-                        self.log.info("短信发送成功{}".format(content))
-                        # self.sms_post(content)
+                        # self.log.info("短信发送成功{}".format(content))
+                        self.sms_post(content)
 
                 # 航班号写入文件
                 if not flight_list:
                     break
-                self.flight_MD5(flight_list)
+                self.update_flight(flight_list)
                 break
             except Exception as e:
                 self.log.info('<font color="red">读取航班时间失败!重试[{}]...</font>'.format(count))
@@ -380,7 +408,7 @@ class Spider:
         self.driver.keyevent(4)
         return None
 
-    def flight_MD5(self, flight=None):
+    def flight_MD5(self):
         """"
         效验当日已发送短信航班信息 避免重复读取
         flight  航班号
@@ -397,7 +425,18 @@ class Spider:
             # 判断文件创建日期是否等于当前系统日期 如不相等 删除前一天的发送记录
             if mailtime != mailtime1:
                 os.remove(path)
+                self.log.info("<font color='red'>日期更新,删除已处理航班信息记录文件!</font>")
+                self.log.info("<font color='red'>文件删除中...等待15秒刷新系统缓存</font>")
+                time.sleep(15)
+            else:
+                self.log.info("<font color='red'>航班信息记录文件日期没有更新!</font>")
 
+    def update_flight(self, flight=None):
+        """
+        更新已处理航班号文件
+        flight 需更新航班号列表
+        """
+        path = os.path.abspath('.') + r'\log\flight_MD5.txt'
         with open(path, 'a+', encoding='utf-8')as f:
             if flight:
                 for i in flight:
@@ -410,6 +449,7 @@ class Spider:
     def sms_post(self, content):
         """短信发送"""
         for i in range(len(self.phone)):
+            time.sleep(1)
             url = 'http://sms.kingtto.com:9999/sms.aspx'
             content = '【智能航班】{}'.format(content)
             params = {
@@ -437,7 +477,7 @@ def main():
 
     loop = Spider()
     loop.adb_devices()  # 读取设备信息
-    loop.flight_MD5()  # 读取航班记录
+    loop.update_flight()  # 读取航班记录文件
     loop.conf()  # 读取配置文件
     desired_caps = {
         "platformName": "Android",
@@ -447,15 +487,14 @@ def main():
         "appActivity": "com.feeyo.vz.pro.activity.cdm.WelcomeActivity",
         "noReset": True
     }
-    driver_server = 'http://127.0.0.1:{}/wd/hub'.format(4730)
+    driver_server = 'http://127.0.0.1:{}/wd/hub'.format(4723)
     # 启动APP
     loop.driver = webdriver.Remote(driver_server, desired_caps)
     # 设置等待
     loop.wait = WebDriverWait(loop.driver, 20, 0.5)
     time.sleep(10)
     loop.pop_ups()  # APP 是否提示更新
-    loop.login()  # 登录
-
+    # loop.login()  # 登录
     loop.get_size()  # 获取屏幕尺寸
     loop.loop_look()  # 进入关注航班
     loop.run()  # 主程序
