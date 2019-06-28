@@ -230,7 +230,7 @@ class MyThread(QThread):
         formatter = logging.Formatter('%(asctime)s | %(name)-6s | %(levelname)-6s| %(message)s')
         console = logging.StreamHandler()
         console.setLevel(logging.DEBUG)
-        fh = logging.FileHandler(path, encoding='utf-8', mode='w+')
+        fh = logging.FileHandler(path, encoding='utf-8', mode='a+')
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(formatter)
         console.setFormatter(formatter)

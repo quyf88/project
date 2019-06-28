@@ -18,6 +18,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 # 手动启动模拟器 adb connect 127.0.0.1:62001
 # 查看连接 adb devices
+import chat
 
 
 def run_time(func):
@@ -36,6 +37,9 @@ class Spider:
     def __init__(self):
         # 日志
         self.log = self.log_init()
+        self.log.info('<font color="red"微信登录</font>')
+        self.chatpush = chat.Itchat()
+        self.log.info('<font color="red"微信登录成功</font>')
         # 效验航班记录文件
         self.flight_MD5()
         # 是否启用短信通知
@@ -140,7 +144,6 @@ class Spider:
                 count += 1
                 print(e)
         try:
-            self.pop_ups()
             login = self.driver.find_element_by_id('com.feeyo.vz.pro.cdm:id/guide_btn_login')
             self.log.info("账号未登录...请登录账号")
             login.click()
@@ -157,15 +160,6 @@ class Spider:
 
         except Exception as e:
             self.log.info("账号已登录!")
-
-    def pop_ups(self):
-        """监测是否更新"""
-        try:
-            time.sleep(2)
-            pop_ups = self.driver.find_element_by_id('android:id/button2')
-            pop_ups.click()
-        except Exception as e:
-            self.log.info("APP没有更新")
 
     def loop_look(self):
         """进入关注机场页面"""
@@ -222,13 +216,9 @@ class Spider:
                     flight_out.click()
                     # 延误航班页面
                     mora_page = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/tab_layout_display_txt_count')))
-                    mora_page[2].click()  # 点击延误
-                    time.sleep(1)
-                    mora_page[3].click()  # 点击取消
-                    time.sleep(0.5)
-                    mora_page[2].click()  # 再次点击延误
-                    # 判断当前机场是否有延误航班
+                    mora_page[2].click()
 
+                    # 判断当前机场是否有延误航班
                     time.sleep(2)
                     if not int(mora_page[2].text):
                         print("获取延误航班信息失败，请检查网络环境!")
@@ -251,7 +241,7 @@ class Spider:
                     self.time_calculation(airport_name_text)
 
                     self.driver.keyevent(4)  # 返回当前机场详情页面
-                    time.sleep(2)
+                    time.sleep(0.5)
                     self.driver.keyevent(4)  # 返回机场列表页面
                     time.sleep(1)
                 if flang:
@@ -295,8 +285,8 @@ class Spider:
         self.driver.swipe(self.x/2, self.y/4, self.x/2, self.y*3/4, 200)
         time.sleep(1)
         self.driver.swipe(self.x/2, self.y/4, self.x/2, self.y*3/4, 200)
-        self.log.info('<font color="yellow">防止刷新太快,刷新一遍后等待15秒再次启动</font>')
-        time.sleep(15)
+        self.log.info('<font color="darkcyan">防止刷新太快,刷新一遍后等待5秒再次启动</font>')
+        time.sleep(5)
         self.count += 1
 
     def time_calculation(self, airport_name):
@@ -316,102 +306,113 @@ class Spider:
                 machine_number = self.wait.until(EC.presence_of_all_elements_located(
                     (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_planeno')))
                 machine = [i.text for i in machine_number]
+                # 航班号
+                flights = self.wait.until(EC.presence_of_all_elements_located(
+                    (By.ID, 'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_route')))
 
-                for i in range(len(machine)):
-                    if machine[i] == '--':
-                        self.log.info("机号为空跳过")
-                        continue
-
-                    # 航班号
-                    flights_xpath = '//androidx.recyclerview.widget.RecyclerView[@resource-id="com.feeyo.' \
-                                    'vz.pro.cdm:id/recycler_view"]/android.widget.LinearLayout[{}]/android.widget' \
-                                    '.TextView[1]'.format(i + 1)
-                    flights = self.wait.until(EC.presence_of_element_located((By.XPATH, flights_xpath)))
-                    flight = flights.text  # 航班号
-                    if flight.replace(':', '').isdigit() or len(flight) <= 1 or '+' in flight:
-                        print("航班号读取错误[{}]".format(flight))
-                        continue
-
-                    if '9C' in flight:
-                        self.log.info("[{}]航班9c开头 跳过".format(flight))
-                        flight_list.append(flight)
-                        continue
-                    elif 'AQ' in flight:
-                        self.log.info("[{}]航班AQ开头 跳过".format(flight))
-                        flight_list.append(flight)
-                        continue
-                    # 航班已处理过跳过
-                    if flight in self.flight:
-                        self.log.info("[{}]航班已处理".format(flight))
-                        continue
-                    elif flight in flight_list:
-                        self.log.info("[{}]航班已处理".format(flight))
-                        continue
-
-                    # 本次处理航班号存入临时列表 等待当前页面处理完成统一写入文件
-                    flight_list.append(flight)
-                    self.log.info('<font color="green">[{}]航班延误时间计算中...</font>'.format(flight))
-
-                    # 目的地
-                    destination_xpath = '//androidx.recyclerview.widget.RecyclerView[@resource-id="com.feeyo.' \
-                                        'vz.pro.cdm:id/recycler_view"]/android.widget.LinearLayout[{}]/android.widget' \
-                                        '.TextView[3]'.format(i+1)
-                    destinations = self.driver.find_element_by_xpath(destination_xpath)
-
-                    # 计划起飞时间
-                    plans_time_xpath = '//androidx.recyclerview.widget.RecyclerView[@resource-id="com.feeyo.' \
-                                       'vz.pro.cdm:id/recycler_view"]/android.widget.LinearLayout[{}]/android.widget' \
-                                       '.TextView[4]'.format(i+1)
-                    plans_time = self.driver.find_element_by_xpath(plans_time_xpath)
-
-                    # 预计起飞时间
-                    estimates_xpath = '//androidx.recyclerview.widget.RecyclerView[@resource-id="com.feeyo.vz.pro.cdm:id' \
-                                      '/recycler_view"]/android.widget.LinearLayout[{}]/android.widget.LinearLayout' \
-                                      '/android.widget.TextView[2]'.format(i+1)
-                    estimates = self.driver.find_element_by_xpath(estimates_xpath)
-
-                    destination = destinations.text  # 目的地
-                    if destination.replace(':', '').isdigit() or len(destination) <= 1:
-                        print("目的地读取错误[{}]".format(destination))
-                        continue
-                    plan_time = plans_time.text  # 计划起飞
-                    if not plan_time.replace(':', '').isdigit():
-                        print("计划起飞时间读取错误[{}]".format(plan_time))
-                        continue
-                    estimate = estimates.text  # 预计起飞
-                    if not estimate.replace(':', '').isdigit():
-                        print("预计起飞时间读取错误[{}]".format(estimate))
-                        continue
-                    # TODO
-                    with open("t.txt", 'a+', encoding='utf-8') as f:
-                        f.write('{} {} {} {}'.format(flight, destination,plan_time,estimate) + '\n')
-                    self.log.info('{} {} {} {}'.format(flight, destination,plan_time,estimate))
-                    # 计算时间差
-                    mora_time = int((parse(estimate) - parse(plan_time)).total_seconds() / 60)
-                    # 判断是否隔天航班
-                    if str(mora_time)[0] == '-':
-                        mora_time = (24 * 60 - int(str(mora_time)[1:]))
-
-                    content = '机场[{}]航班号[{}]出发地[{}]目的地[{}]延误时间[{}]'.format(airport_name, flight, airport_name, destination,
-                                                                           mora_time)
-                    if mora_time < 150:
-                        self.log.info('<font color="red">{},不符合条件</font>'.format(content))
-                        continue
-                    self.log.info('<font color="green">content:{}</font>'.format(content))
-                    # 短信发送
-                    if self.sms:
-                        # self.log.info("短信发送成功{}".format(content))
-                        self.sms_post(content)
-
-                # 航班号写入文件
-                if not flight_list:
-                    break
-                self.update_flight(flight_list)
+                # 目的地
+                destinations = self.driver.find_elements_by_id(
+                    'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_departure_or_destination')
+                # 计划起飞时间
+                plans_time = self.driver.find_elements_by_id(
+                    'com.feeyo.vz.pro.cdm:id/item_display_list_txt_airport_plane_position')
+                # 预计起飞时间
+                estimates = self.driver.find_elements_by_id('com.feeyo.vz.pro.cdm:id/item_display_list_txt_delay_time')
                 break
             except Exception as e:
                 self.log.info('<font color="red">读取航班时间失败!重试[{}]...</font>'.format(count))
                 count += 1
                 continue
+
+        for i in range(len(machine)):
+            if machine[i] == '--':
+                self.log.info("机号为空跳过")
+                continue
+
+            # 航班号
+            # flights_xpath = '//androidx.recyclerview.widget.RecyclerView[@resource-id="com.feeyo.' \
+            #                 'vz.pro.cdm:id/recycler_view"]/android.widget.LinearLayout[{}]/android.widget' \
+            #                 '.TextView[1]'.format(i + 1)
+            # flights = self.wait.until(EC.presence_of_element_located((By.XPATH, flights_xpath)))
+            flight = flights[i].text  # 航班号
+            if flight.replace(':', '').isdigit() or len(flight) <= 1 or '+' in flight:
+                print("航班号读取错误[{}]".format(flight))
+                continue
+
+            # 航班已处理过跳过
+            if flight in self.flight or flight in flight_list:
+                self.log.info("[{}]航班已处理".format(flight))
+                continue
+
+            if '9C' in flight or 'AQ' in flight:
+                self.log.info("[{}]航班9C or AQ开头 跳过".format(flight))
+                flight_list.append(flight)
+                continue
+
+            # 本次处理航班号存入临时列表 等待当前页面处理完成统一写入文件
+            flight_list.append(flight)
+            self.log.info('<font color="green">[{}]航班延误时间计算中...</font>'.format(flight))
+
+            # 目的地
+            # destination_xpath = '//androidx.recyclerview.widget.RecyclerView[@resource-id="com.feeyo.' \
+            #                     'vz.pro.cdm:id/recycler_view"]/android.widget.LinearLayout[{}]/android.widget' \
+            #                     '.TextView[3]'.format(i+1)
+            # destinations = self.driver.find_element_by_xpath(destination_xpath)
+
+            # 计划起飞时间
+            # plans_time_xpath = '//androidx.recyclerview.widget.RecyclerView[@resource-id="com.feeyo.' \
+            #                    'vz.pro.cdm:id/recycler_view"]/android.widget.LinearLayout[{}]/android.widget' \
+            #                    '.TextView[4]'.format(i+1)
+            # plans_time = self.driver.find_element_by_xpath(plans_time_xpath)
+
+            # 预计起飞时间
+            # estimates_xpath = '//androidx.recyclerview.widget.RecyclerView[@resource-id="com.feeyo.vz.pro.cdm:id' \
+            #                   '/recycler_view"]/android.widget.LinearLayout[{}]/android.widget.LinearLayout' \
+            #                   '/android.widget.TextView[2]'.format(i+1)
+            # estimates = self.driver.find_element_by_xpath(estimates_xpath)
+
+            destination = destinations[i].text  # 目的地
+            if destination.replace(':', '').isdigit() or len(destination) <= 1:
+                print("目的地读取错误[{}]".format(destination))
+                continue
+            plan_time = plans_time[i].text  # 计划起飞
+            if not plan_time.replace(':', '').isdigit():
+                print("计划起飞时间读取错误[{}]".format(plan_time))
+                continue
+            estimate = estimates[i].text  # 预计起飞
+            if not estimate.replace(':', '').isdigit():
+                print("预计起飞时间读取错误[{}]".format(estimate))
+                continue
+            # TODO
+            with open("t.txt", 'a+', encoding='utf-8') as f:
+                f.write('{} {} {} {}'.format(flight, destination,plan_time,estimate) + '\n')
+            self.log.info('{} {} {} {}'.format(flight, destination,plan_time,estimate))
+            # 计算时间差
+            mora_time = int((parse(estimate) - parse(plan_time)).total_seconds() / 60)
+            # 判断是否隔天航班
+            if str(mora_time)[0] == '-':
+                mora_time = (24 * 60 - int(str(mora_time)[1:]))
+
+            content = '机场[{}]航班号[{}]出发地[{}]目的地[{}]延误时间[{}]'.format(airport_name, flight, airport_name, destination,
+                                                                   mora_time)
+            if mora_time < 150 or mora_time > 1000:
+                self.log.info('<font color="red">{},不符合条件</font>'.format(content))
+                continue
+            self.log.info('<font color="green">content:{}</font>'.format(content))
+
+            # 微信推送
+            self.chatpush.SendFriend(content)
+            self.log.info('<font color="green">微信推送发送成功</font>')
+            # 短信发送
+            # if self.sms:
+            #     # self.log.info("短信发送成功{}".format(content))
+            #     self.sms_post(content)
+
+        # 航班号写入文件
+        if not flight_list:
+            return
+        self.update_flight(flight_list)
+        return
 
     def get_attr(self, old_page, by_id):
         """页面刷新"""
@@ -487,7 +488,7 @@ class Spider:
             else:
                 self.log.error("通知短信发送失败：{}").format(result['message'])
             if result['RemainPoint'] < 5000:
-                self.log.info("短信余额不足请及时充值!")
+                self.log.info("<font color='red'>短信余额不足请及时充值!</font>")
 
 
 @run_time
@@ -499,8 +500,8 @@ def main():
     loop.conf()  # 读取配置文件
     desired_caps = {
         "platformName": "Android",
-        "deviceName": "127.0.0.1:{}".format(62025),
-        # "deviceName": "d750dac5",
+        # "deviceName": "127.0.0.1:{}".format(62025),
+        "deviceName": "d750dac5",
         "appPackage": "com.feeyo.vz.pro.cdm",
         "appActivity": "com.feeyo.vz.pro.activity.cdm.WelcomeActivity",
         "noReset": True
@@ -509,9 +510,8 @@ def main():
     # 启动APP
     loop.driver = webdriver.Remote(driver_server, desired_caps)
     # 设置等待
-    loop.wait = WebDriverWait(loop.driver, 20, 0.5)
+    loop.wait = WebDriverWait(loop.driver, 10, 0.5)
     time.sleep(10)
-    loop.pop_ups()  # APP 是否提示更新
     loop.login()  # 登录
     loop.get_size()  # 获取屏幕尺寸
     loop.loop_look()  # 进入关注航班

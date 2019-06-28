@@ -4,6 +4,24 @@
 # @File    : 123.py
 # @Software: PyCharm
 
+
+import chat
+import time
+
+a = chat.Itchat()
+print('等待')
+
+for i in range(2):
+    time.sleep(1)
+    a.SendFriend('哈哈蛋蛋')
+
+
+
+
+
+
+
+
 # a = [1,2,3]
 # b = [4,5,6]
 # c = [7,8,9]
@@ -17,12 +35,12 @@ from dateutil.parser import parse
 # a = int((parse('15:16') - parse('23:00')).total_seconds()/60)
 # print(a)
 # print(24*60 - int(str(a)[1:]))
-a = '+517'
-
-if '+' in a:
-    print(1)
-else:
-    print(2)
+# a = '+517'
+#
+# if '+' in a:
+#     print(1)
+# else:
+#     print(2)
 
 
 # if str(a)[0] == '-':
