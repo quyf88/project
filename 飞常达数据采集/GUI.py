@@ -25,10 +25,10 @@ class CrawlWindow(QWidget):
         self.setWindowTitle('机场航班信息实时监测')
         self.setWindowIcon(QIcon(':reson/maoyan.ico'))
 
-        # 初始化手机号码文本框
+        # 初始化添加推送好友文本框
         self.price = QLineEdit(self)
-        # 初始化短信选择下拉框
-        self.save_combobox = QComboBox(self)
+        # 初始化添加好友按钮
+        self.save_combobox = QPushButton(self)
         # 初始化启动按钮
         self.start_btn = QPushButton(self)
         # 初始化表格控件
@@ -52,43 +52,38 @@ class CrawlWindow(QWidget):
         self.movie_init()
         self.combobox_init()
         self.start_btn_init()
-
         self.layout_init()
         self.table_init()
         self.set_log_init()
 
     def movie_init(self):
-        """手机号码输入框默认配置"""
+        """添加好友输入框默认配置"""
         # 设置文本框尺寸
         self.price.setFixedSize(300, 30)
         # 设置默认文本
-        self.price.setPlaceholderText("输入手机号码,多个号码以英文','隔开")
+        self.price.setPlaceholderText("输入好友备注名称,多个好友以英文','隔开")
         # 默认设置不可输入
         # self.price.setEnabled(False)
         # 限制10个中文字符
         self.price.setMaxLength(100)
 
     def combobox_init(self):
-        """是否启用短信下拉框配置"""
-        save_list = ['是否启用短信通知', '是', '否']
-        self.save_combobox.addItems(save_list)
-        # 设置标签状态为不可用
+        """添加好友 按钮 配置"""
+        self.save_combobox.setText('添加推送好友')
         self.save_combobox.setEnabled(True)
-
-        #  当下拉索引发生改变时发射信号触发绑定的事件
-        self.save_combobox.currentTextChanged.connect(self.combobox_slot)
+        self.save_combobox.clicked.connect(self.combobox_slot)
 
     def start_btn_init(self):
         """ 启动按钮按钮 配置"""
         self.start_btn.setText('启动')
-        self.start_btn.setEnabled(False)
+        self.start_btn.setEnabled(True)
         # self.start_btn.setFixedSize(300, 30)
         self.start_btn.clicked.connect(self.start_btn_slot)
 
     def table_init(self):
         """表格控件 配置"""
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(['机场', '航班', '出发地', '目的地', '延误时间'])
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels(['机场', '航班', '计划起飞', '出发地', '目的地', '延误时间'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     def set_log_init(self):
@@ -119,47 +114,45 @@ class CrawlWindow(QWidget):
         # 启动线程
         self.worker.start()
         self.finish_sound.play()
+        # 改变设置按钮状态 输入框 下拉框
+        self.price.setEnabled(False)
+        self.save_combobox.setEnabled(False)
         self.start_btn.setEnabled(False)
 
-    def combobox_slot(self, text):
-        if not text == '是':
-            sms = False
-            self.conf_slot(sms)
-        else:
-            sms = True
-            if not self.price.text():
-                self.log_browser.append('<font color="red">请正确填写短信通知号码</font>')
-                return
-            self.conf_slot(sms, self.price.text())
-        # 选择短信设置后 改变设置按钮状态 输入框 下拉框 启动按钮
-        self.price.setEnabled(False)
-        self.start_btn.setEnabled(True)
-        self.save_combobox.setEnabled(False)
+    def combobox_slot(self):
+        """添加好友"""
+        if not self.price.text():
+            self.log_browser.append('<font color="red">请填写好友备注名称</font>')
+            return
+        self.conf_slot(self.price.text())
 
-    def conf_slot(self, sms, phone=None):
+    def conf_slot(self, friend):
         """配置文件"""
         path = os.path.abspath('.') + '\config\config.txt'
-        with open(path, 'w+', encoding='utf-8') as f:
-            f.write(str(sms))
-            f.write('\n')
-            f.write(str(phone))
-        if sms:
-            self.log_browser.append('<font color="red">启用短信通知：[{}]</font>'.format(phone))
-        else:
-            self.log_browser.append('<font color="red">关闭短信通知</font>')
+        friend = friend.split(',')
+        with open(path, 'a+', encoding='utf-8') as f:
+            for i in friend:
+                f.write(i)
+                f.write('\n')
+        if friend:
+            self.log_browser.append('<font color="red">添加推送新成员：[{}]成功</font>'.format(friend))
+        # 改变设置按钮状态 输入框 下拉框
+        self.price.setEnabled(False)
+        self.save_combobox.setEnabled(False)
 
     def set_log_slot(self, log):
         self.log_browser.append(log)
 
-    def set_table_slot(self, airport, flight, departure, destination, mora_time):
+    def set_table_slot(self, airport, flight, plan_time, departure, destination, mora_time):
         """表格控件输出"""
         row = self.table.rowCount()
         self.table.insertRow(row)
         self.table.setItem(row, 0, QTableWidgetItem(airport))
         self.table.setItem(row, 1, QTableWidgetItem(flight))
-        self.table.setItem(row, 2, QTableWidgetItem(departure))
-        self.table.setItem(row, 3, QTableWidgetItem(destination))
-        self.table.setItem(row, 4, QTableWidgetItem(mora_time))
+        self.table.setItem(row, 2, QTableWidgetItem(plan_time))
+        self.table.setItem(row, 3, QTableWidgetItem(departure))
+        self.table.setItem(row, 4, QTableWidgetItem(destination))
+        self.table.setItem(row, 5, QTableWidgetItem(mora_time))
 
     def set_start_slot(self):
         # 表格清空 输出框窗口清空
@@ -169,7 +162,7 @@ class CrawlWindow(QWidget):
 
 
 class MyThread(QThread):
-    result_signal = pyqtSignal(str, str, str, str, str)
+    result_signal = pyqtSignal(str, str, str, str, str, str)
     log_signal = pyqtSignal(str)
     start_q = pyqtSignal(bool)
 
@@ -197,7 +190,7 @@ class MyThread(QThread):
                                      bufsize=0)
 
                 while r.poll() is None:
-                    line = str(r.stdout.readline(), encoding='UTF-8')  #TODO 打包时改为GBK
+                    line = str(r.stdout.readline(), encoding='GBK')  #TODO 打包时改为GBK
                     line = line.strip()
                     if line:
                         self.log_data(line)
@@ -214,13 +207,14 @@ class MyThread(QThread):
 
     def log_data(self, line):
         if 'content' in line:
-            airport, flight, departure, destination, mora_time = re.findall(r'\[.*?]', line)
+            airport, flight, plan_time, departure, destination, mora_time = re.findall(r'\[.*?]', line)
             airport = (re.sub(r'[(\[)(\])]', '', airport))
             flight = (re.sub(r'[(\[)(\])]', '', flight))
+            plan_time = (re.sub(r'[(\[)(\])]', '', plan_time))
             departure = (re.sub(r'[(\[)(\])]', '', departure))
             destination = (re.sub(r'[(\[)(\])]', '', destination))
             mora_time = (re.sub(r'[(\[)(\])]', '', mora_time))
-            self.result_signal.emit(airport, flight, departure, destination, mora_time)
+            self.result_signal.emit(airport, flight, plan_time, departure, destination, mora_time)
 
         self.log_signal.emit(line)
 

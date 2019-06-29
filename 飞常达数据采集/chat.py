@@ -16,6 +16,7 @@ class Itchat:
         # 可以让你得以扫码登录，hotReload表示的连续几次运行不需要再次扫码
         itchat.auto_login(hotReload=True)
         self.flight_MD5()
+        self.remarks = self.conf()
 
     # def log_init(self):
     #     """日志模块"""
@@ -58,16 +59,25 @@ class Itchat:
     #         else:
     #             self.log.info('No groups found')
 
+    def conf(self):
+        """读取配置文件"""
+        path = os.path.abspath('.') + '\config\config.txt'
+        with open(path, 'r', encoding='utf-8') as f:
+            remarks = [i.replace('\n', '') for i in f.readlines()]
+
+        # print('<font color="green">配置文件读取成功!推送好友：[{}]</font>'.format(remarks))
+        return remarks
+
     def GetUserName(self):
         """获取用户UUID"""
 
         UID = []
-        remarks = ['高瑞雪', '杨昶', '熊涛', '李智', '陈淼']
-        # remarks = ['陈小丽']
+        remarks = self.remarks
         for i in remarks:
+            # 获取好友信息
             users = itchat.search_friends(i)
             if not users:
-                print('没有此好友')
+                # print('没有此好友')
                 continue
             userName = users[0]['UserName']
             UID.append(userName)
@@ -79,9 +89,9 @@ class Itchat:
         uaername = self.GetUserName()
         for i in uaername:
             itchat.send(msg, toUserName=i)
-            print("发送成功")
-            with open(path, 'a+', encoding='utf-8') as f:
-                f.write(msg + '\n')
+            # print("发送成功")
+        with open(path, 'a+', encoding='utf-8') as f:
+            f.write(msg + '\n')
 
     def flight_MD5(self):
         """"
@@ -110,4 +120,4 @@ class Itchat:
 
 # if __name__ == '__main__':
 #     a = Itchat()
-#     a.GetUserName()
+#     a.SendFriend('蛋蛋')

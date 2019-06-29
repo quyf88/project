@@ -5,30 +5,41 @@
 # @Software: PyCharm
 
 
-import chat
+
 import time
+#
+# a = chat.Itchat()
+# print('等待')
+#
+# for i in range(2):
+#     time.sleep(1)
+#     a.SendFriend('哈哈蛋蛋')
+from datetime import datetime
+# currdate = time.time()
+# mailtime1 = datetime.fromtimestamp(currdate).strftime('%H:%M:%S')
+# print(mailtime1)
 
-a = chat.Itchat()
-print('等待')
+# 范围时间
+# d_time = datetime.strptime(str(datetime.now().date()) + '16:30', '%Y-%m-%d%H:%M')
+# d_time1 = datetime.strptime(str(datetime.now().date()) + '18:00', '%Y-%m-%d%H:%M')
+# print(d_time)
+# print(d_time1)
+# # 当前时间
+# n_time = datetime.now()
+#
+# # 判断当前时间是否在范围时间内
+# if n_time > d_time and n_time < d_time1:
+#     print(1)
+# else:
+#     print(2)
 
-for i in range(2):
-    time.sleep(1)
-    a.SendFriend('哈哈蛋蛋')
-
-
-
-
-
-
-
-
-# a = [1,2,3]
-# b = [4,5,6]
-# c = [7,8,9]
-# d = list(zip(a,b,c))
-# print(type(d))
-# for i in d:
-#     print(list(i))
+a = [1,2,3]
+b = [4,5,6]
+c = [7,8,9]
+d = zip(a,b,c)
+print(type(d))
+for i in d:
+    print(list(i))
 from datetime import datetime
 from dateutil.parser import parse
 """时间计算"""
