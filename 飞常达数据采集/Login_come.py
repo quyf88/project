@@ -230,10 +230,7 @@ class Spider:
                         flight_page = self.wait.until(EC.presence_of_element_located(
                             (By.ID, 'com.feeyo.vz.pro.cdm:id/vznairport_detail_diaplay')))
                         flight_page.click()
-                        # 出场
-                        flight_out = self.wait.until(
-                            EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/airport_display_img_port')))
-                        flight_out.click()
+
                         # 获取第二天数据
                         self.next_day(airport_name)
                     else:
@@ -243,18 +240,11 @@ class Spider:
                         if not mora_num:
                             self.log.info("[{}]机场信息获取失败".format(airport_name))
                             continue
-                        num = re.findall(r'\d', mora_num.text)
-                        if not int(num[0]):
-                            self.log.info("[{}]机场暂无延误航班,出场延误航班数：{}".format(airport_name, num[0]))
-                            self.driver.keyevent(4)  # 返回上一页
-                            continue
 
                         # 进入机场航班信息页面
                         flight_page = self.wait.until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/vznairport_detail_diaplay')))
                         flight_page.click()
-                        # 出场
-                        flight_out = self.wait.until(EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/airport_display_img_port')))
-                        flight_out.click()
+
                         # 取当天数据
                         self.same_day(airport_name)
 
@@ -284,7 +274,7 @@ class Spider:
         # 判断当前机场是否有延误航班
         mora_page = self.wait.until(
             EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/tab_layout_display_txt_count')))
-        mora_page[2].click()
+        mora_page[1].click()
         time.sleep(3)
         if not int(mora_page[2].text):
             self.log.info('[{}]机场,暂无延误航班'.format(airport_name))
@@ -312,7 +302,7 @@ class Spider:
         # 判断当前机场是否有延误航班
         mora_page = self.wait.until(
             EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/tab_layout_display_txt_count')))
-        mora_page[2].click()
+        mora_page[1].click()
         time.sleep(1.5)
         if not int(mora_page[2].text):
             self.log.info('[{}]机场,延误航班[{}]'.format(airport_name, mora_page[2].text))
@@ -353,15 +343,15 @@ class Spider:
             if i[0] in self.flight:
                 self.log.info("[{}]航班已处理".format(i[0]))
                 continue
-            content = '机场:[{}],航班号:[{}],计划起飞时间:[{}]出发地:[{}],目的地:[{}],延误时间:[{}]'.format(
-                airport_name, i[0], i[2], airport_name, i[1], '隔日数据')
+            content = '机场:[{}],航班号:[{}],计划到达时间:[{}]出发地:[{}],目的地:[{}],延误时间:[{}]'.format(
+                airport_name, i[0], i[2], i[1], airport_name, '隔日数据')
             self.log.info('<font color="green">content:{}</font>'.format(content))
 
             # 微信推送
             currdate = time.time()
             mailtime1 = datetime.fromtimestamp(currdate).strftime('%H:%M:%S')
-            self.chatpush.SendFriend('隔日数据--机场:【{}】--航班号:【{}】--计划起飞时间:【{}】--出发地:【{}】--目的地:【{}】--监测时间：【{}】'.format(
-                airport_name, i[0], i[2], airport_name, i[1], mailtime1))
+            self.chatpush.SendFriend('隔日数据--机场:【{}】--航班号:【{}】--计划到达时间:【{}】--出发地:【{}】--目的地:【{}】--监测时间：【{}】'.format(
+                airport_name, i[0], i[2], i[1], airport_name, mailtime1))
             self.log.info('<font color="green">微信推送发送成功</font>')
 
         # 航班号写入文件
@@ -459,11 +449,11 @@ class Spider:
                     continue
                 plan_time = plans_time[i].text  # 计划起飞
                 if not plan_time.replace(':', '').isdigit():
-                    print("计划起飞时间读取错误[{}]".format(plan_time))
+                    print("计划到达时间读取错误[{}]".format(plan_time))
                     continue
                 estimate = estimates[i].text  # 预计起飞
                 if not estimate.replace(':', '').isdigit():
-                    print("预计起飞时间读取错误[{}]".format(estimate))
+                    print("预计到达时间读取错误[{}]".format(estimate))
                     continue
                 # TODO
                 with open("t.txt", 'a+', encoding='utf-8') as f:
@@ -476,8 +466,8 @@ class Spider:
                 if str(mora_time)[0] == '-':
                     mora_time = (24 * 60 - int(str(mora_time)[1:]))
 
-                content = '机场:[{}],航班号:[{}],计划起飞时间:[{}]出发地:[{}],目的地:[{}],延误时间:[{}]'.format(
-                            airport_name, flight, plan_time, airport_name, destination, mora_time)
+                content = '机场:[{}],航班号:[{}],计划到达时间:[{}]出发地:[{}],目的地:[{}],延误时间:[{}]'.format(
+                            airport_name, flight, plan_time, destination, airport_name, mora_time)
 
                 if mora_time < 120 or mora_time > 1200:
                     self.log.info('<font color="red">{},不符合条件</font>'.format(content))
@@ -487,8 +477,8 @@ class Spider:
                 # 微信推送
                 currdate = time.time()
                 mailtime1 = datetime.fromtimestamp(currdate).strftime('%H:%M:%S')
-                self.chatpush.SendFriend('机场:【{}】--航班号:【{}】--计划起飞时间:【{}】--出发地:【{}】--目的地:【{}】--延误时间:【{}】--监测时间：【{}】'.format(
-                            airport_name, flight, plan_time, airport_name, destination, mora_time, mailtime1))
+                self.chatpush.SendFriend('机场:【{}】--航班号:【{}】--计划到达时间:【{}】--出发地:【{}】--目的地:【{}】--延误时间:【{}】--监测时间：【{}】'.format(
+                            airport_name, flight, plan_time, destination, airport_name, mora_time, mailtime1))
                 self.log.info('<font color="green">微信推送发送成功</font>')
 
             # 航班号写入文件
@@ -569,7 +559,7 @@ def main():
         "appActivity": "com.feeyo.vz.pro.activity.cdm.WelcomeActivity",
         "noReset": True
     }
-    driver_server = 'http://127.0.0.1:{}/wd/hub'.format(4730)
+    driver_server = 'http://127.0.0.1:{}/wd/hub'.format(4723)
     # 启动APP
     loop.driver = webdriver.Remote(driver_server, desired_caps)
     # 设置等待
