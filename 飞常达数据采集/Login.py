@@ -476,7 +476,7 @@ class Spider:
                 if str(mora_time)[0] == '-':
                     mora_time = (24 * 60 - int(str(mora_time)[1:]))
 
-                content = '机场:[{}],航班号:[{}],计划起飞时间:[{}]出发地:[{}],目的地:[{}],延误时间:[{}]'.format(
+                content = '【出】--机场:[{}],航班号:[{}],计划起飞时间:[{}]出发地:[{}],目的地:[{}],延误时间:[{}]'.format(
                             airport_name, flight, plan_time, airport_name, destination, mora_time)
 
                 if mora_time < 120 or mora_time > 1200:

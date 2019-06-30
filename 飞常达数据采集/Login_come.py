@@ -477,7 +477,7 @@ class Spider:
                 # 微信推送
                 currdate = time.time()
                 mailtime1 = datetime.fromtimestamp(currdate).strftime('%H:%M:%S')
-                self.chatpush.SendFriend('机场:【{}】--航班号:【{}】--计划到达时间:【{}】--出发地:【{}】--目的地:【{}】--延误时间:【{}】--监测时间：【{}】'.format(
+                self.chatpush.SendFriend('【进】--机场:【{}】--航班号:【{}】--计划到达时间:【{}】--出发地:【{}】--目的地:【{}】--延误时间:【{}】--监测时间：【{}】'.format(
                             airport_name, flight, plan_time, destination, airport_name, mora_time, mailtime1))
                 self.log.info('<font color="green">微信推送发送成功</font>')
 
