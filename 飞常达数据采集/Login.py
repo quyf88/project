@@ -214,13 +214,13 @@ class Spider:
                         continue
 
                     # 判断当前时间决定取今天数据还是第二天数据
-                    start_time = datetime.strptime(str(datetime.now().date()) + '19:00', '%Y-%m-%d%H:%M')
+                    start_time = datetime.strptime(str(datetime.now().date()) + '18:00', '%Y-%m-%d%H:%M')
                     end_time = datetime.strptime(str(datetime.now().date()) + '23:30', '%Y-%m-%d%H:%M')
                     now_time = datetime.now()
 
                     # 判断当前时间是否在范围时间内 取第二天数据
                     if now_time > start_time and now_time < end_time:
-                        self.log.info('20:00-24:00获取第二天数据')
+                        self.log.info('18:00-23:30获取第二天数据')
                         # 出场延误航班数量
                         mora_num = self.get_attr(airports_name[i], 'com.feeyo.vz.pro.cdm:id/detail_flow_delay_text')
                         if not mora_num:
@@ -360,7 +360,7 @@ class Spider:
             # 微信推送
             currdate = time.time()
             mailtime1 = datetime.fromtimestamp(currdate).strftime('%H:%M:%S')
-            self.chatpush.SendFriend('隔日数据--机场:【{}】--航班号:【{}】--计划起飞时间:【{}】--出发地:【{}】--目的地:【{}】--监测时间：【{}】'.format(
+            self.chatpush.SendFriend('【出】--隔日数据--机场:【{}】--航班号:【{}】--计划起飞时间:【{}】--出发地:【{}】--目的地:【{}】--监测时间：【{}】'.format(
                 airport_name, i[0], i[2], airport_name, i[1], mailtime1))
             self.log.info('<font color="green">微信推送发送成功</font>')
 
@@ -487,7 +487,7 @@ class Spider:
                 # 微信推送
                 currdate = time.time()
                 mailtime1 = datetime.fromtimestamp(currdate).strftime('%H:%M:%S')
-                self.chatpush.SendFriend('机场:【{}】--航班号:【{}】--计划起飞时间:【{}】--出发地:【{}】--目的地:【{}】--延误时间:【{}】--监测时间：【{}】'.format(
+                self.chatpush.SendFriend('【出】--机场:【{}】--航班号:【{}】--计划起飞时间:【{}】--出发地:【{}】--目的地:【{}】--延误时间:【{}】--监测时间：【{}】'.format(
                             airport_name, flight, plan_time, airport_name, destination, mora_time, mailtime1))
                 self.log.info('<font color="green">微信推送发送成功</font>')
 
