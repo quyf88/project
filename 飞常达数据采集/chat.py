@@ -9,7 +9,11 @@ import itchat
 import logging
 from datetime import datetime
 
+"""
+微信自动回复
+pip install itchat
 
+"""
 class Itchat:
     def __init__(self):
         # 登录微信enableCmdQR表示的是当完全的命令行界面可以弹出文本绘制的二维码
