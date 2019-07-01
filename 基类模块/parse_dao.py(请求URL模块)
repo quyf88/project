@@ -1,0 +1,24 @@
+"""请求url模块"""
+import requests
+from retrying import retry
+
+
+class ParseDao:
+
+    @retry(stop_max_attempt_number=3)
+    # 如果请求超时让被装饰的函数反复执行三次，三次全部报错才会报错
+    def _parse_url(self, url):
+        print('*'*100)
+        headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.146 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=3)  # 3秒无相应报错
+        return response.content.decode()
+
+    def parse_url(self, url):
+        try:
+            html_str = self._parse_url(url)
+        except:
+            html_str = None
+        return html_str
+

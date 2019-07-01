@@ -1,0 +1,9 @@
+
+/* 查询重复数据 */
+
+Select 重复字段 From 表 Group By 重复字段 Having Count(*)>1
+
+
+/* 删除重复数据并保留id最小记录 */
+
+DELETE FROM 表名 WHERE Id NOT IN (SELECT dt.minno FROM (SELECT	MIN(Id) AS minno FROM 表名 GROUP BY 查询字段) dt)
