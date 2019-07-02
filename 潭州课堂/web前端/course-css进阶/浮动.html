@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        /*.box1{*/
+            /*width: 200px;*/
+            /*height: 200px;*/
+            /*background: red;*/
+            /*float: left;*/
+        /*}*/
+        /*.box{*/
+            /*width: 300px;*/
+            /*height: 300px;*/
+            /*background: green;*/
+            /*!*float: left;*!*/
+        /*}*/
+        *{
+            padding: 0;
+            margin: 0;
+        }
+        ul{
+            border: 2px solid red;
+        }
+        img{
+            width: 50px;
+            height: 50px;
+            float: left;
+            line-height: 60px;
+            text-align: center;
+            margin: 2px 5px;
+            border-radius: 50px;
+        }
+        .clearfix:after{
+            content: "";
+            display: block;
+            clear: both;
+        }
+    </style>
+</head>
+<body>
+<!--<div class="box1"></div>-->
+<!--<div class="box"></div>-->
+<ul class="clearfix">
+    <a href="#"><img src="1.jpg" alt=""></a>
+    <a href="#"><img src="1.jpg" alt=""></a>
+    <a href="#"><img src="1.jpg" alt=""></a>
+    <a href="#"><img src="1.jpg" alt=""></a>
+    <a href="#"><img src="1.jpg" alt=""></a>
+</ul>
+<div style="width: 300px;height: 300px; background: blue"></div>
+</body>
+</html>

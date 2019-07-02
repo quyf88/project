@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        div{
+            width: 100px;
+            height: 100px;
+            background: red;
+            margin-left: 20px;
+            transition: 3s; /* 变化的时间 */
+        }
+        input{
+            width: 150px;
+            height: 30px;
+        }
+        input[type="button"]{
+            width: 200px;
+            height: 30px;
+            background: yellow;
+        }
+        p{
+            margin: 20px 20px;
+        }
+    </style>
+</head>
+<body>
+    <p>css属性:<input type="text" placeholder="输入样式"></p>
+    <p>css属性值:<input type="text" placeholder="输入值"></p>
+    <p><input type="button" value="设置"></p>
+    <div></div>
+    <script>
+        var aInput = document.getElementsByTagName("input");
+        // alert(aInput.length)
+        var aDiv = document.getElementsByTagName("div");
+
+        aInput[2].onclick = function () {
+            var val = aInput[0].value;
+            var key = aInput[1].value;
+            console.log(val);
+            console.log(key);
+            aDiv[0].style[val] = key;
+            aInput[0].value =null;
+            aInput[1].value =null;
+        };
+    </script>
+</body>
+</html>

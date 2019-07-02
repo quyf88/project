@@ -1,0 +1,58 @@
+.news-nav .nav{
+    width: 800px;
+    height: 60px;
+    line-height: 60px;
+    background: #fff2b9;
+}
+.news-nav .nav >li{
+    float: left;
+    height: 60px;
+    padding: 0 20px;
+}
+.news-nav .nav > li:hover{
+    cursor: pointer; /* 划入变成变成手指 */
+}
+.news-nav .nav > li.active{
+    border-bottom: 5px solid red;
+    box-sizing: border-box;
+}
+.news-nav .contain li>div{
+    margin: 0 0 20px 0;
+}
+.news-nav .contain li div .left img{
+    width: 260px;
+    height: 200px;
+}
+.news-nav .contain li div .left{
+    float: left;
+    width: 260px;
+    height: 200px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-right: 5px;
+}
+.news-nav .contain li div .right{
+    float: left;
+    line-height: 35px;
+    padding: 26px 0 0 0;
+    width: 535px;
+}
+.news-nav .contain li div .right span{
+    color: brown;
+    padding-right: 10px;
+}
+.news-nav .contain li{
+    display: none;
+}
+.news-nav .contain li.show{
+    display: block;
+}
+.more{
+    width: 400px;
+    /*margin: auto;*/
+    margin-left: 200px;
+    height: 55px;
+    line-height: 55px;
+    text-align: center;
+    background: deepskyblue;
+}

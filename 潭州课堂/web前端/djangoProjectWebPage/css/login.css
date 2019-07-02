@@ -1,0 +1,82 @@
+/*========= container start =========*/
+#container {
+    flex: 1;
+    margin: 30px auto 20px;
+}
+
+.login-contain {
+    width: 480px;
+    height: 380px;
+    box-sizing: border-box;
+    padding: 0 20px;
+    background: #ffffff;
+}
+
+#container .top-contain {
+    height: 50px;
+    font-size: 20px;
+    line-height: 50px;
+    border-bottom: 1px solid #ddd;
+}
+
+#container .top-contain .please-login,
+#container .top-contain .please-regist {
+    font-weight: normal;
+    float: left;
+    border-bottom: 3px solid blueviolet;
+    height: 50px;
+    box-sizing: border-box;
+}
+
+#container .top-contain a.regist,
+#container .top-contain a.login {
+    float: right;
+    color: skyblue;
+}
+
+#container .form-contain .form-item {
+    margin-top: 20px;
+}
+
+.form-contain .form-item .form-control {
+    width: 100%;
+    height: 50px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+    padding-left: 0.5em;
+    font-size: 18px;
+}
+
+.form-contain .form-item .form-control::placeholder {
+    line-height: 50px;
+    font-size: 18px;
+}
+
+.form-contain .form-item label {
+    float: left;
+    font-size: 14px;
+}
+
+.form-contain .form-item label input[name=remember] {
+    vertical-align: -2px;
+    margin-right: 6px;
+}
+
+.form-contain .form-item .forget-password {
+    float: right;
+    color: gray;
+}
+
+.form-contain .login-btn {
+    width: 100%;
+    font-size: 20px;
+    color: #fff;
+    line-height: 50px;
+    background: deepskyblue;
+    border: 1px solid deepskyblue;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/*========= container end =========*/

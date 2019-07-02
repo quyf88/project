@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        *{
+            padding: 0;
+            margin: 0;
+        }
+        .pad{
+            height: 200px;
+            width: 200px;
+            background: red;
+            padding-left: 100px;
+        }
+        .mar{
+            height: 200px;
+            width: 200px;
+            background: blue;
+            border: 1px solid red;
+        }
+        .mar>div{
+            height: 100px;
+            width: 100px;
+            background: yellow;
+            margin-left: 100px;
+            margin-top: 200px;
+        }
+    </style>
+</head>
+<body>
+<div class="pad">测试1</div>
+<div class="mar"><div>测试2</div></div>
+</body>
+</html>

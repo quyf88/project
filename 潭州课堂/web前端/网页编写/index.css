@@ -1,0 +1,107 @@
+﻿/*页眉*/
+.header{
+    width: 100%;
+    height: 69px;
+    background: black;
+    color: white;
+}
+.header .header-contain{
+    width: 1200px;
+    margin: auto;
+    height: 69px;
+    line-height: 69px;
+    background: black;
+
+}
+/*图标*/
+.header .header-contain .logo{  /*不在考虑优先级了*/
+    width: 235px;
+    height: 64px;
+    float: left;/* 用浮动，用定位，用display: inline-block;都可以*/
+}
+.header .header-contain .logo .login-title{
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: url("https://www.python.org/static/img/python-logo.png") no-repeat;  /* 背景图像将仅显示一次 。  /rɪ'pit/重复 */
+}
+/*中间内容  菜单*/
+.header .header-contain .menu{
+    float:left;
+    margin-left: 150px;
+}
+.header .header-contain .menu li{
+    float: left;
+    height: 69px;  /* 设置了box-sizing 不出效果就需要设置高度 */
+}
+.header .header-contain .menu li a{   
+    padding: 0 30px;
+}
+.header .header-contain .menu li:hover{
+    border-bottom: 5px solid blue;
+    box-sizing: border-box;
+    /*
+border-box   为元素设定的宽度和高度决定了元素的边框盒。就是说，为元素指定的任何内边距和边框都将在已设定的宽度和高度内进行绘制。通过从已设定的宽度和高度分别减去边框和内边距才能得到内容的宽度和高度。 */
+}
+.header .header-contain .menu li.active{
+    border-bottom:5px solid blue;
+    /*
+    box-sizing 属性允许你以特定的方式定义匹配某个区域的特定元素
+    */
+    box-sizing: border-box;
+}
+/*注册登录*/
+.header .header-contain .login-box{
+    float: right;
+}
+/* https://www.iconfont.cn/ */
+.header .header-contain .login-box i{/* i 标签里面没有写内容  用行内 块级（注意要和span排在一排）*/
+    font-size: 25px;
+    color: aquamarine;
+    vertical-align: -2px;  /* 垂直方向对齐  属性设置元素的垂直对齐方式。 */
+    /*text-align: ;   水平*/
+}
+
+
+/*主体部分*/
+.main{
+    width: 100%;
+    padding: 30px 0;
+}
+.main .main-box{
+    width: 1200px;
+    height: 800px;
+    margin: auto;  /*浏览器计算外边距。*/
+    background: #ddd;
+}
+
+/*footer star */
+.footer{
+    width: 100%;
+    background: rgb(93,94,103);
+}
+.footer .foot-box{
+    width: 1200px;
+    margin: auto;
+    background: rgb(93,94,103);
+    text-align: center;   /*文字水平居中*/
+    color: #0f1499;
+}
+.footer .foot-box .footer-content{
+    line-height: 35px;  /* 每行文字的高度*/
+    padding: 20px 0;  /* 上下20 左右为0  */
+    background: url("https://www.python.org/static/img/python-logo.png" ) no-repeat 50px 15px;
+}
+
+.footer .bottom-content{
+    background: black;
+    text-align: center;
+    line-height: 50px;
+    color: red;
+}
+
+.footer .bottom-content p{ /* 防止换行 */
+    width: 1200px;
+    margin: auto;
+    background: black;
+}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        /*
+        margin 外边距 元素与其他元素的距离（边框以外的距离）
+        一值   代表4个方向值一样   顺时针
+        2个值
+        margin: auto; 快速左右居中
+        垂直方向： margin-bottom , margin-top 取两者之间的较大值
+        水平方向： margin-left , margin-right 取两者之和
+        overflow : hidden; 解决内边距重叠问题  超出隐藏 border
+        */
+        div{
+            width: 200px;
+            height: 200px;
+            background: red;
+            display: inline-block; /* 不独占一行的块级元素 */
+        }
+        .box{
+            width: 200px;
+            height: 400px;
+
+            background: chartreuse;
+        }
+    </style>
+</head>
+<body>
+    <div class="box1"></div>
+    <div class="box"></div>
+</body>
+</html>

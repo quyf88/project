@@ -1,0 +1,77 @@
+.main .main-box .aside{
+    float: right;
+    width: 380px;
+    background: deepskyblue;
+}
+.main .main-box .aside .side-activities div img{
+    width: 340px;
+    padding: 0 20px;
+}
+.main .main-box .aside .side-activities h2{
+    padding: 0 20px;
+    height: 38px;
+    line-height: 38px;
+}
+.main .main-box .aside .side-activities h2 span{
+    float: right;
+    color: red;
+}
+.main .main-box .aside .side-activities p{
+    padding: 0 20px;
+    height: 35px;
+    line-height: 35px;
+}
+/*-----------------------*/
+.main .main-box .aside .side-activities .about{
+    padding: 0 20px;
+    width: 320px;
+    line-height: 30px;
+    background: url("https://img.hackhome.com/img2017/2/7/2017020755907421.png") no-repeat 220px 30px/100px 100px;
+}
+.main .main-box .aside .side-activities .about h2{
+    padding: 0;
+}
+.main .main-box .aside .side-activities .about ul li{
+    height: 60px;
+    line-height: 50px;
+}
+.main .main-box .aside .side-activities .about ul li i{
+    font-size: 35px;
+    margin-right: 10px;
+    vertical-align: -9px;
+}
+.main .main-box .aside .side-activities .about ul li span{
+    margin: 105px;
+}
+
+/*-----------------------------*/
+.main .main-box .aside .side-activities .hot-news div{
+    width: 200px;
+    line-height: 30px;
+    padding: 0 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient:vertical;
+}
+.main .main-box .aside .side-activities .hot-news p{
+    /*width: 200px;*/
+}
+.main .main-box .aside .side-activities .hot-news p .left{
+    float: left;
+}
+.main .main-box .aside .side-activities .hot-news p .right{
+    float: right;
+}
+.main .main-box .aside .side-activities .hot-news{
+    position: relative;
+}
+
+.main .main-box .aside .side-activities .hot-news img{
+    width: 110px;
+    height: 70px;
+    position: absolute;
+    top: 0;
+    left: 200px;
+}

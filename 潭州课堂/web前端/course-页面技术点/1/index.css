@@ -1,0 +1,33 @@
+.content{
+    width: 800px;
+    background: rosybrown;
+    font-size: 14px;
+}
+.content .recommend-news li a img{
+    width: 250px;
+    height: 180px;
+    transition: all 2s;
+}
+.content .recommend-news{
+    display: flex; /* 弹性模型 */
+    justify-content: space-around;
+    padding: 15px 15px 0 15px;
+}
+.content .recommend-news li p{
+    text-align: center;
+    line-height: 35px;
+}
+.content .recommend-news .li{
+    float: left;
+}
+.content .recommend-news li>a{
+    width: 250px;
+    height: 180px;
+    overflow: hidden;
+    display: block;
+
+}
+
+.content .recommend-news li a img:hover{
+    transform: scale(2);/* 放大图片 */
+}
