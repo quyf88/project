@@ -214,13 +214,16 @@ class Spider:
                         continue
 
                     # 判断当前时间决定取今天数据还是第二天数据
-                    start_time = datetime.strptime(str(datetime.now().date()) + '18:00', '%Y-%m-%d%H:%M')
-                    end_time = datetime.strptime(str(datetime.now().date()) + '23:30', '%Y-%m-%d%H:%M')
+                    chen_time = datetime.strptime(str(datetime.now().date()) + '6:00:00', '%Y-%m-%d%H:%M:%S')
+                    start_time = datetime.strptime(str(datetime.now().date()) + '18:00:00', '%Y-%m-%d%H:%M:%S')
+                    end_time = datetime.strptime(str(datetime.now().date()) + '23:59:59', '%Y-%m-%d%H:%M:%S')
+
                     now_time = datetime.now()
 
                     # 判断当前时间是否在范围时间内 取第二天数据
                     if now_time > start_time and now_time < end_time:
-                        self.log.info('18:00-23:30获取第二天数据')
+                        # 隔日出数据
+                        self.log.info('18:00-24:00获取第二天出场数据')
                         # 出场延误航班数量
                         mora_num = self.get_attr(airports_name[i], 'com.feeyo.vz.pro.cdm:id/detail_flow_delay_text')
                         if not mora_num:
@@ -234,10 +237,28 @@ class Spider:
                         flight_out = self.wait.until(
                             EC.presence_of_element_located((By.ID, 'com.feeyo.vz.pro.cdm:id/airport_display_img_port')))
                         flight_out.click()
-                        # 获取第二天数据
+                        # 获取第二天数据 出场
                         self.next_day(airport_name)
+
+                    elif now_time > chen_time and now_time < start_time:
+                        # 当天进数据
+                        self.log.info('6:00-18:00获取当天进场数据')
+                        # 出场延误航班数量
+                        mora_num = self.get_attr(airports_name[i], 'com.feeyo.vz.pro.cdm:id/detail_flow_delay_text')
+                        if not mora_num:
+                            self.log.info("[{}]机场信息获取失败".format(airport_name))
+                            continue
+
+                        # 进入机场航班信息页面
+                        flight_page = self.wait.until(EC.presence_of_element_located(
+                            (By.ID, 'com.feeyo.vz.pro.cdm:id/vznairport_detail_diaplay')))
+                        flight_page.click()
+
+                        # 取当天数据
+                        self.same_day_in(airport_name)
                     else:
-                        self.log.info('获取当天数据')
+                        # 当天出数据
+                        self.log.info('0-6:00获取当天出场数据')
                         # 出场延误航班数量
                         mora_num = self.get_attr(airports_name[i], 'com.feeyo.vz.pro.cdm:id/detail_flow_delay_text')
                         if not mora_num:
@@ -279,8 +300,32 @@ class Spider:
                 self.log.exception(e)
                 break
 
+    def same_day_in(self, airport_name):
+        """获取当天进场"""
+        # 判断当前机场是否有延误航班
+        mora_page = self.wait.until(
+            EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/tab_layout_display_txt_count')))
+        mora_page[1].click()
+        time.sleep(3)
+        if not int(mora_page[1].text):
+            self.log.info('[{}]机场,暂无延误航班'.format(airport_name))
+            return
+
+        self.log.info('<font color="red">航班延误时间计算中,请稍后...</font>')
+        if int(mora_page[2].text) > 20:
+            i = int(int(mora_page[2].text) / 20)
+            # 计算航班延误时间
+            for q in range(i):
+                self.time_calculation(airport_name)
+                time.sleep(1)
+                self.driver.swipe(self.x / 2, self.y * 3 / 5, self.x / 2, self.y / 5, 800)
+                time.sleep(2)
+                self.driver.swipe(self.x / 2, self.y * 3 / 5, self.x / 2, self.y / 5, 800)
+
+        self.time_calculation(airport_name)
+
     def same_day(self, airport_name):
-        """获取当天数据"""
+        """获取当天出场数据"""
         # 判断当前机场是否有延误航班
         mora_page = self.wait.until(
             EC.presence_of_all_elements_located((By.ID, 'com.feeyo.vz.pro.cdm:id/tab_layout_display_txt_count')))
@@ -563,8 +608,8 @@ def main():
     loop.conf()  # 读取配置文件
     desired_caps = {
         "platformName": "Android",
-        # "deviceName": "127.0.0.1:{}".format(62025),
-        "deviceName": "d750dac5",
+        "deviceName": "127.0.0.1:{}".format(62025),
+        # "deviceName": "d750dac5",
         "appPackage": "com.feeyo.vz.pro.cdm",
         "appActivity": "com.feeyo.vz.pro.activity.cdm.WelcomeActivity",
         "noReset": True

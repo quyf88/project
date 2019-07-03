@@ -33,13 +33,13 @@ from datetime import datetime
 # else:
 #     print(2)
 
-a = [1,2,3]
-b = [4,5,6]
-c = [7,8,9]
-d = zip(a,b,c)
-print(type(d))
-for i in d:
-    print(list(i))
+# a = [1,2,3]
+# b = [4,5,6]
+# c = [7,8,9]
+# d = zip(a,b,c)
+# print(type(d))
+# for i in d:
+#     print(list(i))
 from datetime import datetime
 from dateutil.parser import parse
 """时间计算"""
@@ -141,5 +141,13 @@ from datetime import datetime
 # else:
 #     print(2)
 
-
-
+chen_time = datetime.strptime(str(datetime.now().date()) + '6:00:00', '%Y-%m-%d%H:%M:%S')
+start_time = datetime.strptime(str(datetime.now().date()) + '21:00:00', '%Y-%m-%d%H:%M:%S')
+end_time = datetime.strptime(str(datetime.now().date()) + '23:59:59', '%Y-%m-%d%H:%M:%S')
+now_time = datetime.now()
+if now_time > start_time and now_time < end_time:
+    print(1)
+elif now_time > chen_time and now_time < start_time:
+    print(2)
+else:
+    print(3)
