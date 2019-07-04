@@ -7,6 +7,7 @@ import csv
 import json
 import requests
 import pandas as pd
+from datetime import datetime
 from retrying import retry
 from fake_useragent import UserAgent
 
@@ -15,16 +16,18 @@ class Spider:
     def __init__(self):
         # 获取随机请求头
         self.headers = {"User-Agent": UserAgent().random}
+        self.count = 0
 
     @retry(stop_max_attempt_number=3)
     def _parse_url(self, url):
-        """请求函数"""
-        try:
-            response = requests.get(url, headers=self.headers, timeout=3)
-        except Exception as e:
-            print(e)
-            response = None
-        return response
+        """url请求"""
+        while True:
+            try:
+                response = requests.get(url, headers=self.headers, timeout=3)
+            except Exception as e:
+                print(e)
+                continue
+            return response
 
     def get_model(self):
         """获取所有车型数据"""
@@ -46,31 +49,36 @@ class Spider:
                     # 车型ID, 车型名称
                     model_l = t['I']
                     model_n = t['N']
-                    data = [brand_l, brand_n, car_l, model_n]
-                    with open("model.csv", "a+", newline='', encoding='utf-8') as file:
-                        writer = csv.writer(file)
-                        writer.writerows(data)
-                        print('成功插入一条')
-                    # yield brand_l, brand_n, car_l, model_n, model_l
+                    yield brand_l, brand_n, car_l, model_n, model_l
+
+    def model_csv(self):
+        """保存所有车型数据"""
+        data = []
+        for i in self.get_model():
+            brand_l, brand_n, car_l, model_n, model_l = i
+            data.append([brand_l, brand_n, car_l, model_n, datetime.now()])
+        name = ['品牌索引', '品牌名称', '车系名称', '车型', '时间']
+        df = pd.DataFrame(columns=name, data=data)
+        df.to_csv('model.csv', mode='a', encoding='utf-8')
+        print('成型数据保存成功')
 
     def get_dealer(self):
         """获取经销商信息"""
         for i in self.get_model():
-            data = []
             brand_l, brand_n, car_l, model_n, model_l = i
             # 根据车型ID和区域编码获取经销商信息
             url = 'https://www.autohome.com.cn/ashx/dealer/AjaxDealersBySeriesId.ashx?seriesId={}&cityId=110100'.format(str(model_l))
             response = self._parse_url(url)
             # 无数据跳过
             if not response.json()['result']['list']:
-                data.append([brand_l, brand_n, car_l, model_n])
-                self.scv_data(data)
+                self.scv_data([[brand_l, brand_n, car_l, model_n]])
                 print('暂无经销商信息')
                 continue
             # 获取经销商信息 主要取经销商ID 用来获取价格
             contents = response.json()['result']['list']
 
             for con in contents:
+                data = []
                 # dealer['dealerId'] = con['dealerId']  # 经销商ID
                 dealerName = con['dealerInfoBaseOut']['dealerName']  # 经销商名称
                 countyName = con['dealerInfoBaseOut']['countyName']  # 所在地区
@@ -81,9 +89,9 @@ class Spider:
                 showPhone = con['dealerInfoBaseOut']['showPhone']  # 400电话
                 for u in self.get_price(str(con['dealerId']), str(model_l)):
                     SpecName, OriginalPrice, Price = u
-                    data.append([brand_l, brand_n, car_l, model_n, SpecName, OriginalPrice,
-                                 Price, dealerName, countyName, companySimple, dealerAdd, orderRange, phone, showPhone])
-                self.scv_data(data)
+                    data.append([brand_l, brand_n, car_l, model_n, SpecName, OriginalPrice, Price, dealerName,
+                                 countyName, companySimple, dealerAdd, orderRange, phone, showPhone, datetime.now()])
+                    self.scv_data(data)
 
     def get_price(self, dealerId, seriesId):
         """获取价格"""
@@ -107,19 +115,31 @@ class Spider:
 
     def scv_data(self, data):
         """保存为csv"""
-        with open("./CVE.csv", "a+", newline='', encoding='utf-8') as file:
-            writer = csv.writer(file, delimiter=',')
-            writer.writerows(data)
-            print('成功插入一条')
+        self.count += 1
+        with open("Demo.csv", "a+", encoding='utf-8', newline="") as f:
+            k = csv.writer(f, delimiter=',')
+            with open("Demo.csv", "r", encoding='utf-8', newline="") as f:
+                reader = csv.reader(f)
+                if not [row for row in reader]:
+                    k.writerow(['品牌索引', '品牌名称', '车系名称', '车型', '汽车型号', '指导价', '参考价', '经销商名称',
+                                '地区', '简称', '地址', '销售区域', '电话1', '电话2', '时间'])
+                    k.writerows(data)
+                    print('第[{}]条数据插入成功'.format(self.count))
+                else:
+                    k.writerows(data)
+                    print('第[{}]条数据插入成功'.format(self.count))
+
+        # with open("./CVE.csv", "a+", newline='', encoding='utf-8') as file:
+        #     writer = csv.writer(file, delimiter=',')
+        #     writer.writerows(data)
+        #     print('成功插入一条')
         # df = pd.DataFrame(data)
-        # df.to_csv('testcsv.csv', encoding='utf-8')
+        # df.to_csv('Demo.csv', mode='a', encoding='utf-8')
         # print('成功插入一条')
 
 
 if __name__ == '__main__':
     spider = Spider()
-    spider.get_model()
-    # spider.get_dealer()
-
-    # for i in a:
-    #     print(i)
+    # 保存所有车型数据
+    # spider.model_csv()
+    spider.get_dealer()
