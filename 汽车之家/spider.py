@@ -3,10 +3,10 @@
 # @Author  : project
 # @File    : spider.py
 # @Software: PyCharm
-
+import csv
 import json
 import requests
-from lxml import etree
+import pandas as pd
 from retrying import retry
 from fake_useragent import UserAgent
 
@@ -26,8 +26,8 @@ class Spider:
             response = None
         return response
 
-    def get_model_list(self):
-        """获取所有车型列表"""
+    def get_model(self):
+        """获取所有车型数据"""
         # 所有车型js文件
         url = 'https://car.autohome.com.cn/javascript/NewSpecCompare.js?20131010'
         response = self._parse_url(url)
@@ -46,9 +46,80 @@ class Spider:
                     # 车型ID, 车型名称
                     model_l = t['I']
                     model_n = t['N']
-                    yield brand_l, brand_n, car_l, model_n, model_l
+                    data = [brand_l, brand_n, car_l, model_n]
+                    with open("model.csv", "a+", newline='', encoding='utf-8') as file:
+                        writer = csv.writer(file)
+                        writer.writerows(data)
+                        print('成功插入一条')
+                    # yield brand_l, brand_n, car_l, model_n, model_l
+
+    def get_dealer(self):
+        """获取经销商信息"""
+        for i in self.get_model():
+            data = []
+            brand_l, brand_n, car_l, model_n, model_l = i
+            # 根据车型ID和区域编码获取经销商信息
+            url = 'https://www.autohome.com.cn/ashx/dealer/AjaxDealersBySeriesId.ashx?seriesId={}&cityId=110100'.format(str(model_l))
+            response = self._parse_url(url)
+            # 无数据跳过
+            if not response.json()['result']['list']:
+                data.append([brand_l, brand_n, car_l, model_n])
+                self.scv_data(data)
+                print('暂无经销商信息')
+                continue
+            # 获取经销商信息 主要取经销商ID 用来获取价格
+            contents = response.json()['result']['list']
+
+            for con in contents:
+                # dealer['dealerId'] = con['dealerId']  # 经销商ID
+                dealerName = con['dealerInfoBaseOut']['dealerName']  # 经销商名称
+                countyName = con['dealerInfoBaseOut']['countyName']  # 所在地区
+                companySimple = con['dealerInfoBaseOut']['companySimple']  # 简称
+                dealerAdd = con['dealerInfoBaseOut']['address']  # 地址
+                orderRange = con['dealerInfoBaseOut']['orderRangeTitle']  # 销售区域
+                phone = con['yphone']  # 电话
+                showPhone = con['dealerInfoBaseOut']['showPhone']  # 400电话
+                for u in self.get_price(str(con['dealerId']), str(model_l)):
+                    SpecName, OriginalPrice, Price = u
+                    data.append([brand_l, brand_n, car_l, model_n, SpecName, OriginalPrice,
+                                 Price, dealerName, countyName, companySimple, dealerAdd, orderRange, phone, showPhone])
+                self.scv_data(data)
+
+    def get_price(self, dealerId, seriesId):
+        """获取价格"""
+        url = 'https://dealer.autohome.com.cn/Ajax/GetSpecListByDealer?dealerId={}&seriesId={}'.format(dealerId, seriesId)
+        # 根据经销商ID 和 车型ID 获取车型价格
+        response = self._parse_url(url)
+        # 无数据跳过
+        if not response.json()['result']['list']:
+            print('暂无经销商信息')
+            return
+        # 获取经销商信息 主要取经销商ID 用来获取价格
+        contents = response.json()['result']['list']
+        for con in contents:
+            # 汽车型号
+            SpecName = con['SpecName']
+            # 指导价
+            OriginalPrice = con['OriginalPrice']
+            # 参考价
+            Price = con['Price']
+            yield SpecName, OriginalPrice, Price
+
+    def scv_data(self, data):
+        """保存为csv"""
+        with open("./CVE.csv", "a+", newline='', encoding='utf-8') as file:
+            writer = csv.writer(file, delimiter=',')
+            writer.writerows(data)
+            print('成功插入一条')
+        # df = pd.DataFrame(data)
+        # df.to_csv('testcsv.csv', encoding='utf-8')
+        # print('成功插入一条')
 
 
 if __name__ == '__main__':
     spider = Spider()
-    spider.get_model_list()
+    spider.get_model()
+    # spider.get_dealer()
+
+    # for i in a:
+    #     print(i)
