@@ -5,6 +5,7 @@
 # @Software: PyCharm
 import csv
 import json
+import asyncio
 import threading
 
 import requests
@@ -77,39 +78,40 @@ class Spider:
         df.to_csv('model.csv', mode='a', encoding='utf-8')
         print('车型数据保存成功')
 
-    def get_dealer(self):
+    async def get_dealer(self, i):
         """获取经销商信息"""
-        for i in self.get_model():
-            brand_l, brand_n, car_l, model_n, model_l = i
-            # 根据车型ID和区域编码获取经销商信息
-            url = 'https://www.autohome.com.cn/ashx/dealer/AjaxDealersBySeriesId.ashx?seriesId={}&cityId=110100'.format(str(model_l))
-            response = self._parse_url(url)
-            # 无数据跳过
-            if not response.json()['result']['list']:
-                self.scv_data([[brand_l, brand_n, car_l, model_n]])
-                print('暂无经销商信息')
-                continue
-            # 获取经销商信息 主要取经销商ID 用来获取价格
-            contents = response.json()['result']['list']
 
-            for con in contents:
-                data = []
-                # dealer['dealerId'] = con['dealerId']  # 经销商ID
-                dealerName = con['dealerInfoBaseOut']['dealerName']  # 经销商名称
-                countyName = con['dealerInfoBaseOut']['countyName']  # 所在地区
-                companySimple = con['dealerInfoBaseOut']['companySimple']  # 简称
-                dealerAdd = con['dealerInfoBaseOut']['address']  # 地址
-                orderRange = con['dealerInfoBaseOut']['orderRangeTitle']  # 销售区域
-                phone = con['yphone']  # 电话
-                showPhone = con['dealerInfoBaseOut']['showPhone']  # 400电话
-                for u in self.get_price(str(con['dealerId']), str(model_l)):
-                    SpecName, OriginalPrice, Price = u
-                    data.append([brand_l, brand_n, car_l, model_n, SpecName, OriginalPrice, Price, dealerName,
-                                 countyName, companySimple, dealerAdd, orderRange, phone, showPhone, datetime.now()])
+        brand_l, brand_n, car_l, model_n, model_l = i
+        # 根据车型ID和区域编码获取经销商信息
+        url = 'https://www.autohome.com.cn/ashx/dealer/AjaxDealersBySeriesId.ashx?seriesId={}&cityId=110100'.format(str(model_l))
+        response = self._parse_url(url)
+        # 无数据跳过
+        if not response.json()['result']['list']:
+            await self.scv_data([[brand_l, brand_n, car_l, model_n]])
+            print('暂无经销商信息')
+            return
+        # 获取经销商信息 主要取经销商ID 用来获取价格
+        contents = response.json()['result']['list']
 
-                    self.scv_data(data)
+        for con in contents:
+            data = []
+            # dealer['dealerId'] = con['dealerId']  # 经销商ID
+            dealerName = con['dealerInfoBaseOut']['dealerName']  # 经销商名称
+            countyName = con['dealerInfoBaseOut']['countyName']  # 所在地区
+            companySimple = con['dealerInfoBaseOut']['companySimple']  # 简称
+            dealerAdd = con['dealerInfoBaseOut']['address']  # 地址
+            orderRange = con['dealerInfoBaseOut']['orderRangeTitle']  # 销售区域
+            phone = con['yphone']  # 电话
+            showPhone = con['dealerInfoBaseOut']['showPhone']  # 400电话
 
-    def get_price(self, dealerId, seriesId):
+            for u in await asyncio.wait(self.get_price(str(con['dealerId']), str(model_l))):
+                SpecName, OriginalPrice, Price = u
+                data.append([brand_l, brand_n, car_l, model_n, SpecName, OriginalPrice, Price, dealerName,
+                             countyName, companySimple, dealerAdd, orderRange, phone, showPhone, datetime.now()])
+
+                await self.scv_data(data)
+
+    async def get_price(self, dealerId, seriesId):
         """获取价格"""
         url = 'https://dealer.autohome.com.cn/Ajax/GetSpecListByDealer?dealerId={}&seriesId={}'.format(dealerId, seriesId)
         # 根据经销商ID 和 车型ID 获取车型价格
@@ -130,7 +132,7 @@ class Spider:
             print('{}数据请求中'.format(SpecName))
             yield SpecName, OriginalPrice, Price
 
-    def scv_data(self, data):
+    async def scv_data(self, data):
         """保存为csv"""
         self.count += 1
         with open("Demo.csv", "a+", encoding='utf-8', newline="") as f:
@@ -154,12 +156,21 @@ class Spider:
         # df.to_csv('Demo.csv', mode='a', encoding='utf-8')
         # print('成功插入一条')
 
-    @run_time
-    def run(self):
-        # 获取车型数据
-        # self.model_csv()
-        # 获取所有信息
-        self.get_dealer()
+    async def main(self):
+
+        count = 0
+        start_time = datetime.now()
+        print("程序开始时间：{}".format(start_time))
+
+        for i in self.get_model():
+            print(i)
+            count += 1
+            if count >= 20:
+                break
+            await self.get_dealer(i)
+        end_time = datetime.now()
+        print("程序结束时间：{}".format(end_time))
+        print("程序执行用时：{}s".format((end_time - start_time)))
 
 
 if __name__ == '__main__':
@@ -167,4 +178,7 @@ if __name__ == '__main__':
     # 保存所有车型数据
     # spider.model_csv()
     # spider.get_dealer()
-    spider.run()
+    loop = asyncio.get_event_loop()
+    # 开启事件循环
+    loop.run_until_complete(spider.main())
+
