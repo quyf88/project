@@ -5,9 +5,8 @@
 # @Software: PyCharm
 import csv
 import json
-import threading
-
 import requests
+import threading
 import pandas as pd
 from datetime import datetime
 from retrying import retry
@@ -79,6 +78,7 @@ class Spider:
 
     def get_dealer(self):
         """获取经销商信息"""
+
         for i in self.get_model():
             brand_l, brand_n, car_l, model_n, model_l = i
             # 根据车型ID和区域编码获取经销商信息
@@ -91,7 +91,7 @@ class Spider:
                 continue
             # 获取经销商信息 主要取经销商ID 用来获取价格
             contents = response.json()['result']['list']
-
+            print('[{}{}]数据请求中'.format(car_l, model_n))
             for con in contents:
                 data = []
                 # dealer['dealerId'] = con['dealerId']  # 经销商ID
@@ -107,7 +107,8 @@ class Spider:
                     data.append([brand_l, brand_n, car_l, model_n, SpecName, OriginalPrice, Price, dealerName,
                                  countyName, companySimple, dealerAdd, orderRange, phone, showPhone, datetime.now()])
 
-                    self.scv_data(data)
+                    print('[{} {}]'.format(model_n, SpecName))
+                self.scv_data(data)
 
     def get_price(self, dealerId, seriesId):
         """获取价格"""
@@ -127,15 +128,14 @@ class Spider:
             OriginalPrice = con['OriginalPrice']
             # 参考价
             Price = con['Price']
-            print('{}数据请求中'.format(SpecName))
             yield SpecName, OriginalPrice, Price
 
     def scv_data(self, data):
         """保存为csv"""
         self.count += 1
-        with open("Demo.csv", "a+", encoding='utf-8', newline="") as f:
+        with open("demo.csv", "a+", encoding='utf-8', newline="") as f:
             k = csv.writer(f, delimiter=',')
-            with open("Demo.csv", "r", encoding='utf-8', newline="") as f1:
+            with open("demo.csv", "r", encoding='utf-8', newline="") as f1:
                 reader = csv.reader(f1)
                 if not [row for row in reader]:
                     k.writerow(['品牌索引', '品牌名称', '车系名称', '车型', '汽车型号', '指导价', '参考价', '经销商名称',
@@ -164,7 +164,4 @@ class Spider:
 
 if __name__ == '__main__':
     spider = Spider()
-    # 保存所有车型数据
-    # spider.model_csv()
-    # spider.get_dealer()
     spider.run()
