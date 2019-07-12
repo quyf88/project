@@ -11,6 +11,9 @@ import pandas as pd
 from datetime import datetime
 from retrying import retry
 from fake_useragent import UserAgent
+"""
+汽车之家全系车型价格
+"""
 
 
 def run_time(func):
@@ -102,6 +105,7 @@ class Spider:
                 orderRange = con['dealerInfoBaseOut']['orderRangeTitle']  # 销售区域
                 phone = con['yphone']  # 电话
                 showPhone = con['dealerInfoBaseOut']['showPhone']  # 400电话
+                print(str(con['dealerId']), str(model_l))
                 for u in self.get_price(str(con['dealerId']), str(model_l)):
                     SpecName, OriginalPrice, Price = u
                     data.append([brand_l, brand_n, car_l, model_n, SpecName, OriginalPrice, Price, dealerName,
