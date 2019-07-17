@@ -24,7 +24,7 @@ class douyin():
             if ip.is_private:
                 self.headers['X-Real-IP'], self.headers['X-Forwarded-For'] = str(ip), str(ip)
                 break
-        self.search_url = 'https://api.amemv.com/aweme/v1/discover/search/?cursor=0&keyword={}&count=10&type=1&device_id={}&aid=1128&app_name=aweme&version_code=162&version_name=1.6.2'
+        self.search_url = 'https://www.douyin.com/aweme/v1/aweme/favorite/?cursor=0&keyword={}&count=10&type=1&device_id={}&aid=1128&app_name=aweme&version_code=162&version_name=1.6.2'
         self.share_url = 'https://www.amemv.com/share/user/{}'
         self.user_url = 'https://www.amemv.com/aweme/v1/aweme/post/?user_id={}&max_cursor=0&count={}&aid=1128&_signature={}&dytk={}'
         print('[INFO]:Douyin App-Video downloader...')
@@ -84,7 +84,7 @@ class douyin():
     # 根据抖音号获得账号所有视频下载地址
     def _get_urls_by_userid(self, user_id):
         device_id = str(random.randint(3, 5)) + ''.join(map(str, (random.randint(0, 9) for _ in range(10))))
-        res = requests.get(self.search_url.format(user_id, device_id), headers=self.headers)
+        res = requests.get(self.search_url.format(user_id, device_id), headers=self.headers, verify=False)
         print(self.search_url.format(user_id, device_id))
         print(res.text)
         res_json = json.loads(res.text)

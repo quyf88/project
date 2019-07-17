@@ -4,6 +4,7 @@ from ipaddress import ip_address
 from subprocess import Popen, PIPE
 import urllib
 from fake_useragent import UserAgent
+import time
 
 class DouYin(object):
     def __init__(self, width=500, height=300):
@@ -41,6 +42,7 @@ class DouYin(object):
         share_user_url = 'https://www.douyin.com/share/user/%s' % user_id
         print(share_user_url)
         share_user = requests.get(share_user_url, headers=self.headers)
+        print(share_user.text)
         while share_user.status_code != 200:
             share_user = requests.get(share_user_url, headers=self.headers)
         _dytk_re = re.compile(r"dytk\s*:\s*'(.+)'")
@@ -57,21 +59,26 @@ class DouYin(object):
         except (OSError, IOError) as err:
             print('请先安装 node.js: https://nodejs.org/')
             sys.exit()
-        user_url_prefix = 'https://www.douyin.com/aweme/v1/aweme/favorite' if type_flag == 'f' else 'https://www.douyin.com/aweme/v1/aweme/post'
+        user_url_prefix = 'https://www.douyin.com/web/api/v2/aweme/post'
+        # user_url_prefix = 'https://www.douyin.com/aweme/v1/aweme/favorite' if type_flag == 'f' else 'https://www.douyin.com/aweme/v1/aweme/post'
         print(user_url_prefix)
         print('解析视频链接中')
         while has_more != 0:
             process = Popen(['node', 'fuck-byted-acrawler.js', str(user_id)], stdout=PIPE, stderr=PIPE)
             _sign = process.communicate()[0].decode().strip('\n').strip('\r')
-            print(process.communicate())
-            user_url = user_url_prefix + '/?user_id=%s&max_cursor=%s&count=21&aid=1128&_signature=%s&dytk=%s' % (
-            user_id, max_cursor, _sign, dytk)
+            print('_sign: %s' % _sign)
+            user_url = user_url_prefix + '/?user_id={}&sec_uid=&count=21&max_cursor=0&aid=1128&_signature={}&dytk={}'.format(user_id, _sign, dytk)
+            # user_url = user_url_prefix + '/?user_id=%s&max_cursor=%s&count=21&aid=1128&_signature=%s&dytk=%s' % (
+            # user_id, max_cursor, _sign, dytk)
             print(user_url)
+            time.sleep(1)
             req = requests.get(user_url, headers=self.headers)
-            print(req.text)
+            time.sleep(1)
+
             while req.status_code != 200:
                 req = requests.get(user_url, headers=self.headers)
             html = json.loads(req.text)
+            print(req.text)
             try:
                 while html['aweme_list'] == []:
                     i = i + 1
@@ -172,8 +179,8 @@ class DouYin(object):
         watermark_flag = input('是否下载带水印的视频 (0-否(默认), 1-是):')
         watermark_flag = watermark_flag if watermark_flag != '' else '0'
         watermark_flag = bool(int(watermark_flag))
-        type_flag = input('f-收藏的(默认), p-上传的:')
-        type_flag = type_flag if type_flag != '' else 'f'
+        type_flag = input('p-上传的(默认), f-收藏的:')
+        type_flag = type_flag if type_flag != '' else 'p'
         save_dir = input('保存路径 (例如"E:/Download/", 默认"./Download/"):')
         save_dir = save_dir if save_dir else "./Download/"
         video_names, video_urls, share_urls, nickname = self.get_video_urls(user_id, type_flag)
