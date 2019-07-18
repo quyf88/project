@@ -3,7 +3,7 @@ import time
 import datetime
 from PIL import Image
 from lxml import etree
-from aip import AipOcr
+# from aip import AipOcr
 from selenium import webdriver
 from fake_useragent import UserAgent
 from selenium.webdriver.common.by import By
@@ -31,16 +31,31 @@ class Spider:
         self.wait = WebDriverWait(self.driver, 30, 0.5)
         # 浏览器窗口最大化
         self.driver.maximize_window()
+        url = 'http://www.chaicp.com/piliang.html#first'
+        self.driver.get(url)
 
     def read_file(self):
         """
         读取域名文件
         :return: 域名列表
         """
-        print('读取域名文件....')
+        start = 0
+        end = 50
+
         with open('data.txt', 'r') as f:
-            data = f.read()
-        return data
+            a = f.readlines()
+        while True:
+            data = []
+            for i, rows in enumerate(a):
+                if i in range(start, end):  # 指定数据哪几行
+                    data.append(rows)
+            if len(a) < end:
+                break
+            yield data
+            start = end
+            end += 50
+            print(start, end)
+            continue
 
     def spot_code(self):
         """
@@ -85,8 +100,6 @@ class Spider:
         save_screenshot() 获取屏幕截图
         :return:
         """
-        url = 'http://www.chaicp.com/piliang.html#first'
-        self.driver.get(url)
         time.sleep(1)
         # 当前浏览器屏幕截图
         self.driver.save_screenshot('./code/button.png')
@@ -105,7 +118,7 @@ class Spider:
         im.save('./code/code.png')
         print('获取验证码成功')
 
-    def get_content(self):
+    def get_content(self, data):
         """
         请求数据
         :return:
@@ -114,16 +127,19 @@ class Spider:
             # 查询网址
             a = self.wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="search"]/textarea')))
             a.click()
-            data = self.read_file()
-            a.send_keys(data)
+            a.clear()
+            for i in data:
+                a.send_keys(i)
             print('域名写入成功')
             # 验证码
+            self.get_code()
             b = self.wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="Code verify clear"]/input')))
             b.click()
             code = self.spot_code()
+            # code = input('验证码：')
             b.clear()
             b.send_keys(code)
-            print('验证码写入成功')
+            print('验证码输入成功')
             # 查询 无界面模式下定位到元素无法点击 用Keys.ENTER 代替
             c = self.wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="search"]/button')))
             c.send_keys(Keys.ENTER)
@@ -206,10 +222,10 @@ class Spider:
     def run(self):
         start_time = datetime.datetime.now()
         print("程序开始时间：{}".format(start_time))
-        self.get_code()
-        self.get_content()
-        self.get_html()
-        self.deal_html()
+        for i in self.read_file():
+            self.get_content(i)
+            self.get_html()
+            self.deal_html()
         end_time = datetime.datetime.now()
         print("程序结束时间：{}".format(end_time))
         print("程序执行用时：{}s".format((end_time - start_time)))
