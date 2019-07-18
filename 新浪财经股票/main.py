@@ -29,30 +29,30 @@ class Spider:
     def __init__(self):
         self.conn = mysql_conn.BaseDao()
         self.conn.del_data()
-        self.log = self.log_init()
+        # self.log = self.log_init()
         self.headers = {'User-Agent':
                             'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.104 Safari/537.36'
                     }
 
-    def log_init(self):
-        """日志模块"""
-        path = os.path.abspath('.') + r'\log\run.log'
-        formatter = logging.Formatter('%(asctime)s | %(name)-6s | %(levelname)-6s| %(message)s')
-        console = logging.StreamHandler()
-        console.setLevel(logging.DEBUG)
-        fh = logging.FileHandler(path, encoding='utf-8', mode='w')
-        fh.setLevel(logging.DEBUG)
-        fh.setFormatter(formatter)
-        console.setFormatter(formatter)
-        # 如果需要同時需要在終端上輸出，定義一個streamHandler
-        # print_handler = logging.StreamHandler()  # 往屏幕上输出
-        # print_handler.setFormatter(formatter)  # 设置屏幕上显示的格式
-        logger = logging.getLogger("Spider")
-        # logger.addHandler(print_handler)
-        logger.setLevel(logging.DEBUG)
-        logger.addHandler(console)
-        logger.addHandler(fh)
-        return logger
+    # def log_init(self):
+    #     """日志模块"""
+    #     path = os.path.abspath('.') + r'\log\run.log'
+    #     formatter = logging.Formatter('%(asctime)s | %(name)-6s | %(levelname)-6s| %(message)s')
+    #     console = logging.StreamHandler()
+    #     console.setLevel(logging.DEBUG)
+    #     fh = logging.FileHandler(path, encoding='utf-8', mode='w')
+    #     fh.setLevel(logging.DEBUG)
+    #     fh.setFormatter(formatter)
+    #     console.setFormatter(formatter)
+    #     # 如果需要同時需要在終端上輸出，定義一個streamHandler
+    #     # print_handler = logging.StreamHandler()  # 往屏幕上输出
+    #     # print_handler.setFormatter(formatter)  # 设置屏幕上显示的格式
+    #     logger = logging.getLogger("Spider")
+    #     # logger.addHandler(print_handler)
+    #     logger.setLevel(logging.DEBUG)
+    #     logger.addHandler(console)
+    #     logger.addHandler(fh)
+    #     return logger
 
     def get_page(self):
         url = 'http://vip.stock.finance.sina.com.cn/mkt/#stock_hs_up'
@@ -79,27 +79,27 @@ class Spider:
                 # 名称
                 fields['name'] = content['name']
                 # 最新价
-                fields['trade'] = str(content['trade'])
-                # 涨跌额
-                fields['pricechange'] = str(content['pricechange'])
-                # 涨跌幅
-                fields['changepercent'] = str(content['changepercent'])
-                # 买入
-                fields['buy'] = str(content['buy'])
-                # 卖出
-                fields['sell'] = str(content['sell'])
-                # 昨收
-                fields['settlement'] = str(content['settlement'])
-                # 今开
-                fields['opens'] = str(content['open'])
-                # 最高
-                fields['high'] = str(content['high'])
-                # 最低
-                fields['low'] = str(content['low'])
-                # 成交量
-                fields['volume'] = str(content['volume'])
-                # 成交额
-                fields['amount'] = str(content['amount'])
+                # fields['trade'] = str(content['trade'])
+                # # 涨跌额
+                # fields['pricechange'] = str(content['pricechange'])
+                # # 涨跌幅
+                # fields['changepercent'] = str(content['changepercent'])
+                # # 买入
+                # fields['buy'] = str(content['buy'])
+                # # 卖出
+                # fields['sell'] = str(content['sell'])
+                # # 昨收
+                # fields['settlement'] = str(content['settlement'])
+                # # 今开
+                # fields['opens'] = str(content['open'])
+                # # 最高
+                # fields['high'] = str(content['high'])
+                # # 最低
+                # fields['low'] = str(content['low'])
+                # # 成交量
+                # fields['volume'] = str(content['volume'])
+                # # 成交额
+                # fields['amount'] = str(content['amount'])
                 data.append(fields)
             self.sql_save(data)
 
