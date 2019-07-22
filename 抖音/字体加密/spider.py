@@ -97,7 +97,7 @@ class Spider:
         """
         with open('douyin.html', 'w', encoding='utf-8') as f:
             f.write(response)
-            f.seek()
+
     def run(self, url):
         # 最终映射关系表
         result = self.map_cmap_num(self.get_bast_cmap, self.get_num_cmap)
