@@ -20,5 +20,5 @@ from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('index/<str:course>&<int:count>', views.index),
-    path('movie/', include('movie.urls'), {'decide': True}),  # 子路由分配 传入字典
+    path('movie/', include('movie.urls')),  # 子路由分配 传入字典
 ]

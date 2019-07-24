@@ -1,10 +1,22 @@
+{% load static %} {#静态文件引入#}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>movie index</title>
+    <title>movie模板文件</title>
+    {#静态文件引入#}
+    <link rel="stylesheet" href="{% static 'css/a.css' %}">
 </head>
 <body>
-这是 movie HTML 文件 渲染页面
+字符串 {{ str }} <br>
+列表 {{ li }} <br>
+元祖 {{ tu }} <br>
+字典 {{ dic }} <br>
+函数 {{ test }} <br>
+类 {{ fruits }} <br>
+
+<p>这是一个P标签</p>
+<script src="{% static 'js/a.js' %}"></script>
+<img src="{% static 'image/a.jpg' %}" alt="">
 </body>
 </html>

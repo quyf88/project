@@ -20,5 +20,43 @@ def new_movie(request, **kwargs):
 
 
 def index1(request, **kwargs):
-    """页面渲染 需要设置主项目设置文件DIRS 设置路径"""
-    return render(request, 'movie/movie_index.html')
+    """
+    页面渲染 需要设置主项目设置文件DIRS 设置路径
+    模板传值 context={key:value}
+    """
+    return render(request, 'movie/movie_index.html', context={'name': 'dandan'})
+
+
+def test():
+    return 'this is test'
+
+
+class Fruits:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def say(self):
+        return 'this is say'
+
+
+fruits = Fruits('蛋蛋', '2')
+li = ['q', 'w', 'e', 'r']
+tu = ('a', 's', 'd', 'f')
+dic = {'x': 1, 'y': 2}
+st = 'this is django course'
+
+
+def index2(request):
+    """
+    模板传值
+    :param request:
+    :return:
+    """
+    return render(request, 'movie/movie_index.html',
+                  context={'test': test,
+                           'fruits': fruits,
+                           'li': li,
+                           'tu': tu,
+                           'dic': dic,
+                           'str': st})
