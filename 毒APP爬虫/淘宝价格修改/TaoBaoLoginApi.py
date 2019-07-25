@@ -159,6 +159,7 @@ class Spider(object):
                 time.sleep(5)
             if 'login.taobao.com' not in self.driver.current_url:
                 self.log.info("登录成功")
+                print(self.driver.page_source)
                 break
             else:
                 self.log.info("等待扫码中...")
@@ -189,6 +190,7 @@ class Spider(object):
 
         # 获取登入token
         html = self.driver.page_source.replace(' ', '').replace("'", '"')
+
         try:
             self.token = re.findall('tokenValue:"(.*?)"', html, re.I | re.S)[0]
             self.log.info("获取此商家登陆状态的token成功, token:[{}]".format(self.token))
