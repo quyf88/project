@@ -1,124 +1,70 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2019/7/24 16:36
-# @Author  : project
-# @File    : test.py
-# @Software: PyCharm
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
-import requests
-import json
-import random
-import requests.utils
-import math
-from urllib import request
-from bs4 import BeautifulSoup
-import xlwt
-from xlwt import Workbook
+# 定义一个taobao类
+class taobao_infos:
 
-excel_name = 'Taobao_Comments.xls'
-sheet_name = 'Taobao_Comments'
+    # 对象初始化
+    def __init__(self):
+        url = 'https://login.taobao.com/member/login.jhtml'
+        self.url = url
 
-Taobao_Comments_excel = Workbook(excel_name)
-Taobao_Comments_excel = Workbook(encoding='utf-8')
-Taobao_Comments_sheet = Taobao_Comments_excel.add_sheet(sheet_name, cell_overwrite_ok=True)
-Taobao_Comments_sheet.write(0, 0, u'NO.')
-Taobao_Comments_sheet.write(0, 1, u'USER')
-Taobao_Comments_sheet.write(0, 2, u'COMMENTS')
-Taobao_Comments_excel.save(excel_name)
+        options = webdriver.ChromeOptions()
+        options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 1})  # 不加载图片,加快访问速度
+        options.add_experimental_option('excludeSwitches',
+                                        ['enable-automation'])  # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
 
-# 爬虫头
-Cookie = " "  # real cookie
-header = {"Connection": "keep-alive",
-          "Upgrade-Insecure-Requests": "1",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134",
-          "Cookie": Cookie,
-          "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8",
-          "Accept-Encoding": "gzip, deflate, br",
-          "Accept-Language": "zh-Hans-CN, zh-Hans; q=0.5",
-          'Connection': 'keep-alive'}
-# 代理列表（快代理可以更新）
-proxy_list = [{"http": "http://119.101.113.178:9999"},
-              {"http": "http://119.101.116.166:9999"},
-              {"http": "http://111.177.168.155:9999"},
-              {"http": "http://121.232.148.60:9000"},
-              {"http": "http://59.37.33.62:50686"},
-              {"http": "http://119.101.113.240:9999"},
-              {"http": "http://223.223.187.195:80"},
-              {"http": "http://116.192.175.93:41944"},
-              {"http": "http://193.112.57.222:8118"},
-              {"http": "http://223.223.187.195:80"}]  # just for test
-# 登陆信息
-post_data = {
-    "commit": "Sign in",
-    # "utf8": "✓",
-    "authenticity_token": " ",  # search in chrome for unique authenticity_token
-    "login": "18210836362",  # real account and key
-    "password": "chenxiaoli2013"
-}
-proxy = random.choice(proxy_list)
+        self.browser = webdriver.Chrome(options=options)
+        self.wait = WebDriverWait(self.browser, 10)  # 超时时长为10s
+
+    # 登录淘宝
+    def login(self):
+        # 打开网页
+        self.browser.get(self.url)
+
+        # 等待 密码登录选项 出现
+        password_login = self.wait.until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, '.qrcode-login > .login-links > .forget-pwd')))
+        password_login.click()
+
+        # 等待 微博登录选项 出现
+        weibo_login = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.weibo-login')))
+        weibo_login.click()
+
+        # 等待 微博账号 出现
+        weibo_user = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.username > .W_input')))
+        weibo_user.send_keys(weibo_username)
+
+        # 等待 微博密码 出现
+        weibo_pwd = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.password > .W_input')))
+        weibo_pwd.send_keys(weibo_password)
+
+        # 等待 登录按钮 出现
+        submit = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.btn_tip > a > span')))
+        submit.click()
+        time.sleep(10)
+        # 直到获取到淘宝会员昵称才能确定是登录成功
+        taobao_name = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR,
+                                                                      '.site-nav-bd > ul.site-nav-bd-l > li#J_SiteNavLogin > div.site-nav-menu-hd > div.site-nav-user > a.site-nav-login-info-nick ')))
+        # 输出淘宝昵称
+        print(taobao_name.text)
 
 
-def getmax(url):
-    if url[url.find('id=') + 14] != '&':
-        id = url[url.find('id=') + 3:url.find('id=') + 15]
-    else:
-        id = url[url.find('id=') + 3:url.find('id=') + 14]
-    print(id)
-    url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=' + id + '&currentPageNum=1'
-    print(url)
-    login('https://login.taobao.com/member/login.jhtml?style=mini&from=sm&full_redirect=false&redirect')
-    s = requests.Session()
-    # html = s.get(url, headers=header, proxies=proxy).text
-    html = s.get(url, headers=header).text
-    jc = json.loads(html.strip().strip('()'))
-    max = jc['total']
-    return max
+# 使用教程：
+# 1.下载chrome浏览器:https://www.google.com/chrome/
+# 2.查看chrome浏览器的版本号，下载对应版本号的chromedriver驱动:http://chromedriver.storage.googleapis.com/index.html
+# 3.填写chromedriver的绝对路径
+# 4.执行命令pip install selenium
+# 5.打开https://account.weibo.com/set/bindsns/bindtaobao并通过微博绑定淘宝账号密码
 
+if __name__ == "__main__":
+    # chromedriver_path = "/Users/bird/Desktop/chromedriver.exe"  # 改成你的chromedriver的完整路径地址
+    weibo_username = "18210836362"  # 改成你的微博账号
+    weibo_password = "chenxiaoli2013"  # 改成你的微博密码
 
-def getUserComment(url, n, row):
-    if url[url.find('id=') + 14] != '&':
-        id = url[url.find('id=') + 3:url.find('id=') + 15]
-    else:
-        id = url[url.find('id=') + 3:url.find('id=') + 14]
-    url = 'https://rate.taobao.com/feedRateList.htm?auctionNumId=' + id + '&currentPageNum=%d' % n
-    login('https://login.taobao.com/member/login.jhtml?style=mini&from=sm&full_redirect=false&redirect')
-    s = requests.Session()
-    html = s.get(url, headers=header, proxies=proxy).text
-    jc = json.loads(html.strip().strip('()'))
-    max = jc['total']
-    a = max
-    users = []
-    comment = []
-    count = 0
-    jc = jc['comments']
-    # row = 1 + ( n - 1 ) * 20
-    str1 = '评价方未及时做出评价,系统默认好评!'
-    str2 = '此用户没有填写评价。'
-    for j in jc:
-        # if(j['content']!= str1 and j['content'] != str2):
-        users.append(j['user']['nick'])
-        comment.append(j['content'])
-        # print(count+1,'>>',users[count],'\n        ',comment[count])
-        if (comment[count] != str1 and comment[count] != str2):
-            Taobao_Comments_sheet.write(row, 0, row)
-            Taobao_Comments_sheet.write(row, 1, users[count])
-            Taobao_Comments_sheet.write(row, 2, comment[count])
-            row += 1
-        count = count + 1
-    Taobao_Comments_excel.save(excel_name)
-    return row
-
-
-# 获取登陆的session，填入登陆信息
-def login(url):
-    session = requests.session()
-    response = session.post(url, data=post_data)
-
-
-# 主程序
-a = getmax("https://item.taobao.com/item.htm?id=521341279470")
-a = math.ceil(a / 20)
-print(a)
-row = 1
-for i in range(1, a):
-    row = getUserComment("https://item.taobao.com/item.htm?id=521341279470", i, row)
+    a = taobao_infos()
+    a.login()  # 登录
