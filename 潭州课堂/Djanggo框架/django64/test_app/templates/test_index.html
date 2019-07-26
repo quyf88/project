@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>test_app</title>
+</head>
+<body>
+{# 99乘法表 #}
+{% for i in li1 %}
+    {% for j in li2 %}
+        {% if j <= i %}
+            {{ j }}*{{ i }}={% widthratio i 1 j %}
+        {% endif %}
+    {% endfor %}
+    <br>
+{% endfor %}
+</body>
+</html>

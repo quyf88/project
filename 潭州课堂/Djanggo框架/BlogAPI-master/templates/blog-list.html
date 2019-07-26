@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}
+    博客列表
+{% endblock %}
+{% block search %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">博客列表</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                {#                <li class="nav-item active">#}
+                {#                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>#}
+                {#                </li>#}
+                {% for category in categorys %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/blog/list/?id={{ category.id }}">{{ category.name }}</a>
+                    </li>
+                {% empty %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">链接</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <form class="form-inline my-2 my-lg-0" action="/blog/list/" method="post">
+                {% csrf_token %}
+                <input class="form-control mr-sm-2" type="search" placeholder="请输入搜索内容" aria-label="Search"
+                       name="search">
+                <input class="btn btn-outline-success my-2 my-sm-0" type="submit" value="搜索">
+            </form>
+        </div>
+    </nav>
+{% endblock %}
+{% block main %}
+    <section class="blog-list px-3 py-5 p-md-5">
+        <div class="container">
+            {% for article in articles %}
+                <!--盒子开始-->
+                <div class="item mb-5">
+                    <div class="media">
+                        <img class="mr-3 img-fluid post-thumb d-none d-md-flex"
+                             src="/media/{{ article.img }}"
+                             alt="image">
+                        <div class="media-body">
+                            <h3 class="title mb-1"><a href="blog-post.html">{{ article.name }}</a></h3>
+                            <div class="meta mb-1"><span class="date">发布时间{{ article.pub_date }}</span><span
+                                    class="time">阅读人数{{ article.views }}</span>
+                                <span class="comment"><a href="#">评论数量{{ article.comment_num }}</a></span></div>
+                            <div class="intro">
+                                {{ article.desc }}
+                            </div>
+                            <a class="more-link" href="/detail/?id={{ article.id }}">阅读更多 &rarr;</a>
+                        </div><!--//media-body-->
+                    </div><!--//media-->
+                </div>
+                <!--盒子结束-->
+            {% empty %}
+                <h2>抱歉,暂无您想要搜索的内容</h2>
+                <div>
+                    <a href="/index/">首页</a>
+                    <a href="/blog/list/">博客列表</a>
+                </div>
+            {% endfor %}
+
+            {% include '_pagination.html' %}
+
+        </div>
+    </section>
+{% endblock %}
