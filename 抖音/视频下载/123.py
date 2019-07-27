@@ -12,10 +12,10 @@ class DouYin(object):
         抖音App视频下载
         """
         self.headers = {"User-Agent": UserAgent().random}
-        rip = ip_address('0.0.0.0')
-        while rip.is_private:
-            rip = ip_address('.'.join(map(str, (random.randint(0, 255) for _ in range(4)))))
-            self.headers['X-Real-IP'], self.headers['X-Forwarded-For'] = str(rip), str(rip)
+        # rip = ip_address('0.0.0.0')
+        # while rip.is_private:
+        #     rip = ip_address('.'.join(map(str, (random.randint(0, 255) for _ in range(4)))))
+        #     self.headers['X-Real-IP'], self.headers['X-Forwarded-For'] = str(rip), str(rip)
 
         # while True:
         #     ip = ip_address('.'.join(map(str, (random.randint(0, 255) for _ in range(4)))))
@@ -42,7 +42,7 @@ class DouYin(object):
         share_user_url = 'https://www.douyin.com/share/user/%s' % user_id
         print(share_user_url)
         share_user = requests.get(share_user_url, headers=self.headers)
-        print(share_user.text)
+
         while share_user.status_code != 200:
             share_user = requests.get(share_user_url, headers=self.headers)
         _dytk_re = re.compile(r"dytk\s*:\s*'(.+)'")
@@ -59,8 +59,8 @@ class DouYin(object):
         except (OSError, IOError) as err:
             print('请先安装 node.js: https://nodejs.org/')
             sys.exit()
-        user_url_prefix = 'https://www.douyin.com/web/api/v2/aweme/post'
-        # user_url_prefix = 'https://www.douyin.com/aweme/v1/aweme/favorite' if type_flag == 'f' else 'https://www.douyin.com/aweme/v1/aweme/post'
+        # user_url_prefix = 'https://www.douyin.com/web/api/v2/aweme/post'
+        user_url_prefix = 'https://www.douyin.com/aweme/v1/aweme/favorite' if type_flag == 'f' else 'https://www.douyin.com/aweme/v1/aweme/post'
         print(user_url_prefix)
         print('解析视频链接中')
         while has_more != 0:

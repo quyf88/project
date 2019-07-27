@@ -34,7 +34,7 @@ def post_html(url):
 
 def get_video(key):
     """
-    获取第一个视频连接地址
+    根据关键词搜索用户信息
     :param key:
     :return:
     """
