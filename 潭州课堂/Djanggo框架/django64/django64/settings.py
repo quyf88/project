@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'movie',
     'test_app',
+    'db_test',
 ]
 
 MIDDLEWARE = [
@@ -77,8 +78,14 @@ WSGI_APPLICATION = 'django64.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
+        'NAME': 'mydb',  # 数据库名称
+        'USER': 'admin',  # 链接数据库用户名
+        'PASSWORD': 'Root110qwe',  # 链接数据库密码
+        'HOST': '127.0.0.1',  # mysql服务器的域名和ip地址
+        'PORT': '3306',  # mysql端口号 默认3306
     }
 }
 
@@ -107,13 +114,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)

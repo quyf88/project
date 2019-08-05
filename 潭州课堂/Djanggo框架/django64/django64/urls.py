@@ -22,4 +22,5 @@ urlpatterns = [
     path('index/<str:course>&<int:count>', views.index),
     path('movie/', include('movie.urls')),  # 子路由分配 传入字典
     path('test_app/', include('test_app.urls')),
+    path('db_test/', include('db_test.urls')),  # 数据库
 ]
