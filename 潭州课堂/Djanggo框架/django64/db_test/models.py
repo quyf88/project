@@ -51,6 +51,17 @@ class Test(models.Model):
 # python manage.py migtate
 
 
+"""
+OneToOneField 设置一对一关系
+ManyToManyField 设置多对多关系 自动生成中间表
+设置关系表时必须设置级联删除
+级联删除 保证数据的完整性与一致性
+on_delete=models.CASCADE 删除主键同时删除外键数据
+on_delete=models.SET_NULL,null=True 删除主键同时把外键设置为空
+on_delete=models.PROTECT 如果有外键正在引用主键 那么主键不允许删除
+"""
+
+
 class Department(models.Model):
     """学院表"""
     d_id = models.AutoField(primary_key=True)
