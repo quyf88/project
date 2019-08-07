@@ -1,0 +1,9 @@
+{% extends 'blog/demo_base.html' %}
+{% block title %}
+    文章详情
+{% endblock %}
+{% block bodyblock %}
+    {# 把视图函数传递过来的数据在页面展示出来 #}
+    <h1>{{ blog.title }}</h1>
+    {{ blog.content }}
+{% endblock %}
