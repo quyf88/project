@@ -18,7 +18,7 @@
         <tr>
             {# blog.title 展示文章标题, 获取文章id 根据id跳转至文章详情 #}
             <th><a href="{% url 'blog_detail' blog.id %}">{{ blog.title }}</a></th>
-            <th><a href="">编辑</a> | <a href="{% url 'blog_delete' blog.id %}">删除 </a></th>
+            <th><a href="{% url 'blog_update' blog.id %}">编辑</a> | <a href="{% url 'blog_delete' blog.id %}">删除 </a></th>
         </tr>
     {% endfor %}
     </tbody>

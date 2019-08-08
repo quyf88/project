@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form action="" method="post">
+    {% csrf_token %} {# 防止跨域请求 #}
+    <input type="text" name="a">
+    <input type="text" name="b">
+    <input type="submit" value="提交">
+</form>
+{# js 弹窗 #}
+{#<script>#}
+{#    var inp = document.getElementsByTagName('input')#}
+{#    inp[3].onclick = function () {#}
+{#        alert(inp[1].value)#}
+{#        alert(inp[2].value)#}
+{#    }#}
+{#</script>#}
+</body>
+</html>

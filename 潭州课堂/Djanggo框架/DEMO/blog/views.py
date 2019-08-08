@@ -56,3 +56,37 @@ def blog_delete(request, blog_id):
         return redirect(reverse('blog_list'))
     else:
         return HttpResponse('不存在这篇文章')
+
+
+def blog_update(request, blog_id):
+    """编辑"""
+    blog = BlogModel.objects.get(id=blog_id)
+    if request.method == 'GET':
+        return render(request, 'blog/demo_update.html', context={'blog': blog})
+    elif request.method == 'POST':
+        # 获取修改后的文本保存至数据库
+        blog.title = request.POST.get('title')
+        blog.content = request.POST.get('content')
+        blog.save()
+        # 修改完成后页面重定向至文章列表页
+        return redirect(reverse('blog_list'))
+
+
+"""类视图"""
+from django.views import View
+class BlogAdd(View):
+    def get(self, request):
+        return render(request, 'blog/demo_add.html')
+
+    def post(self, request):
+        # 根据标签name获取POST提交的数据值
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        # 保存至数据库
+        blog = BlogModel(title=title, content=content)
+        blog.save()
+        # return HttpResponse('数据保存成功')
+        # 页面渲染
+        return render(request, 'blog/demo_add.html')
+        # 页面重定向
+        # return redirect(reverse('blog_add'))
