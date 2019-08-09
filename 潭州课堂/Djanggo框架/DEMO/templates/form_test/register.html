@@ -7,6 +7,7 @@
 <body>
 <form action="" method="post">
     {% csrf_token %}
+    {# as_p以P标签的形式展示forms.py文件中的内容 #}
     {{ form.as_p }}
     <input type="submit" value="注册">
 </form>
