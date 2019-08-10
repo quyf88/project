@@ -1,6 +1,6 @@
 # coding=utf-8
 # 作者    ： Administrator
-# 文件    ：time.py
+# 文件    ：time常用语法.py
 # IED    ：PyCharm
 # 创建时间 ：2019/7/27 20:29
 
