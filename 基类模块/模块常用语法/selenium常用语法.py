@@ -18,8 +18,8 @@
 """
 谷歌浏览器 CSS定位插件 SelectorGadget
 CSS 定位
-#kw # 定位id='kw'元素
-.username > .W_input # 定位class='username'下的class='W_input'的元素
+#kw :定位id='kw'元素
+.username > .W_input :定位class='username'下的class='W_input'的元素
 """
 import time
 from selenium import webdriver
