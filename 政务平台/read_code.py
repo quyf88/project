@@ -9,7 +9,8 @@
 cv2库安装：pip install opencv-python
 """
 import cv2
-import tesserocr
+# import tesserocr
+import pytesseract
 from PIL import Image
 
 """
@@ -85,7 +86,7 @@ class Code:
         self.interference_point(im)
         # 4. tesserocr识别验证码
         img = Image.open('b.png')
-        code = tesserocr.image_to_text(img)
+        code = pytesseract.image_to_string(img)
         print('验证码：{}'.format(code))
         if len(code) > 4:
             code = code.replace(' ', '')

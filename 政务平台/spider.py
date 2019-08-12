@@ -1,14 +1,14 @@
 # coding=utf-8
 # 作者    ： Administrator
-# 文件    ：login.py
+# 文件    ：spider.py
 # IED    ：PyCharm
 # 创建时间 ：2019/8/10 14:07
 import csv
 import sys
 import time
-import pandas as pd
-import tesserocr
 import requests
+import pytesseract
+import pandas as pd
 from PIL import Image
 from lxml import etree
 # from aip import AipOcr
@@ -18,6 +18,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
 import fateadm_api
 from read_code import Code
 
@@ -126,7 +127,7 @@ class Spider:
     def get_phone(self, pre_name, pre_code, pre_type):
         """获取账号登录状态"""
         while True:
-        # 填写请求信息
+            # 填写请求信息
             time.sleep(3)
             self.driver.get('https://amr.sz.gov.cn/aicmerout/jsp/gcloud/giapout/industry/aicmer/processpage/step_one.jsp?ywType=30')
             num = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#regno')))
@@ -197,7 +198,7 @@ class Spider:
         im.save('./code/phone.png')
         print('成功获取手机号图片')
         img = Image.open('code/phone.png')
-        phone = tesserocr.image_to_text(img)
+        phone = pytesseract.image_to_string(img)
         print('成功获取手机号：{}'.format(phone))
         return phone
 
@@ -207,7 +208,7 @@ class Spider:
         :return:
         """
         # 加载数据
-        df_read = pd.read_excel(r'工作1234簿1.xlsx')
+        df_read = pd.read_excel(r'ceshi111.xlsx.xlsx')
         df = pd.DataFrame(df_read)
         # keys = ['企业名称', '省份', 'l联系电话', '城市', '统一社会信用代码', '法定代表人', '企业类型', '成立日期',
         #         '成立日期', '地址', '邮箱', '经营范围', '网址', '电话号码', '电话号码（更多号码）']
