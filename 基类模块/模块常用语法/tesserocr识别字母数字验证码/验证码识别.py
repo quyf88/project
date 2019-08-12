@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 # 作者    ： Administrator
 # 文件    ：验证码识别.py
 # IED    ：PyCharm
@@ -7,9 +7,12 @@
 使用tesserocr识别字母数字验证码
 环境配置教程：https://www.cnblogs.com/guishenyouhuo/p/10121864.html
 cv2库安装：pip install opencv-python
+tesserocr 报错 UnicodeDecodeError 系统问题 用下面的模块替代
+pytesseract ：pip install pytesseract
 """
 import cv2
-import tesserocr
+# import tesserocr
+import pytesseract
 from PIL import Image
 
 """
@@ -80,5 +83,6 @@ def interference_point(img):
 interference_point(im)
 # 4. tesserocr识别验证码
 img = Image.open('b.png')
-code = tesserocr.image_to_text(img)
+# code = tesserocr.image_to_text(img)
+code = pytesseract.image_to_string(img)
 print(code)
