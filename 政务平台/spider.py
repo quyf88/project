@@ -22,7 +22,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 import fateadm_api
-from read_code import Code
+from read_phone import Code
 
 
 def run_time(func):
