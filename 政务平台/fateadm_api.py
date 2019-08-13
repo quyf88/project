@@ -309,10 +309,14 @@ class FateadmApi():
 
 
 def TestFunc(balances=False):
-    pd_id = "114687"  # 用户中心页可以查询到pd信息
-    pd_key = "a/H5XsNL9dreLk2uzyNXZ1FHmc1vns/6"
-    app_id = "314687"  # 开发者分成用的账号，在开发者中心可以查询到
-    app_key = "UGqG3x9CLqN/eNfeVx77XwUFXKwGDv2F"
+    # pd_id = "114687"  # 用户中心页可以查询到pd信息
+    # pd_key = "a/H5XsNL9dreLk2uzyNXZ1FHmc1vns/6"
+    # app_id = "314687"  # 开发者分成用的账号，在开发者中心可以查询到
+    # app_key = "UGqG3x9CLqN/eNfeVx77XwUFXKwGDv2F"
+    pd_id = "115690"  # 用户中心页可以查询到pd信息
+    pd_key = "+jxNgSZFLLqQ0IBwEwQqlLXO/F97nSv6"
+    app_id = "315690"  # 开发者分成用的账号，在开发者中心可以查询到
+    app_key = "AJtZTdmN7LYGjU+q2T1JJhQeOfYlr5mO"
     # 识别类型，
     # 具体类型可以查看官方网站的价格页选择具体的类型，不清楚类型的，可以咨询客服
     pred_type = "30400"
@@ -320,7 +324,7 @@ def TestFunc(balances=False):
     # 查询余额
     if balances:
         balance = api.QueryBalcExtend()  # 直接返余额
-        print(balance)
+        # print(balance)
         return balance
     # print('余额：{}'.format(balance))
     # api.QueryBalc()
@@ -353,4 +357,4 @@ def TestFunc(balances=False):
 
 
 if __name__ == "__main__":
-    TestFunc()
+    TestFunc(balances=True)
