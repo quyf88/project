@@ -6,6 +6,7 @@
 import csv
 import sys
 import time
+import shutil
 import requests
 import pytesseract
 import pandas as pd
@@ -78,6 +79,7 @@ class Spider:
             enter.click()
 
             url = self.driver.current_url
+            print(url)
             a = 'https://amr.sz.gov.cn/psout/jsp/gcloud/pubservice/userstsso/godeal.jsp?'
             if a in url:
                 print('**********{}登录成功**********'.format('wyn16888'))
@@ -122,7 +124,7 @@ class Spider:
         im = im.crop((left, top, right, bottom))
         im.save('./code/code.png')
 
-    def spot_code(self, balances=False):
+    def spot_code(self, login=False, balances=False):
         """
         验证码识别
         balances 查询余额
@@ -131,6 +133,7 @@ class Spider:
         # 斐斐打码
         count = 1
         while True:
+            # 余额查询
             if balances:
                 balance = fateadm_api.TestFunc(balances=True)
                 if balance < 1000:
@@ -143,14 +146,21 @@ class Spider:
                     print('*' * 30)
                     sys.exit()
                 return print('打码平台余额：{}'.format(balance))
+
             print('打码平台验证码识别中...')
-            rsp = fateadm_api.TestFunc()
+            # 判断登录还是查询
+            if login:
+                rsp = fateadm_api.TestFunc(pred_type_id='304000001')
+            else:
+                rsp = fateadm_api.TestFunc()
             if count > 3:
                 print('验证码识别失败! 请联系开发者')
                 sys.exit()
             if not rsp.pred_rsp.value:
                 count += 1
                 continue
+            # 拷贝验证码图片至新目录
+            shutil.copy('./code/code.png', './codes/{}.png'.format(rsp.pred_rsp.value))
             return rsp.pred_rsp.value
 
     def get_phone(self, pre_name, pre_code, pre_type):
@@ -168,13 +178,19 @@ class Spider:
             # 验证码识别
             self.get_code_image(False)
             code = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#validCode')))
-            spot_code = self.spot_code()
+            spot_code = self.spot_code(login=True)
             print('验证码：{}'.format(spot_code))
             code.send_keys(spot_code)
-            # code.send_keys(input('输入验证码: '))
-            # enter = self.wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '.btn-primary')))[0]
             enter = self.driver.find_elements_by_css_selector('.btn-primary')[0]
             enter.click()
+
+            # 验证验证码
+            try:
+                code_text = self.driver.find_element_by_xpath('//*[@id="layui-layer6"]/div[2]//text()')
+                print('{}：重试!!!'.format(code_text))
+                continue
+            except:
+                pass
 
             # 处理弹窗
             time.sleep(0.8)
@@ -198,7 +214,6 @@ class Spider:
             while True:
                 try:
                     if pre_type == '个体工商户':
-                        # 个体户
                         JingYingZhe = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="JingYingZhe_GtBg"]/div[1]/div')))
                         JingYingZhe.click()
                         FamilyMem = self.driver.find_element_by_xpath('//*[@id="FamilyMem_Bg"]/div[1]/div')
@@ -206,12 +221,19 @@ class Spider:
                         phone = self.process_phone(pre_type=1)
                         return phone
                     elif pre_type == '有限责任公司分公司':
-                        # 分公司
                         FZRBG = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="FZRBG"]/div')))
                         FZRBG.click()
                         LSQYBG = self.driver.find_element_by_xpath('//*[@id="LSQYBG"]/div')
                         LSQYBG.click()
                         phone = self.process_phone(pre_type=2)
+                        return phone
+                    elif pre_type == '有限责任公司':
+                        Farendaibiao = self.wait.until(
+                            EC.presence_of_element_located((By.XPATH, '//*[@id="FaDingDaiBiaoRenXinXi"]/div')))
+                        Farendaibiao.click()
+                        guquanbiangeng = self.driver.find_element_by_xpath('//*[@id="GQBGHGZS"]/div')
+                        guquanbiangeng.click()
+                        phone = self.process_phone(pre_type=3)
                         return phone
                     elif pre_type == '外商投资企业分公司':
                         FuZeRen = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="FuZeRenBianGeng"]/div')))
@@ -220,9 +242,16 @@ class Spider:
                         LSQYBG.click()
                         phone = self.process_phone(pre_type=4)
                         return phone
+                    elif pre_type == '有限合伙':
+                        ZhiDingLianXiRen = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="ZhiDingLianXiRen"]/div')))
+                        ZhiDingLianXiRen.click()
+                        XuKeXinXi = self.driver.find_element_by_xpath('//*[@id="XuKeXinXi"]/div')
+                        XuKeXinXi.click()
+                        phone = self.process_phone(pre_type=5)
+                        return phone
                     else:
-                        # 公司
-                        Farendaibiao = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="FaDingDaiBiaoRenXinXi"]/div')))
+                        Farendaibiao = self.wait.until(
+                            EC.presence_of_element_located((By.XPATH, '//*[@id="FaDingDaiBiaoRenXinXi"]/div')))
                         Farendaibiao.click()
                         guquanbiangeng = self.driver.find_element_by_xpath('//*[@id="GQBGHGZS"]/div')
                         guquanbiangeng.click()
@@ -245,6 +274,8 @@ class Spider:
         pre_type: 1=个体工商户
                   2=有限责任公司分公司
                   3=有限责任公司
+                  4=外商投资企业分公司
+                  5=有限合伙
         :return:
         """
         # 当前浏览器屏幕截图
@@ -255,10 +286,13 @@ class Spider:
             im = im.crop((310, 100, 660, 130))
         elif pre_type == 2:
             im = im.crop((310, 205, 440, 235))
+        elif pre_type == 3:
+            im = im.crop((310, 160, 500, 185))
         elif pre_type == 4:
             im = im.crop((310, 185, 430, 215))
-        else:
-            im = im.crop((310, 160, 500, 185))
+        elif pre_type == 5:
+            im = im.crop((935, 270, 1060, 300))
+
         im.save('./code/phone.png')
         # print('成功获取手机号图片')
         img = Image.open('code/phone.png')

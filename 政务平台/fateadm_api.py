@@ -308,7 +308,7 @@ class FateadmApi():
         return rsp.pred_rsp.value
 
 
-def TestFunc(balances=False):
+def TestFunc(pred_type_id='304000002', balances=False):
     # pd_id = "114687"  # 用户中心页可以查询到pd信息
     # pd_key = "a/H5XsNL9dreLk2uzyNXZ1FHmc1vns/6"
     # app_id = "314687"  # 开发者分成用的账号，在开发者中心可以查询到
@@ -319,7 +319,8 @@ def TestFunc(balances=False):
     app_key = "AJtZTdmN7LYGjU+q2T1JJhQeOfYlr5mO"
     # 识别类型，
     # 具体类型可以查看官方网站的价格页选择具体的类型，不清楚类型的，可以咨询客服
-    pred_type = "30400"
+    # pred_type = "30400"
+    pred_type = str(pred_type_id)
     api = FateadmApi(app_id, app_key, pd_id, pd_key)
     # 查询余额
     if balances:
