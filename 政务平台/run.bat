@@ -1,0 +1,1 @@
+start cmd /K "D: cd D:\project\政务平台&&python run.py"
