@@ -53,8 +53,6 @@ class Spider:
         self.wait = WebDriverWait(self.driver, 10, 0.5)
         # 浏览器窗口最大化
         self.driver.maximize_window()
-        url = 'http://tyrz.gdbs.gov.cn/am/login/initAuth.do?gotoUrl=http%3A%2F%2Ftyrz.gdbs.gov.cn%2Fam%2Foauth2%2Fauthorize%3Fclient_id%3Dszjxgcxt%26service%3DinitService%26scope%3Dall%26redirect_uri%3Dhttps%253A%252F%252Famr.sz.gov.cn%252Fpsout%252Fjsp%252Fgcloud%252Fpubservice%252Fuserstsso%252Fgodeal.jsp%26response_type%3Dcode'
-        self.driver.get(url)
         # 保存数据
         self.phone = 0
         self.rsp = None
@@ -64,6 +62,8 @@ class Spider:
         count = 1
         while True:
             print('**********账号登录中**********')
+            url = 'http://tyrz.gdbs.gov.cn/am/login/initAuth.do?gotoUrl=http%3A%2F%2Ftyrz.gdbs.gov.cn%2Fam%2Foauth2%2Fauthorize%3Fclient_id%3Dszjxgcxt%26service%3DinitService%26scope%3Dall%26redirect_uri%3Dhttps%253A%252F%252Famr.sz.gov.cn%252Fpsout%252Fjsp%252Fgcloud%252Fpubservice%252Fuserstsso%252Fgodeal.jsp%26response_type%3Dcode'
+            self.driver.get(url)
             username = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#loginName')))
             username.clear()
             username.send_keys('wyn16888')
@@ -73,24 +73,26 @@ class Spider:
             self.get_code_image(True)
             code = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#tempValidateCode')))
             spot_code = self.spot_code()
-            # print('验证码：{}'.format(spot_code))
+            print('验证码：{}'.format(spot_code))
             code.clear()
             code.send_keys(spot_code)
+
             enter = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#userLoginBtn')))
             enter.click()
 
-            url = self.driver.current_url
-            print(url)
-            a = 'https://amr.sz.gov.cn/psout/jsp/gcloud/pubservice/userstsso/godeal.jsp?'
-            if a in url:
-                print('**********{}登录成功**********'.format('wyn16888'))
-                time.sleep(3)
+            time.sleep(2)
+            try:
+                self.driver.find_element_by_xpath('//*[(@id="tempValiCode_msg")]')
+                print('验证码输入错误：重试')
+                self.spot_code(just_flag=True)
+                if count > 2:
+                    print('登录失败，联系开发者！！！')
+                    exit()
+                count += 1
+                continue
+            except:
+                print('登录成功')
                 break
-
-            if count >= 3:
-                print('账号登录失败,请联系开发者!')
-            count += 1
-            continue
 
     def get_code_image(self, login):
         """
@@ -315,13 +317,13 @@ class Spider:
         # print('成功获取手机号：{}'.format(phone))
         return phone
 
-    def read_xls(self, pathname):
+    def read_xls(self, filename):
         """
         读取 XLS表格数据
         :return:
         """
         # 加载数据
-        df_read = pd.read_excel(pathname)
+        df_read = pd.read_excel(filename)
         df = pd.DataFrame(df_read)
         # 获取指定表头的列数
         phone_num = 0  # 电话列
@@ -353,14 +355,15 @@ class Spider:
             yield (pre_name, pre_code, pre_type)
             df.iloc[indexs, phone_num] = self.phone
             # 查询一条保存一条 sheet_name工作表名 index是否添加索引 header表头
-            df.to_excel(pathname, sheet_name='data', index=False, header=True)
+            df.to_excel(filename, sheet_name='data', index=False, header=True)
 
     @run_time
     def run(self):
         self.login()
         print('**********读取数据文件**********')
-        path = r'server/1.xlsx'
-        datas = self.read_xls(pathname=path)
+        # filename = r'server/0-500.xlsx'
+        filename = r'0-500.xlsx'
+        datas = self.read_xls(filename=filename)
         count = 1
         for pre_name, pre_code, pre_type in datas:
             if count >= 5:
