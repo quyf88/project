@@ -174,7 +174,7 @@ class Spider:
         """获取账号登录状态"""
         count = 1
         while True:
-            if count > 2:
+            if count > 3:
                 return '暂无数据', '暂无数据'
             # 填写请求信息
             self.driver.get('https://amr.sz.gov.cn/aicmerout/jsp/gcloud/giapout/industry/aicmer/processpage/step_one.jsp?ywType=30')
@@ -206,19 +206,26 @@ class Spider:
                     count += 1
                     continue
                 elif error_con == '草稿数校验代码异常：Bad Gateway':
-                    count += 1
-                    continue
+                    exit()
                 else:
-                    return '暂无数据', '暂无数据'
+                    return error_con, error_con
             except:
-                print('没有错误')
                 pass
 
             # 切换iframe 弹窗
-            ups_iframe = self.driver.find_element_by_css_selector('.layui-layer-content > iframe')
-            self.driver.switch_to.frame(ups_iframe)
-            confirmBtn = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#confirmBtn')))
-            confirmBtn.click()
+            co = 1
+            while True:
+                try:
+                    ups_iframe = self.driver.find_element_by_css_selector('.layui-layer-content > iframe')
+                    self.driver.switch_to.frame(ups_iframe)
+                    confirmBtn = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#confirmBtn')))
+                    confirmBtn.click()
+                    break
+                except:
+                    if co > 3:
+                        return '暂无数据', '暂无数据'
+                    co += 1
+                    continue
 
             # 提取数据
             print('数据加载中...')
@@ -264,12 +271,20 @@ class Spider:
                         XuKeXinXi.click()
                         phone, number = self.process_phone(pre_type=5)
                         return phone, number
-                    elif pre_type == '有限责任公司分公司(自然人投资或控股的法人独资)':
+                    elif pre_type == '有限责任公司分公司(自然人投资或控股的法人独资)' or pre_type == '其他有限责任公司分公司':
                         FZRBG = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="FZRBG"]/div')))
                         FZRBG.click()
                         LSQYBG = self.driver.find_element_by_xpath('//*[@id="LSQYBG"]/div')
                         LSQYBG.click()
                         phone, number = self.process_phone(pre_type=6)
+                        return phone, number
+                    elif pre_type == '个人独资企业':
+                        FaDingDaiBiaoRenXinXi = self.wait.until(
+                            EC.presence_of_element_located((By.XPATH, '//*[@id="FaDingDaiBiaoRenXinXi"]/div')))
+                        FaDingDaiBiaoRenXinXi.click()
+                        FenZhiJiGou = self.driver.find_element_by_xpath('//*[@id="FenZhiJiGou"]/div')
+                        FenZhiJiGou.click()
+                        phone, number = self.process_phone(pre_type=7)
                         return phone, number
                     else:
                         Farendaibiao = self.wait.until(
@@ -282,7 +297,7 @@ class Spider:
                 except:
                     print('获取数据失败：重试')
                     if count >= 2:
-                        return '暂无数据'
+                        return '暂无数据', '暂无数据'
                     count += 1
                     continue
 
@@ -299,6 +314,7 @@ class Spider:
                   4=外商投资企业分公司
                   5=有限合伙
                   6=有限责任公司分公司(自然人投资或控股的法人独资)
+                  7=个人独资企业
         :return:
         """
         # 当前浏览器屏幕截图
@@ -307,19 +323,28 @@ class Spider:
         im = Image.open('./code/phone_page.png')
         if pre_type == 1:
             phone_image = im.crop((310, 100, 660, 130))
+            number_image = im.crop((935, 175, 1130, 205))
         elif pre_type == 2:
             phone_image = im.crop((310, 205, 440, 235))
             number_image = im.crop((940, 125, 1120, 155))
         elif pre_type == 3:
             phone_image = im.crop((310, 160, 500, 185))
-            number_image = im.crop((310, 160, 500, 185))
+            number_image = im.crop((935, 80, 1130, 110))
         elif pre_type == 4:
             phone_image = im.crop((310, 185, 430, 215))
+            number_image = im.crop((940, 115, 1120, 145))
         elif pre_type == 5:
             phone_image = im.crop((935, 270, 1060, 300))
+            phone_image.save('./code/phone.png')
+            phone_img = Image.open('code/phone.png')
+            phone = pytesseract.image_to_string(phone_img)
+            return phone, 0
         elif pre_type == 6:
             phone_image = im.crop((310, 210, 460, 240))
             number_image = im.crop((940, 130, 1140, 160))
+        elif pre_type == 7:
+            phone_image = im.crop((310, 205, 430, 235))
+            number_image = im.crop((935, 125, 1110, 155))
 
         phone_image.save('./code/phone.png')
         number_image.save('./code/number.png')
@@ -330,6 +355,7 @@ class Spider:
         phone = pytesseract.image_to_string(phone_img)
         number = pytesseract.image_to_string(number_img)
         # print('成功获取手机号：{}'.format(phone))
+        # print('成功获取身份证号：{}'.format(number))
         return phone, number
 
     def read_xls(self, filename):
@@ -380,18 +406,18 @@ class Spider:
     def run(self):
         self.login()
         print('**********读取数据文件**********')
-        # filename = r'server/0-500.xlsx'
-        filename = r'0-500.xlsx'
+        filename = r'server1/1501-2001.xlsx'
+        # filename = r'1001-1501.xlsx'
         datas = self.read_xls(filename=filename)
         count = 1
         for pre_name, pre_code, pre_type in datas:
-            if count >= 20:
+            if count >= 100:
                 break
             print('*' * 20, '第:', count, '条数据获取中', '*' * 20)
             print(pre_name, pre_code, pre_type)
             # 获取信息提取手机号
             self.phone, self.number = self.get_phone(pre_name, pre_code, pre_type)
-            print('{} {} 数据写入成功'.format(pre_name, self.phone, self.number))
+            print('{} {} {} 数据写入成功'.format(pre_name, self.phone, self.number))
             print('*' * 60, '\n')
             count += 1
 

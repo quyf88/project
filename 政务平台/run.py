@@ -10,7 +10,7 @@ import threading
 
 
 def say_hello(num):
-    print("Hello world!")
+    print("启动第[{}]个程序!".format(num))
     os.system('python server{}/spider.py'.format(num))
 
 
