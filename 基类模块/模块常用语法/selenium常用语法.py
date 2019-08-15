@@ -59,3 +59,7 @@ time.sleep(1)
 a.click()
 time.sleep(1)
 a.send_keys('haha')
+
+"""常用方法"""
+# 打印当前所有所有句柄（窗口）
+driver.window_handles
