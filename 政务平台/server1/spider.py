@@ -3,15 +3,12 @@
 # 文件    ：spider.py
 # IED    ：PyCharm
 # 创建时间 ：2019/8/10 14:07
-import os
 import sys
 import time
 import shutil
-import requests
 import pytesseract
 import pandas as pd
 from PIL import Image
-from lxml import etree
 # from aip import AipOcr
 from datetime import datetime
 from selenium import webdriver
@@ -55,6 +52,7 @@ class Spider:
         self.driver.maximize_window()
         # 保存数据
         self.phone = 0
+        self.number = 0
         self.rsp = None
 
     def login(self):
@@ -177,7 +175,7 @@ class Spider:
         count = 1
         while True:
             if count > 2:
-                return '暂无数据'
+                return '暂无数据', '暂无数据'
             # 填写请求信息
             self.driver.get('https://amr.sz.gov.cn/aicmerout/jsp/gcloud/giapout/industry/aicmer/processpage/step_one.jsp?ywType=30')
             num = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#regno')))
@@ -189,28 +187,38 @@ class Spider:
             code = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#validCode')))
             spot_code = self.spot_code(login=True)
             print('验证码：{}'.format(spot_code))
-            if len(spot_code) != 4:
-                print('验证码识别错误：重试!!!')
-                # 退款
-                self.spot_code(just_flag=True)
             code.send_keys(spot_code)
+            # code.send_keys(input('123'))
             enter = self.driver.find_elements_by_css_selector('.btn-primary')[0]
             enter.click()
 
-            # 处理弹窗
+            # 处理弹窗 异常弹窗
             time.sleep(1)
-            # 切换iframe 弹窗
             try:
-                ups_iframe = self.driver.find_element_by_css_selector('.layui-layer-content > iframe')
-                self.driver.switch_to.frame(ups_iframe)
-                confirmBtn = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#confirmBtn')))
-                confirmBtn.click()
+                error_con = self.driver.find_element_by_xpath('//*[@class="layui-layer layui-layer-dialog  layer-anim"]/div[2]').text
+                print('错误信息：{}'.format(error_con))
+                if error_con == '验证码填写错误！':
+                    # 退款
+                    self.spot_code(just_flag=True)
+                    count += 1
+                    continue
+                elif error_con == '验证码失效！':
+                    count += 1
+                    continue
+                elif error_con == '草稿数校验代码异常：Bad Gateway':
+                    count += 1
+                    continue
+                else:
+                    return '暂无数据', '暂无数据'
             except:
-                print('验证码识别错误：重试!!!')
-                # 退款
-                self.spot_code(just_flag=True)
-                count += 1
-                continue
+                print('没有错误')
+                pass
+
+            # 切换iframe 弹窗
+            ups_iframe = self.driver.find_element_by_css_selector('.layui-layer-content > iframe')
+            self.driver.switch_to.frame(ups_iframe)
+            confirmBtn = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#confirmBtn')))
+            confirmBtn.click()
 
             # 提取数据
             print('数据加载中...')
@@ -225,52 +233,52 @@ class Spider:
                         JingYingZhe.click()
                         FamilyMem = self.driver.find_element_by_xpath('//*[@id="FamilyMem_Bg"]/div[1]/div')
                         FamilyMem.click()
-                        phone = self.process_phone(pre_type=1)
-                        return phone
+                        phone, number = self.process_phone(pre_type=1)
+                        return phone, number
                     elif pre_type == '有限责任公司分公司':
                         FZRBG = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="FZRBG"]/div')))
                         FZRBG.click()
                         LSQYBG = self.driver.find_element_by_xpath('//*[@id="LSQYBG"]/div')
                         LSQYBG.click()
-                        phone = self.process_phone(pre_type=2)
-                        return phone
+                        phone, number = self.process_phone(pre_type=2)
+                        return phone, number
                     elif pre_type == '有限责任公司':
                         Farendaibiao = self.wait.until(
                             EC.presence_of_element_located((By.XPATH, '//*[@id="FaDingDaiBiaoRenXinXi"]/div')))
                         Farendaibiao.click()
                         guquanbiangeng = self.driver.find_element_by_xpath('//*[@id="GQBGHGZS"]/div')
                         guquanbiangeng.click()
-                        phone = self.process_phone(pre_type=3)
-                        return phone
+                        phone, number = self.process_phone(pre_type=3)
+                        return phone, number
                     elif pre_type == '外商投资企业分公司':
                         FuZeRen = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="FuZeRenBianGeng"]/div')))
                         FuZeRen.click()
                         LSQYBG = self.driver.find_element_by_xpath('//*[@id="LSQYBG"]/div')
                         LSQYBG.click()
-                        phone = self.process_phone(pre_type=4)
-                        return phone
+                        phone, number = self.process_phone(pre_type=4)
+                        return phone, number
                     elif pre_type == '有限合伙':
                         ZhiDingLianXiRen = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="ZhiDingLianXiRen"]/div')))
                         ZhiDingLianXiRen.click()
                         XuKeXinXi = self.driver.find_element_by_xpath('//*[@id="XuKeXinXi"]/div')
                         XuKeXinXi.click()
-                        phone = self.process_phone(pre_type=5)
-                        return phone
+                        phone, number = self.process_phone(pre_type=5)
+                        return phone, number
                     elif pre_type == '有限责任公司分公司(自然人投资或控股的法人独资)':
                         FZRBG = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="FZRBG"]/div')))
                         FZRBG.click()
                         LSQYBG = self.driver.find_element_by_xpath('//*[@id="LSQYBG"]/div')
                         LSQYBG.click()
-                        phone = self.process_phone(pre_type=6)
-                        return phone
+                        phone, number = self.process_phone(pre_type=6)
+                        return phone, number
                     else:
                         Farendaibiao = self.wait.until(
                             EC.presence_of_element_located((By.XPATH, '//*[@id="FaDingDaiBiaoRenXinXi"]/div')))
                         Farendaibiao.click()
                         guquanbiangeng = self.driver.find_element_by_xpath('//*[@id="GQBGHGZS"]/div')
                         guquanbiangeng.click()
-                        phone = self.process_phone(pre_type=3)
-                        return phone
+                        phone, number = self.process_phone(pre_type=3)
+                        return phone, number
                 except:
                     print('获取数据失败：重试')
                     if count >= 2:
@@ -298,24 +306,31 @@ class Spider:
         # 根据坐标位置拷贝
         im = Image.open('./code/phone_page.png')
         if pre_type == 1:
-            im = im.crop((310, 100, 660, 130))
+            phone_image = im.crop((310, 100, 660, 130))
         elif pre_type == 2:
-            im = im.crop((310, 205, 440, 235))
+            phone_image = im.crop((310, 205, 440, 235))
+            number_image = im.crop((940, 125, 1120, 155))
         elif pre_type == 3:
-            im = im.crop((310, 160, 500, 185))
+            phone_image = im.crop((310, 160, 500, 185))
+            number_image = im.crop((310, 160, 500, 185))
         elif pre_type == 4:
-            im = im.crop((310, 185, 430, 215))
+            phone_image = im.crop((310, 185, 430, 215))
         elif pre_type == 5:
-            im = im.crop((935, 270, 1060, 300))
+            phone_image = im.crop((935, 270, 1060, 300))
         elif pre_type == 6:
-            im = im.crop((310, 210, 460, 240))
+            phone_image = im.crop((310, 210, 460, 240))
+            number_image = im.crop((940, 130, 1140, 160))
 
-        im.save('./code/phone.png')
+        phone_image.save('./code/phone.png')
+        number_image.save('./code/number.png')
         # print('成功获取手机号图片')
-        img = Image.open('code/phone.png')
-        phone = pytesseract.image_to_string(img)
+        phone_img = Image.open('code/phone.png')
+        number_img = Image.open('code/number.png')
+        # 识别图片
+        phone = pytesseract.image_to_string(phone_img)
+        number = pytesseract.image_to_string(number_img)
         # print('成功获取手机号：{}'.format(phone))
-        return phone
+        return phone, number
 
     def read_xls(self, filename):
         """
@@ -330,6 +345,7 @@ class Spider:
         name_num = 0  # 企业名称列
         code_num = 0  # 统一社会信用代码列
         type_num = 0  # 企业类型列
+        user_num = 0  # 身份证号码
         for i in range(len(df.keys())):
             if df.keys()[i] == '电话':
                 phone_num = i
@@ -339,6 +355,8 @@ class Spider:
                 code_num = i
             elif df.keys()[i] == '企业类型':
                 type_num = i
+            elif df.keys()[i] == '更多电话':
+                user_num = i
         # 循环每一行
         for indexs in df.index:
             #  fillna(0)将该列nan值修改为0 方便后续判断
@@ -353,7 +371,8 @@ class Spider:
             pre_code = df.ix[indexs, code_num]
             pre_type = df.ix[indexs, type_num]
             yield (pre_name, pre_code, pre_type)
-            df.iloc[indexs, phone_num] = self.phone
+            df.iloc[indexs, phone_num] = self.phone  # 电话
+            df.iloc[indexs, user_num] = self.number  # 身份证号
             # 查询一条保存一条 sheet_name工作表名 index是否添加索引 header表头
             df.to_excel(filename, sheet_name='data', index=False, header=True)
 
@@ -366,13 +385,13 @@ class Spider:
         datas = self.read_xls(filename=filename)
         count = 1
         for pre_name, pre_code, pre_type in datas:
-            if count >= 5:
+            if count >= 20:
                 break
             print('*' * 20, '第:', count, '条数据获取中', '*' * 20)
             print(pre_name, pre_code, pre_type)
             # 获取信息提取手机号
-            self.phone = self.get_phone(pre_name, pre_code, pre_type)
-            print('{} {} 数据写入成功'.format(pre_name, self.phone))
+            self.phone, self.number = self.get_phone(pre_name, pre_code, pre_type)
+            print('{} {} 数据写入成功'.format(pre_name, self.phone, self.number))
             print('*' * 60, '\n')
             count += 1
 
