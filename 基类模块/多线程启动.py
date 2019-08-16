@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2019/8/14 8:53
 # @Author  : project
-# @File    : run.py
+# @File    : 多线程启动.py
 # @Software: PyCharm
 import os
 import time
