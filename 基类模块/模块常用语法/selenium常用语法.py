@@ -63,3 +63,20 @@ a.send_keys('haha')
 """常用方法"""
 # 打印当前所有所有句柄（窗口）
 driver.window_handles
+# 获取当前页面源码
+driver.page_source
+
+"""添加cookie"""
+# 添加cookie前 需要先打开页面
+driver.get('https://www.v99two.com/')
+# 获取登录前cookies
+# for ck in self.driver.get_cookies():
+#     print(ck)
+# 登录
+# time.sleep(30)
+# 获取登录后cookies
+# for ck in self.driver.get_cookies():
+#     print(ck)
+# driver请求添加cookie参数
+cookies = {'domain': '.v99two.com', 'name': 'PHPSESSID', 'value': '6cc7af233de034dd73d6333a2db5e5d8'}
+driver.add_cookie(cookie_dict=cookies)
