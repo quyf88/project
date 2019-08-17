@@ -434,9 +434,14 @@ if __name__ == '__main__':
     for i in files:
         print(i)
         filename = i
+        count = 1
         while True:
             try:
                 spider.run(filename)
                 break
             except:
+                if count >= 20:
+                    print('程序异常退出')
+                    break
+                count += 1
                 continue
