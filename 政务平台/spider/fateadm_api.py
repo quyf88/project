@@ -337,6 +337,7 @@ def TestFunc(pred_type_id='304000002', just_flag=False, balances=False):
             # 识别的结果如果与预期不符，可以调用这个接口将预期不符的订单退款
             # 退款仅在正常识别出结果后，无法通过网站验证的情况，请勿非法或者滥用，否则可能进行封号处理
             api.Justice(just_flag.request_id)
+            return print('验证码识别失败：退款成功')
 
     # 通过文件形式识别：
     file_name = "./code/code.png"

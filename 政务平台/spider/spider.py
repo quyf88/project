@@ -151,7 +151,7 @@ class Spider:
             # 调用退款接口
             if just_flag:
                 fateadm_api.TestFunc(just_flag=self.rsp)
-                return print('验证码识别失败：退款成功')
+                return
 
             print('打码平台验证码识别中...')
             # 判断登录还是查询
@@ -430,7 +430,8 @@ if __name__ == '__main__':
     spider = Spider()
     path = os.getcwd()
     files = os.listdir(path)
-    files = [i for i in files if '.xlsx' in i]
+    files = [i for i in files if '.xlsx' in i if '备份数据' not in i]
+    print(files)
     for i in files:
         print(i)
         filename = i
