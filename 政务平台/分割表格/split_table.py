@@ -3,17 +3,22 @@
 # 文件    ：split_table.py
 # IED    ：PyCharm
 # 创建时间 ：2019/8/14 18:58
+import os
 import pandas as pd
 
 """
 根据行数拆分一个表格为多个表格
 """
-filename = '2019年8月15.xlsx'
+path = os.getcwd()
+files = os.listdir(path)
+files = [i for i in files if '.xlsx' in i]
+filename = files[0]
+print(filename)
 data = pd.read_excel(filename)
 # 获取行数 shape[1]获取列数
 rows = data.shape[0]
 
-for num in range(1, 7):
+for num in range(1, 11):
     if num == 1:
         strat = 501
         end = rows
@@ -37,7 +42,23 @@ for num in range(1, 7):
     elif num == 6:
         strat = 0
         end = 2505
-        name = '2501-'
+        name = '2501-3001'
+    elif num == 7:
+        strat = 0
+        end = 3006
+        name = '3001-3501'
+    elif num == 8:
+        strat = 0
+        end = 3507
+        name = '3501-4001'
+    elif num == 9:
+        strat = 0
+        end = 4008
+        name = '4001-4501'
+    elif num == 10:
+        strat = 0
+        end = 4509
+        name = '4501-'
     if strat > rows or end > rows:
         exit()
     # print(strat, end, num)
@@ -58,6 +79,7 @@ for num in range(1, 7):
             continue
         break
     data.to_excel("{}.xlsx".format(name), index=False, header=True)
+    print("文件：{}.xlsx 分割成功".format(name))
     data = pd.read_excel(filename)
 
 
