@@ -37,11 +37,11 @@ def run_time(func):
 
 class Spider:
     def __init__(self):
-        print('**********1程序启动中**********')
+        print('**********程序启动中**********')
         # selenium无界面模式
-        chrome_options = Options()
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--disable-gpu')
+        # chrome_options = Options()
+        # chrome_options.add_argument('--headless')
+        # chrome_options.add_argument('--disable-gpu')
         # keep_alive 设置浏览器连接活跃状态
         # self.driver = webdriver.Chrome(chrome_options=chrome_options, keep_alive=False)
         print('**********程序启动成功**********')
@@ -409,11 +409,10 @@ class Spider:
     def run(self, filename):
         self.login()
         print('**********读取数据文件**********')
+        print(filename)
         datas = self.read_xls(filename=filename)
         count = 1
         for pre_name, pre_code, pre_type in datas:
-            # if count >= 100:
-            #     break
             print('*' * 20, '第:', count, '条数据获取中', '*' * 20)
             print(pre_name, pre_code, pre_type)
             # 获取信息提取手机号
@@ -424,20 +423,21 @@ class Spider:
 
         # 查询打码平台余额
         self.spot_code(balances=True)
+        # 移动已处理完文件
+        shutil.move(filename, '已完成/')
 
 
 if __name__ == '__main__':
-    spider = Spider()
     path = os.getcwd()
     files = os.listdir(path)
     files = [i for i in files if '.xlsx' in i if '备份数据' not in i]
     print(files)
     for i in files:
-        print(i)
         filename = i
         count = 1
         while True:
             try:
+                spider = Spider()
                 spider.run(filename)
                 break
             except:

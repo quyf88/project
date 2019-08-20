@@ -1,6 +1,6 @@
 # coding=utf-8
 # 作者    ： Administrator
-# 文件    ：run.py
+# 文件    ：多线程启动.py
 # IED    ：PyCharm
 # 创建时间 ：2019/6/22 19:28
 

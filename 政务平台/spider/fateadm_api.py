@@ -313,6 +313,8 @@ def TestFunc(pred_type_id='304000002', just_flag=False, balances=False):
     # pd_key = "a/H5XsNL9dreLk2uzyNXZ1FHmc1vns/6"
     # app_id = "314687"  # 开发者分成用的账号，在开发者中心可以查询到
     # app_key = "UGqG3x9CLqN/eNfeVx77XwUFXKwGDv2F"
+    # 2563285535@qq.com
+    # jp168168
     pd_id = "115690"  # 用户中心页可以查询到pd信息
     pd_key = "+jxNgSZFLLqQ0IBwEwQqlLXO/F97nSv6"
     app_id = "315690"  # 开发者分成用的账号，在开发者中心可以查询到
