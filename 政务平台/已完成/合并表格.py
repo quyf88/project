@@ -69,6 +69,14 @@ def merge():
     filename.save(new_file_name)
     print("我已经将%d个文件合并成1个文件，并命名为%s快打开看看正确不？" % (len(files), new_file_name))
 
+    # 效验文件是否完成
+    n_bk = xlrd.open_workbook(new_file_name)
+    n_sh = n_bk.sheet_by_index(0)
+    if n_sh.nrows == count:
+        print('文件一致性效验通过')
+    else:
+        print('文件不完整')
+
 
 if __name__ == '__main__':
     merge()
