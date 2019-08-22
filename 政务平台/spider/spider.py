@@ -37,11 +37,11 @@ def run_time(func):
 
 class Spider:
     def __init__(self):
-        print('**********1程序启动中**********')
+        print('**********程序启动中**********')
         # selenium无界面模式
-        chrome_options = Options()
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--disable-gpu')
+        # chrome_options = Options()
+        # chrome_options.add_argument('--headless')
+        # chrome_options.add_argument('--disable-gpu')
         # keep_alive 设置浏览器连接活跃状态
         # self.driver = webdriver.Chrome(chrome_options=chrome_options, keep_alive=False)
         print('**********程序启动成功**********')
@@ -151,7 +151,7 @@ class Spider:
             # 调用退款接口
             if just_flag:
                 fateadm_api.TestFunc(just_flag=self.rsp)
-                return print('验证码识别失败：退款成功')
+                return
 
             print('打码平台验证码识别中...')
             # 判断登录还是查询
@@ -258,14 +258,14 @@ class Spider:
                         guquanbiangeng.click()
                         phone, number = self.process_phone(pre_type=3)
                         return phone, number
-                    elif pre_type == '外商投资企业分公司':
+                    elif pre_type == '外商投资企业分公司' or pre_type == '台、港、澳投资企业分公司':
                         FuZeRen = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="FuZeRenBianGeng"]/div')))
                         FuZeRen.click()
                         LSQYBG = self.driver.find_element_by_xpath('//*[@id="LSQYBG"]/div')
                         LSQYBG.click()
                         phone, number = self.process_phone(pre_type=4)
                         return phone, number
-                    elif pre_type == '有限合伙':
+                    elif pre_type == '有限合伙' or pre_type == '有限合伙企业':
                         ZhiDingLianXiRen = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="ZhiDingLianXiRen"]/div')))
                         ZhiDingLianXiRen.click()
                         XuKeXinXi = self.driver.find_element_by_xpath('//*[@id="XuKeXinXi"]/div')
@@ -393,11 +393,12 @@ class Spider:
             # 修改指定单元格数据df.iloc[行, 列]
             if data1:
                 continue
+            print('当前行数：{}'.format(indexs))
             # 获取企业信息 查询用
             pre_name = df.ix[indexs, name_num]
             pre_code = df.ix[indexs, code_num]
             pre_type = df.ix[indexs, type_num]
-            yield (pre_name, pre_code, pre_type)
+            yield (indexs, pre_name, pre_code, pre_type)
             df.iloc[indexs, phone_num] = self.phone  # 电话
             df.iloc[indexs, user_num] = self.number  # 身份证号
             # 查询一条保存一条 sheet_name工作表名 index是否添加索引 header表头
@@ -409,38 +410,37 @@ class Spider:
     def run(self, filename):
         self.login()
         print('**********读取数据文件**********')
+        print(filename)
         datas = self.read_xls(filename=filename)
-        count = 1
-        for pre_name, pre_code, pre_type in datas:
-            # if count >= 100:
-            #     break
-            print('*' * 20, '第:', count, '条数据获取中', '*' * 20)
-            print(pre_name, pre_code, pre_type)
+        for indexs, pre_name, pre_code, pre_type in datas:
+            print('*' * 20, '第:', indexs, '条数据获取中', '*' * 20)
+            print(indexs, pre_name, pre_code, pre_type)
             # 获取信息提取手机号
             self.phone, self.number = self.get_phone(pre_name, pre_code, pre_type)
             print('{} {} {} 数据写入成功'.format(pre_name, self.phone, self.number))
             print('*' * 60, '\n')
-            count += 1
 
         # 查询打码平台余额
         self.spot_code(balances=True)
+        # 移动已处理完文件
+        shutil.move(filename, '完成/')
 
 
 if __name__ == '__main__':
-    spider = Spider()
     path = os.getcwd()
     files = os.listdir(path)
-    files = [i for i in files if '.xlsx' in i]
+    files = [i for i in files if '.xlsx' in i if '备份数据' not in i]
+    print(files)
     for i in files:
-        print(i)
         filename = i
         count = 1
         while True:
             try:
+                spider = Spider()
                 spider.run(filename)
                 break
             except:
-                if count >= 20:
+                if count >= 50:
                     print('程序异常退出')
                     break
                 count += 1
