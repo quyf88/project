@@ -393,7 +393,7 @@ class Spider:
             # 修改指定单元格数据df.iloc[行, 列]
             if data1:
                 continue
-            print('当前行数：{}'.format(indexs))
+
             # 获取企业信息 查询用
             pre_name = df.ix[indexs, name_num]
             pre_code = df.ix[indexs, code_num]
