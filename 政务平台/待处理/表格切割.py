@@ -20,7 +20,7 @@ def separation(share):
     # 读取出当前目录下全部文档
     path = os.getcwd()
     files = os.listdir(path)
-    files = [i for i in files if '.xlsx' in i]
+    files = [i for i in files if '.xls' in i]
     print("在默认文件夹下有%d个文档" % len(files))
 
     # 将所有文件读数据到三维列表cell[][][]中（不包含表头）
@@ -83,7 +83,15 @@ def separation(share):
         filename.save(new_file_name)
         print("我已经将文件拆分成1个文件，并命名为{}快打开看看正确不？".format(new_file_name))
 
+        # 效验文件是否完成
+        n_bk = xlrd.open_workbook(new_file_name)
+        n_sh = n_bk.sheet_by_index(0)
+        if n_sh.nrows == count:
+            print('文件一致性效验通过\n')
+        else:
+            print('**********文件不完整***********\n')
+
 
 if __name__ == '__main__':
     # share 分割表格数据数量
-    separation(share=130)
+    separation(share=500)
