@@ -24,7 +24,7 @@ class WeChatSpider:
             'noReset': True  # 获取登录状态
         }
         self.driver_server = 'http://127.0.0.1:4723/wd/hub'
-        print('微信启动...')
+        print('**********程序启动中**********')
         # 启动微信
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
         # 设置等待
@@ -72,14 +72,16 @@ class WeChatSpider:
 
     def craw_friend(self):
         """获取实时朋友圈动态"""
+        print('监测账号是否登录')
+        print('账号已登录')
         while True:
-            print("-----点击发现-----")
+            # print("-----点击发现-----")
             tab = self.wait.until(EC.presence_of_element_located(
                 (By.XPATH, '//*[@resource-id="com.tencent.mm:id/bq"]/android.widget.LinearLayout/android.widget.RelativeLayout[3]')))
-            print('已经找到发现按钮')
+            # print('已经找到发现按钮')
             tab.click()
 
-            print('-----点击朋友圈-----')
+            # print('-----点击朋友圈-----')
             try:
                 friends = WebDriverWait(self.driver, 5, 1).until(EC.element_to_be_clickable(
                     (By.XPATH, '//*[@resource-id="android:id/list"]/android.widget.LinearLayout[1]')))
@@ -91,6 +93,7 @@ class WeChatSpider:
 
             break
         # 开始爬取朋友圈
+        print('开始获取朋友圈实时动态信息')
         temp = dict()
         count = 0
         self.driver.swipe(500, 1700, 500, 1050, 2000)  # 定位第一屏
@@ -99,6 +102,7 @@ class WeChatSpider:
             flag = True
             # 定位数据
             items = self.driver.find_elements_by_id('com.tencent.mm:id/ejc')
+
             for item in items:
                 try:
                     temp['content'] = item.get_attribute('text')
@@ -107,6 +111,8 @@ class WeChatSpider:
                         continue
                     else:
                         self.diction['content%s' % count] = temp['content']
+                        # 打印朋友圈信息
+                        print(temp['content'])
                         count += 1
                         temp.clear()
 
