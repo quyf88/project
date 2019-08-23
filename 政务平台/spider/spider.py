@@ -6,6 +6,7 @@
 import os
 import sys
 import time
+import psutil
 import shutil
 import pytesseract
 import pandas as pd
@@ -206,8 +207,9 @@ class Spider:
                 elif error_con == '验证码失效！':
                     count += 1
                     continue
-                elif error_con == '草稿数校验代码异常：Bad Gateway':
-                    exit()
+                elif '草稿数校验代码异常' in error_con:
+                    self.driver.close()
+                    os._exit(0)
                 else:
                     return error_con, error_con
             except:
@@ -243,7 +245,7 @@ class Spider:
                         FamilyMem.click()
                         phone, number = self.process_phone(pre_type=1)
                         return phone, number
-                    elif pre_type == '有限责任公司分公司':
+                    elif pre_type == '有限责任公司分公司' or pre_type == '有限责任公司分公司(自然人独资)':
                         FZRBG = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="FZRBG"]/div')))
                         FZRBG.click()
                         LSQYBG = self.driver.find_element_by_xpath('//*[@id="LSQYBG"]/div')
@@ -426,7 +428,55 @@ class Spider:
         shutil.move(filename, '完成/')
 
 
+class Monitor:
+    def write(self):
+        """
+        将主程序进程号写入文件
+        :return:
+        """
+        # 获取当前进程号
+        pid = os.getpid()
+        print('当前进程号：{}'.format(pid))
+        with open('pid.txt', 'w') as f:
+            f.write(str(pid))
+
+    def read(self):
+        """
+        读取进程中的数据
+        :return:
+        """
+        if os.path.exists('pid.txt'):
+            with open('pid.txt', 'r') as f:
+                pid = f.read()
+                return pid
+        else:
+            return '0'
+
+    def run(self):
+        pid = int(self.read())
+        print('读取进程号：{}'.format(pid))
+        if pid:
+            # 获取所有进程pid
+            running_pids = psutil.pids()
+            if pid in running_pids:
+                print('程序正在运行中!')
+                return True
+            else:
+                self.write()
+                print('程序没有运行，启动中!')
+                return False
+        else:
+            self.write()
+            print('程序没有运行，启动中!')
+            return False
+
+
 if __name__ == '__main__':
+    # 监测程序是否在运行中
+    monitor = Monitor()
+    if monitor.run():
+        os._exit(0)
+
     path = os.getcwd()
     files = os.listdir(path)
     files = [i for i in files if '.xlsx' in i if '备份数据' not in i]
