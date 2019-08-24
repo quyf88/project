@@ -54,9 +54,10 @@ class Spider:
         # 剔除开头和结尾处多余字符 转换为json
         content = content.replace('var listCompare$100= ', '').replace(';', '')
         content = json.loads(content)
+        print(content)
         for i in content:
-            # 品牌首字母,名称,车系列表
-            brand_l, brand_n, brand_list,  = i['L'], i['N'], i['List']
+            # 品牌ID,品牌首字母,名称,车系列表
+            che_id, brand_l, brand_n, brand_list,  = i['I'], i['L'], i['N'], i['List']
             for q in brand_list:
                 # 车系名称,车型列表
                 car_l, car_list = q['N'], q['List']
@@ -64,13 +65,13 @@ class Spider:
                     # 车型ID, 车型名称
                     model_l = t['I']
                     model_n = t['N']
-                    yield brand_l, brand_n, car_l, model_n, model_l
+                    yield che_id, brand_l, brand_n, car_l, model_n, model_l
 
     def model_csv(self):
         """保存所有车型数据"""
         data = []
         for i in self.get_model():
-            brand_l, brand_n, car_l, model_n, model_l = i
+            che_id, brand_l, brand_n, car_l, model_n, model_l = i
             data.append([brand_l, brand_n, car_l, model_n, model_l, datetime.now()])
         name = ['品牌索引', '品牌名称', '车系名称', '车型', 'ID', '时间']
         df = pd.DataFrame(columns=name, data=data)
@@ -144,7 +145,9 @@ class Spider:
         cityid_list = [i for i in cityid_li if int(i['CityLevel']) == count]
 
         for model in self.get_model():
-            brand_l, brand_n, car_l, model_n, model_l = model
+            che_id, brand_l, brand_n, car_l, model_n, model_l = model
+            print(che_id, brand_l, brand_n, car_l, model_n, model_l)
+            exit()
             for i in range(329):
                 cityid = cityid_list[cityid_num]['CityId']
                 # 根据车型ID和区域编码获取经销商信息
