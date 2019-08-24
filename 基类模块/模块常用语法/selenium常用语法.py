@@ -63,8 +63,18 @@ a.send_keys('haha')
 """常用方法"""
 # 打印当前所有所有句柄（窗口）
 driver.window_handles
+# 获取当前窗口句柄
+driver.current_window_handle
 # 获取当前页面源码
 driver.page_source
+# 滚屏
+js = "var q=document.body.scrollTop=1200"
+driver.execute_script(js)
+# iframe
+login_if = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#loginDiv > iframe')))  # 定位iframe
+self.driver.switch_to.frame(login_if)  # 切换iframe
+driver.switch_to.default_content()  # 退出当前iframe
+
 
 """添加cookie"""
 # 添加cookie前 需要先打开页面
