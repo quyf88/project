@@ -67,6 +67,12 @@ driver.window_handles
 driver.current_window_handle
 # 获取当前页面源码
 driver.page_source
+# 获取指定元素源码
+ke = driver.find_element_by_xpath('//*[@id="Form1"]/div[4]/div/div[3]/div[2]/div[3]/div[6]/div[2]')
+html = ke.get_attribute('innerHTML')
+
+
+
 # 滚屏
 js = "var q=document.body.scrollTop=1200"
 driver.execute_script(js)
