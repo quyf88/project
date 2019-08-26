@@ -43,7 +43,7 @@ class WeChatSpider:
         self.name = None
         self.content = None
         # self.day = int(input('输入获取天数：'))
-        self.day = 2
+        self.day = 1
 
     def login(self):
         """登录模块"""
@@ -119,8 +119,14 @@ class WeChatSpider:
         获取个性签名
         :return:
         """
-        # 进入更多信息页面
-        self.wait.until(EC.presence_of_all_elements_located((By.ID, 'android:id/title')))[2].click()
+        # 判断是否为好友设置标签
+        labels = self.driver.find_elements_by_id('com.tencent.mm:id/dmn')
+        if len(labels):
+            self.wait.until(EC.presence_of_all_elements_located((By.ID, 'android:id/title')))[1].click()
+        else:
+            # 进入更多信息页面
+            self.wait.until(EC.presence_of_all_elements_located((By.ID, 'android:id/title')))[2].click()
+        time.sleep(1)
         # 获取个性签名信息
         sign_1 = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/dmw')))
         if sign_1[1].text == '个性签名':
@@ -144,31 +150,46 @@ class WeChatSpider:
         print(wx_num)
         return wx_num
 
+    def judge(self):
+        """
+        各种异常判断
+        :return:
+        """
+        # 判断是否设置标签
+        labels = self.driver.find_elements_by_id('com.tencent.mm:id/dmn')
+        if len(labels):
+            self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/lk')))[2].click()
+        else:
+            # 进入朋友圈页面
+            self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/lk')))[1].click()
+
+        # 判断好友是否开放朋友圈
+        open_is = self.wait.until(EC.presence_of_all_elements_located((By.ID,'com.tencent.mm:id/egv')))
+        print('是否开放朋友圈{}'.format(len(open_is)))
+        open_is = False if len(open_is) else True
+        return open_is
+
     def get_circle_of_friends(self):
         """
         获取朋友圈信息
         :return:
         """
-        # 进入朋友圈页面
-        self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/lk')))[1].click()
         cons_list = []
         release = ''
         while True:
             flag = False
             # 朋友圈数据列表
             cons = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/lk')))
-            print(len(cons))
             for i in range(len(cons)-1):
                 # 发布时间 date 日期 time 月份
                 try:
-                    date = WebDriverWait(self.driver, 1, 1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[1]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(i+2))))
+                    date = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[1]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(i+2))))
                     if len(date) > 1:
                         release = date[1].text + date[0].text
                     else:
                         release = date[0].text
                 except Exception as e:
-                    print('cuowu', e)
-                print(release)
+                    pass
 
                 # 获取不到月份 默认当前月份 这种情况只会在今天 昨天 数据量多时出现
                 if release == '今天':
@@ -186,8 +207,23 @@ class WeChatSpider:
                     break
 
                 # 内容
-                con = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/nm')))[i]
-                content = con.text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
+                try:
+                    con = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[2]/android.widget.TextView'.format(i+2))))
+                    print(len(con))
+                    content = con[0].text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
+                    t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    data = [self.name, self.content, release, content, '无图片', t]
+                    self.data_save([data])
+                    print('文字信息无图片')
+                    continue
+                except:
+                    # 获取信息内容和图片数量
+                    con = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH,
+                            '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[2]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(
+                                i + 2))))
+                    print(len(con))
+                    content = con[0].text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
+
                 if content in cons_list:
                     print('已处理跳过')
                     continue
@@ -196,13 +232,10 @@ class WeChatSpider:
 
                 # 图片保存
                 # 获取图片数量
-                try:
-                    image_num = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/eh9')))[i].text
-                    image_num = re.findall(r'\d', image_num)
-                except:
-                    image_num = 0
+                image_num = [1] if len(con) < 2 else re.findall(r'\d', con[1].text)
+                print('图片数量：{}'.format(image_num))
                 if image_num:
-                    con.click()
+                    con[0].click()
                     image_path = []
                     for n in range(int(image_num[0])):
                         # 保存图片
@@ -251,8 +284,12 @@ class WeChatSpider:
             self.get_friend_num()
             # 获取个性签名
             self.get_signature()
-            # 获取朋友圈信息
-            self.get_circle_of_friends()
+            # 异常判断
+            if self.judge():
+                # 获取朋友圈信息
+                self.get_circle_of_friends()
+            self.driver.keyevent(4)
+            time.sleep(0.5)
 
     def data_save(self, data):
         with open("demo.csv", "a+", encoding='utf-8', newline="") as f:
