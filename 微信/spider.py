@@ -102,12 +102,12 @@ class WeChatSpider:
                 self.name = username.text
                 print('*'*50)
                 print('好友：[{}] 信息获取中'.format(self.name))
+                if username.text == 'A林山精品二手车二姐夫17526928272' or username.text == 'Angle～香香 预售翠香猕猴桃🥝':
+                    continue
                 if username.text in self.listion:
                     # print('{}已处理跳过')
                     continue
                 self.listion.append(self.name)
-                # 返回用户对象
-                # 进入用户详情
                 username.click()
                 yield
 
@@ -126,7 +126,7 @@ class WeChatSpider:
         else:
             # 进入更多信息页面
             self.wait.until(EC.presence_of_all_elements_located((By.ID, 'android:id/title')))[2].click()
-        time.sleep(1)
+        # time.sleep(1)
         # 获取个性签名信息
         sign_1 = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/dmw')))
         if sign_1[1].text == '个性签名':
@@ -162,12 +162,15 @@ class WeChatSpider:
         else:
             # 进入朋友圈页面
             self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/lk')))[1].click()
+        # TODO 判断是否有朋友圈
 
         # 判断好友是否开放朋友圈
-        open_is = self.wait.until(EC.presence_of_all_elements_located((By.ID,'com.tencent.mm:id/egv')))
-        print('是否开放朋友圈{}'.format(len(open_is)))
-        open_is = False if len(open_is) else True
-        return open_is
+        try:
+            WebDriverWait(self.driver, 3, 1, AttributeError).until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/egv')))
+            print('朋友圈没有开放')
+            return False
+        except:
+            return True
 
     def get_circle_of_friends(self):
         """
@@ -273,7 +276,7 @@ class WeChatSpider:
             self.driver.swipe(self.x/4, self.y*3/4, self.x/4, self.y/4, 1000)
         # 向上滑动一屏
         self.driver.keyevent(4)
-        time.sleep(0.5)
+        time.sleep(0.8)
         self.driver.keyevent(4)
         time.sleep(0.5)
 
@@ -288,8 +291,11 @@ class WeChatSpider:
             if self.judge():
                 # 获取朋友圈信息
                 self.get_circle_of_friends()
-            self.driver.keyevent(4)
-            time.sleep(0.5)
+            else:
+                self.driver.keyevent(4)
+                time.sleep(0.5)
+                self.driver.keyevent(4)
+                time.sleep(0.5)
 
     def data_save(self, data):
         with open("demo.csv", "a+", encoding='utf-8', newline="") as f:
