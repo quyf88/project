@@ -38,12 +38,10 @@ chrome_options.add_argument('--disable-gpu')
 # 设置代理
 chrome_options.add_argument("--proxy-server=https://183.129.207.92:18625")
 # 一定要注意，=两边不能有空格，不能是这样--proxy-server = http://202.20.16.82:10152
-
-
-# 查看本机ip，查看代理是否起作用
-browser.get("http://httpbin.org/ip")
-print(browser.page_source)
 driver = webdriver.Chrome(chrome_options=chrome_options, keep_alive=False)
+# 查看本机ip，查看代理是否起作用
+driver.get("http://httpbin.org/ip")
+print(driver.page_source)
 wait = WebDriverWait(driver, 8, 0.5)  # 设置隐式等待时间
 driver.maximize_window()  # 窗口最大化
 
