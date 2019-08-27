@@ -1,6 +1,7 @@
 import re
 import os
 import csv
+import shutil
 import datetime
 import requests
 from PIL import Image
@@ -26,6 +27,8 @@ class Spider:
         self.wait = WebDriverWait(self.driver, 10, 0.5)
         # 浏览器窗口最大化
         self.driver.maximize_window()
+        # 文件名
+        self.file_name = None
 
     def get_code(self):
         """
@@ -34,14 +37,14 @@ class Spider:
         """
         url = 'https://www.landchina.com/default.aspx?tabid=263&ComName=default&tdsourcetag=s_pcqq_aiomsg'
         self.driver.get(url)
-        input('筛选数据：')
+        name = input('筛选数据：')
         # 获取页数
         page_num = self.driver.find_element_by_css_selector('.pager .pager:nth-child(1)')
         print(page_num.text)
         page_num = re.findall(r'共(.*?)页', page_num.text)[0]
         page_num = 200 if int(page_num) > 200 else page_num
         print(page_num)
-        for num in range(2, int(page_num)+1):
+        for num in range(2, int(page_num)+2):
             # print('第：{}页数据获取中'.format(num-1))
             # 定位到数据标签
             res = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="TAB_contentTable"]')))
@@ -52,7 +55,7 @@ class Spider:
             urls = re.findall(r'href="(.*?)"', html, re.S | re.M)
             urls = [i.replace('amp;', '') for i in urls]
             # yield urls
-            with open('url.txt', 'a+', encoding='utf-8') as f:
+            with open(name+'.txt', 'a+', encoding='utf-8') as f:
                 for i in urls:
                     url = 'https://www.landchina.com/' + i
                     f.write(url)
@@ -65,14 +68,18 @@ class Spider:
             enter = self.driver.find_elements_by_xpath('//input[contains(@value,"go")]')
             enter[1].click()
 
+        self.driver.close()
+
     def get_html(self, file_name):
+        count = 1
         with open(file_name, 'r') as f:
             for url in f.readlines():
                 self.driver.get(url)
                 r = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="p1"]'))).text
                 r = r.replace('\n', '').replace(' ', '')
                 # 行政区域
-                regions = re.findall(r'行政区:(.*?)电子监管号', r)[0]
+                regions = re.findall(
+                    '行政区:(.*?)电子监管号', r)[0]
                 # 项目名称
                 name = re.findall(r'项目名称:(.*?)项目位置', r)[0]
                 # 项目位置
@@ -97,18 +104,20 @@ class Spider:
                 t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 url = url.replace('\n', '')
                 data = [[regions, name, position, use, sort, area, mode, term, price, agreement, contract_date, url, t]]
-                self.sav_data(data, file_name)
+                self.sav_data(data)
+                print('第：[{}] 条数据保存成功'.format(count))
+                count += 1
+                # 备份
+                shutil.copy(self.file_name, '备份数据.xlsx')
 
-    def sav_data(self, data, file_name):
+    def sav_data(self, data):
         """
         保存数据
         :return:
         """
-        (filename, extension) = os.path.splitext(file_name)
-        file_name = filename + '.csv'
-        with open(file_name, "a+", encoding='utf-8', newline="") as f:
+        with open(self.file_name, "a+", encoding='utf-8', newline="") as f:
             k = csv.writer(f, delimiter=',')
-            with open(file_name, "r", encoding='utf-8', newline="") as f1:
+            with open(self.file_name, "r", encoding='utf-8', newline="") as f1:
                 reader = csv.reader(f1)
                 if not [row for row in reader]:
                     k.writerow(['行政区域', '项目名称', '项目位置', '土地用途', '行业分类', '面积(公顷)', '供地方式', '土地使用年限', '成交价(万元)', '约定容积率', '合同签订日期', '数据来源', '数据写入日期'])
@@ -121,9 +130,15 @@ class Spider:
         files = os.listdir(path)
         files = [i for i in files if '.txt' in i if '备份数据' not in i]
         print(files)
-        for file in files:
-            print(file)
-            self.get_html(file)
+        for file_name in files:
+            print(file_name)
+            (filename, extension) = os.path.splitext(file_name)
+            self.file_name = filename + '.csv'
+            print('新文件名：{}'.format(self.file_name))
+            self.get_html(file_name)
+            # 移动已处理完文件
+            shutil.move(self.file_name, '完成/')
+            print('文件：{} 保存成功!'.format(self.file_name))
 
 # def get_html():
 #     """
