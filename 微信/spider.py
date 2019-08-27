@@ -102,7 +102,8 @@ class WeChatSpider:
                 self.name = username.text
                 print('*'*50)
                 print('好友：[{}] 信息获取中'.format(self.name))
-                if username.text == 'A林山精品二手车二姐夫17526928272' or username.text == 'Angle～香香 预售翠香猕猴桃🥝':
+                jumps = ['微信团队', '微信支付小管家', '文件传输助手']
+                if username.text in jumps:
                     continue
                 if username.text in self.listion:
                     # print('{}已处理跳过')
@@ -129,13 +130,15 @@ class WeChatSpider:
         # time.sleep(1)
         # 获取个性签名信息
         sign_1 = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/dmw')))
-        if sign_1[1].text == '个性签名':
-            content = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/dmx')))[1].text
-            self.content = content.replace('\n', '').replace('\r', '')
-            print('个性签名：{}'.format(self.content))
-        else:
-            self.content = '无个性签名'
-            print('无个性签名')
+        for i in range(len(sign_1)):
+            q = i if sign_1[i].text == '个性签名' else False
+            if q:
+                content = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/dmx')))[1].text
+                self.content = content.replace('\n', '').replace('\r', '')
+                print('个性签名：{}'.format(self.content))
+            else:
+                self.content = '无个性签名'
+                print('无个性签名')
 
         self.driver.keyevent(4)
         time.sleep(1)
@@ -157,17 +160,25 @@ class WeChatSpider:
         """
         # 判断是否设置标签
         labels = self.driver.find_elements_by_id('com.tencent.mm:id/dmn')
-        if len(labels):
-            self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/lk')))[2].click()
+        # 页面标签列表
+        b_list = self.driver.find_elements_by_id('com.tencent.mm:id/d7w')
+        print(b_list)
+        if len(b_list):
+            b_list[0].click()
         else:
-            # 进入朋友圈页面
-            self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/lk')))[1].click()
-        # TODO 判断是否有朋友圈
+            print('好友没有开通朋友圈')
+            self.driver.keyevent(4)
+            time.sleep(0.5)
+            return False
 
-        # 判断好友是否开放朋友圈
+        # 判断好友是否设置隐私
         try:
             WebDriverWait(self.driver, 3, 1, AttributeError).until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/egv')))
             print('朋友圈没有开放')
+            self.driver.keyevent(4)
+            time.sleep(1)
+            self.driver.keyevent(4)
+            time.sleep(0.5)
             return False
         except:
             return True
@@ -181,6 +192,14 @@ class WeChatSpider:
         release = ''
         while True:
             flag = False
+            # 判断有没有数据
+            bottoms = self.driver.find_elements_by_id('com.tencent.mm:id/ahy')
+            if len(bottoms):
+                self.driver.keyevent(4)
+                time.sleep(0.5)
+                self.driver.keyevent(4)
+                time.sleep(0.5)
+                return
             # 朋友圈数据列表
             cons = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/lk')))
             for i in range(len(cons)-1):
@@ -211,21 +230,34 @@ class WeChatSpider:
 
                 # 内容
                 try:
-                    con = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[2]/android.widget.TextView'.format(i+2))))
-                    print(len(con))
-                    content = con[0].text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
-                    t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    data = [self.name, self.content, release, content, '无图片', t]
-                    self.data_save([data])
-                    print('文字信息无图片')
-                    continue
-                except:
                     # 获取信息内容和图片数量
                     con = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH,
                             '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[2]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(
                                 i + 2))))
                     print(len(con))
                     content = con[0].text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
+                except:
+                    try:
+                        WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((
+                                                                                                                     By.XPATH,
+                                                                                                                     '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[2]/android.widget.TextView'.format(
+                                                                                                                         i + 2))))
+                        print('文字信息跳过')
+                        continue
+                    except:
+                        WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((
+                                                                                                                     By.XPATH,
+                                                                                                                     '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[2]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(
+                                                                                                                         i + 2))))
+                        print('链接信息跳过')
+                        continue
+                # 获取图片数量
+                image_num = [1] if len(con) < 2 else re.findall(r'\d', con[1].text)
+                image_num = image_num[0] if len(image_num) else 1
+                print('图片数量：{}'.format(image_num))
+                # 没有图片跳过
+                if int(image_num) <= 1:
+                    continue
 
                 if content in cons_list:
                     print('已处理跳过')
@@ -234,9 +266,6 @@ class WeChatSpider:
                 print(release, content)
 
                 # 图片保存
-                # 获取图片数量
-                image_num = [1] if len(con) < 2 else re.findall(r'\d', con[1].text)
-                print('图片数量：{}'.format(image_num))
                 if image_num:
                     con[0].click()
                     image_path = []
@@ -276,7 +305,7 @@ class WeChatSpider:
             self.driver.swipe(self.x/4, self.y*3/4, self.x/4, self.y/4, 1000)
         # 向上滑动一屏
         self.driver.keyevent(4)
-        time.sleep(0.8)
+        time.sleep(1)
         self.driver.keyevent(4)
         time.sleep(0.5)
 
@@ -291,11 +320,8 @@ class WeChatSpider:
             if self.judge():
                 # 获取朋友圈信息
                 self.get_circle_of_friends()
-            else:
-                self.driver.keyevent(4)
-                time.sleep(0.5)
-                self.driver.keyevent(4)
-                time.sleep(0.5)
+
+
 
     def data_save(self, data):
         with open("demo.csv", "a+", encoding='utf-8', newline="") as f:
