@@ -1,5 +1,7 @@
 import re
-import time
+import os
+import csv
+import datetime
 import requests
 from PIL import Image
 from selenium import webdriver
@@ -27,43 +29,124 @@ class Spider:
 
     def get_code(self):
         """
-        指定元素 截屏
-        selenium 截屏方法
-        get_screenshot_as_file() 获取当前window的截图
-        save_screenshot() 获取屏幕截图
+        筛选所在地区数据获取url
         :return:
         """
         url = 'https://www.landchina.com/default.aspx?tabid=263&ComName=default&tdsourcetag=s_pcqq_aiomsg'
         self.driver.get(url)
-        time.sleep(3)
-
-        res = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="TAB_contentTable"]')))
-        # print(res.text)
-        resp = res.get_attribute('innerHTML')
-        print(resp)
+        input('筛选数据：')
         # 获取页数
         page_num = self.driver.find_element_by_css_selector('.pager .pager:nth-child(1)')
         print(page_num.text)
         page_num = re.findall(r'共(.*?)页', page_num.text)[0]
+        page_num = 200 if int(page_num) > 200 else page_num
         print(page_num)
+        for num in range(2, int(page_num)+1):
+            # print('第：{}页数据获取中'.format(num-1))
+            # 定位到数据标签
+            res = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="TAB_contentTable"]')))
+            # 提取出数据标签
+            html = res.get_attribute('innerHTML')
 
-        # 页面跳转
-        inpu = self.driver.find_element_by_css_selector('a+ input')
-        inpu.clear()
-        inpu.send_keys(2)
-        enter = self.driver.find_elements_by_xpath('//input[contains(@value,"go")]')
-        enter[1].click()
+            # 获取详情url
+            urls = re.findall(r'href="(.*?)"', html, re.S | re.M)
+            urls = [i.replace('amp;', '') for i in urls]
+            # yield urls
+            with open('url.txt', 'a+', encoding='utf-8') as f:
+                for i in urls:
+                    url = 'https://www.landchina.com/' + i
+                    f.write(url)
+                    f.write('\n')
+                print('第：{}页url保存成功'.format(num - 1))
+            # 页面跳转
+            inpu = self.driver.find_element_by_css_selector('a+ input')
+            inpu.clear()
+            inpu.send_keys(num)
+            enter = self.driver.find_elements_by_xpath('//input[contains(@value,"go")]')
+            enter[1].click()
 
-        # ur = 'https://www.landchina.com/default.aspx?tabid=386&comname=default&wmguid=75c72564-ffd9-426a-954b-8ac2df0903b7&recorderguid=9084DAD1502E61D7E055000000000001'
-        # self.driver.get(ur)
-        # time.sleep(1)
-        # r = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="p1"]'))).text
-        # print(r)
-        # # with open('content.html', 'w', encoding='gbk') as f:
-        # #     f.write(resp)
-        # #     print('数据查询成功，读取中...')
+    def get_html(self, file_name):
+        with open(file_name, 'r') as f:
+            for url in f.readlines():
+                self.driver.get(url)
+                r = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="p1"]'))).text
+                r = r.replace('\n', '').replace(' ', '')
+                # 行政区域
+                regions = re.findall(r'行政区:(.*?)电子监管号', r)[0]
+                # 项目名称
+                name = re.findall(r'项目名称:(.*?)项目位置', r)[0]
+                # 项目位置
+                position = re.findall(r'项目位置:(.*?)面积', r)[0]
+                # 土地用途
+                use = re.findall(r'土地用途:(.*?)供地方式', r)[0]
+                # 行业分类
+                sort = re.findall(r'行业分类:(.*?)土地级别', r)[0]
+                # 面积(公顷)
+                area = re.findall(r'面积(.*?)土地来源', r)[0].replace('(公顷):', '')
+                # 供地方式
+                mode = re.findall(r'供地方式:(.*?)土地使用年限', r)[0]
+                # 土地使用年限
+                term = re.findall(r'土地使用年限:(.*?)行业分类', r)[0]
+                # 成交价(万元)
+                price = re.findall(r'成交价格(.*?)分期支付约定', r)[0].replace('(万元):', '')
+                # 约定容积率
+                agreement = re.findall(r'约定容积率:(.*?)约定交地时间', r)[0]
+                # 合同签订日期
+                contract_date = re.findall(r'合同签订日期:(.*?)$', r)[0]
+                # 数据获取时间
+                t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                url = url.replace('\n', '')
+                data = [[regions, name, position, use, sort, area, mode, term, price, agreement, contract_date, url, t]]
+                self.sav_data(data, file_name)
 
+    def sav_data(self, data, file_name):
+        """
+        保存数据
+        :return:
+        """
+        (filename, extension) = os.path.splitext(file_name)
+        file_name = filename + '.csv'
+        with open(file_name, "a+", encoding='utf-8', newline="") as f:
+            k = csv.writer(f, delimiter=',')
+            with open(file_name, "r", encoding='utf-8', newline="") as f1:
+                reader = csv.reader(f1)
+                if not [row for row in reader]:
+                    k.writerow(['行政区域', '项目名称', '项目位置', '土地用途', '行业分类', '面积(公顷)', '供地方式', '土地使用年限', '成交价(万元)', '约定容积率', '合同签订日期', '数据来源', '数据写入日期'])
+                    k.writerows(data)
+                else:
+                    k.writerows(data)
 
+    def run(self):
+        path = os.getcwd()
+        files = os.listdir(path)
+        files = [i for i in files if '.txt' in i if '备份数据' not in i]
+        print(files)
+        for file in files:
+            print(file)
+            self.get_html(file)
+
+# def get_html():
+#     """
+#     获取详情页数据
+#     :return:
+#     """
+#     headers = {'User-Agent': str(UserAgent().random),
+#                'Connection': 'keep-alive',
+#                'Host': 'www.landchina.com',
+#                'Cookie': 'security_session_verify=635b63ed9e3ccba75b7d623780ad89ad; security_session_mid_verify=8963be16d687a59e3e05151b02af48a6; ASP.NET_SessionId=oytra2mgxsgxpc0x3tdieiy5; Hm_lvt_83853859c7247c5b03b527894622d3fa=1566871818; Hm_lpvt_83853859c7247c5b03b527894622d3fa=1566876411'
+#                }
+#     with open('上海url.txt', 'r') as f:
+#         for url in f.readlines():
+#             print(url)
+#             response = requests.get(url, headers=headers)
+#             print(response.status_code)
+#             result = re.findall(r'供地结果信息', response.text)
+#             if len(result):
+#                 print(response.text)
+#                 exit()
+#             else:
+#                 print(1)
+#                 continue
 
 
 if __name__ == '__main__':
