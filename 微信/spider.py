@@ -3,22 +3,21 @@
 # 文件    ：spider.py
 # IED    ：PyCharm
 # 创建时间 ：2019/8/23 19:30
-
-"""
-获取好友基本信息和朋友圈动态
-"""
 import os
 import re
 import csv
 import time
 import random
 import datetime
-from lxml import etree
 from appium import webdriver
-from appium.webdriver.common.touch_action import TouchAction
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from appium.webdriver.common.touch_action import TouchAction
 from selenium.webdriver.support import expected_conditions as EC
+
+"""
+获取好友基本信息和朋友圈动态
+"""
 
 
 class WeChatSpider:
