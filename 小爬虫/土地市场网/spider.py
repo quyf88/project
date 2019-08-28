@@ -21,14 +21,14 @@ class Spider:
         # keep_alive 设置浏览器连接活跃状态
         desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
         desired_capabilities["pageLoadStrategy"] = "none"  # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
-        prefs = {"profile.managed_default_content_settings.images": 1}  # 1 加载图片 2不加载图片,加快访问速度
+        prefs = {"profile.managed_default_content_settings.images": 2}  # 1 加载图片 2不加载图片,加快访问速度
         chrome_options.add_experimental_option("prefs", prefs)
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
         chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
         # 有界面模式
         self.driver = webdriver.Chrome(chrome_options=chrome_options, keep_alive=False)
         # 隐形等待时间
-        self.wait = WebDriverWait(self.driver, 10, 0.5)
+        self.wait = WebDriverWait(self.driver, 10000000, 0.5)
         # 浏览器窗口最大化
         self.driver.maximize_window()
         # 文件名
