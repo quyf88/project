@@ -1,51 +1,81 @@
-from selenium import webdriver
-import requests
+# from PIL import Image
+# import os
+# # 读取图片
+# file_names = os.listdir('image/')
+#
+# for i in range(len(file_names)):
+#     img = Image.open('image/' + file_names[i])
+#     # 获取图片尺寸
+#     (width, height) = img.size
+#     print(width, height)
+#     # 剪裁图片
+#     phone_image = img.crop((0, 50, width, int(height)-160))
+#     # 保存
+#     phone_image.save('1/{}'.format(file_names[i]))
+
+"""author:youngkun;date:20180608;function:裁剪照片的黑边"""
+
+import cv2
+import os
+import datetime
 
 
-class Proxy(object):
-    def __init__(self):
-        proxies = requests.get('http://www.uu-ip.com/ProxyiPAPI.aspx?action=GetIPAPI&qty=1&ordernumber=56b059a66c25a48db7a3e4426ff6573c').text
-        self.proxy_ip = 'http://{}'.format(proxies)
-        print(self.proxy_ip)
-        self.browser = self.getbrowser()
-        self.getpage(self.browser)
+def change_size(read_file):
+    image = cv2.imread(read_file, 1)  # 读取图片 image_name应该是变量
+    img = cv2.medianBlur(image, 5)  # 中值滤波，去除黑色边际中可能含有的噪声干扰
+    b = cv2.threshold(img, 15, 255, cv2.THRESH_BINARY)  # 调整裁剪效果
+    binary_image = b[1]  # 二值图--具有三通道
+    binary_image = cv2.cvtColor(binary_image, cv2.COLOR_BGR2GRAY)
+    print(binary_image.shape)  # 改为单通道
 
-    def getbrowser(self):
-        options = webdriver.ChromeOptions()
-        # 设置代理
-        desired_capabilities = webdriver.DesiredCapabilities.INTERNETEXPLORER.copy()
-        desired_capabilities['proxy'] = {
-            "httpProxy": self.proxy_ip,
-            "proxyType": "MANUAL",  # 此项不可注释
-            # "ftpProxy": self.proxy_ip,  # 代理ip是否支持这个协议
-            # "sslProxy": self.proxy_ip,  # 代理ip是否支持这个协议
-            # "noProxy": None,
-            # "class": "org.openqa.selenium.Proxy",
-            # "autodetect": False
-        }
-        # 使用无头模式
-        options.add_argument('headless')
-        browser = webdriver.Chrome(chrome_options=options,
-                                   desired_capabilities=desired_capabilities)
-        return browser
+    x = binary_image.shape[0]
+    print("高度x=", x)
+    y = binary_image.shape[1]
+    print("宽度y=", y)
+    edges_x = []
+    edges_y = []
+    for i in range(x):
+        for j in range(y):
+            if binary_image[i][j] == 255:
+                edges_x.append(i)
+                edges_y.append(j)
 
-    def getpage(self, browser):
-        # 打开目标网站
-        browser.get("https://www.baidu.com")
-        # 对整个页面进行截图
-        browser.save_screenshot('百度.png')
-        # 打印网站的title信息
-        print(browser.title)
+    left = min(edges_x)  # 左边界
+    right = max(edges_x)  # 右边界
+    width = right - left  # 宽度
+    bottom = min(edges_y)  # 底部
+    top = max(edges_y)  # 顶部
+    height = top - bottom  # 高度
 
-        # 检测代理ip是否生效
-        browser.get("http://httpbin.org/ip")
-        # 获取当前所有窗口集合(list类型) --- 因为打开多个窗口
-        handles = browser.window_handles
-        # 切换到最新的窗口
-        browser.switch_to_window(handles[-1])
-        # 打印新窗口网页的内容
-        print(browser.page_source)
+    pre1_picture = image[left:left + width, bottom:bottom + height]  # 图片截取
+    return pre1_picture  # 返回图片数据
 
 
-if __name__ == '__main__':
-    Proxy()
+source_path = "1/"  # 图片来源路径
+save_path = "./"  # 图片修改后的保存路径
+
+if not os.path.exists(save_path):
+    os.mkdir(save_path)
+
+file_names = os.listdir(source_path)
+
+starttime = datetime.datetime.now()
+for i in range(len(file_names)):
+    x = change_size(source_path + file_names[i])  # 得到文件名
+    cv2.imwrite(save_path + file_names[i], x)
+    print("裁剪：", file_names[i])
+    print("裁剪数量:", i)
+    while (i == 2600):
+        break
+print("裁剪完毕")
+endtime = datetime.datetime.now()  # 记录结束时间
+endtime = (endtime - starttime).seconds
+print("裁剪总用时", endtime)
+
+
+
+
+
+
+
+
