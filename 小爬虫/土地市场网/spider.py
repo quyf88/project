@@ -12,15 +12,19 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
 class Spider:
     def __init__(self):
-        # selenium无界面模式
         chrome_options = Options()
-        # chrome_options.add_argument('--headless')
-        # chrome_options.add_argument('--disable-gpu')
         # keep_alive 设置浏览器连接活跃状态
+        desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
+        desired_capabilities["pageLoadStrategy"] = "none"  # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
+        prefs = {"profile.managed_default_content_settings.images": 1}  # 1 加载图片 2不加载图片,加快访问速度
+        chrome_options.add_experimental_option("prefs", prefs)
+        # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
+        chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
         # 有界面模式
         self.driver = webdriver.Chrome(chrome_options=chrome_options, keep_alive=False)
         # 隐形等待时间
@@ -66,17 +70,26 @@ class Spider:
             inpu.clear()
             inpu.send_keys(num)
             enter = self.driver.find_elements_by_xpath('//input[contains(@value,"go")]')
-            enter[1].click()
+            enter[0].click()
 
-        self.driver.close()
+        self.driver.quit()
 
     def get_html(self, file_name):
         count = 1
+        try_count = 1
         with open(file_name, 'r') as f:
             for url in f.readlines():
-                self.driver.get(url)
-                r = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="p1"]'))).text
-                r = r.replace('\n', '').replace(' ', '')
+                try:
+                    self.driver.get(url)
+                    r = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="p1"]'))).text
+                    r = r.replace('\n', '').replace(' ', '')
+                except:
+                    if try_count > 5:
+                        self.driver.quit()
+                        os._exit(0)
+                    print('出错')
+                    try_count += 1
+                    continue
                 # 行政区域
                 regions = re.findall(
                     '行政区:(.*?)电子监管号', r)[0]
@@ -128,7 +141,7 @@ class Spider:
     def run(self):
         path = os.getcwd()
         files = os.listdir(path)
-        files = [i for i in files if '.txt' in i if '备份数据' not in i]
+        files = [i for i in files if 'txt' in i if '备份数据' not in i]
         print(files)
         for file_name in files:
             print(file_name)
@@ -138,6 +151,7 @@ class Spider:
             self.get_html(file_name)
             # 移动已处理完文件
             shutil.move(self.file_name, '完成/')
+            os.remove(file_name)
             print('文件：{} 保存成功!'.format(self.file_name))
 
 # def get_html():
@@ -166,5 +180,5 @@ class Spider:
 
 if __name__ == '__main__':
     spider = Spider()
-    spider.get_code()
-
+    spider.run()
+    # spider.get_code()
