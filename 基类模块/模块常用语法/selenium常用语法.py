@@ -77,8 +77,8 @@ html = ke.get_attribute('innerHTML')
 js = "var q=document.body.scrollTop=1200"
 driver.execute_script(js)
 # iframe
-login_if = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#loginDiv > iframe')))  # 定位iframe
-self.driver.switch_to.frame(login_if)  # 切换iframe
+login_if = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#loginDiv > iframe')))  # 定位iframe
+driver.switch_to.frame(login_if)  # 切换iframe
 driver.switch_to.default_content()  # 退出当前iframe
 
 
