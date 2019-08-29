@@ -103,8 +103,8 @@ class WeChatSpider:
                 print('*'*50)
                 print('好友：[{}] 信息获取中'.format(self.name))
                 jumps = ['微信团队', '微信支付小管家', '文件传输助手']
-                if username.text != 'A0东北云南呼伦贝尔桂林章天宇13833285615':
-                    continue
+                # if username.text != 'A0东北云南呼伦贝尔桂林章天宇13833285615':
+                #     continue
                 if username.text in jumps:
                     continue
                 if username.text in self.listion:
