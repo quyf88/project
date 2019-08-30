@@ -111,13 +111,13 @@ class Spider:
                     SpecName, OriginalPrice, Price = u
                     year = re.findall(r'(.*?)款', SpecName)[0]
                     specname = re.findall(r'款(.*?)$', SpecName)[0]
-                    # data.append([brand_l, brand_n, car_l, model_n, SpecName, OriginalPrice, Price, dealerName,
-                    #              countyName, companySimple, dealerAdd, orderRange, phone, showPhone, datetime.now()])
-                    data.append([che_id, brand_n, model_l, model_n, con['dealerId'], year, specname])
+                    data.append([brand_l, brand_n, car_l, model_n, SpecName, OriginalPrice, Price, dealerName,
+                                 countyName, companySimple, dealerAdd, orderRange, phone, showPhone, datetime.now()])
+                    # data.append([che_id, brand_n, model_l, model_n, con['dealerId'], year, specname])
                     # print('[{} {}]'.format(model_n, SpecName))
                     print(data)
-                # self.scv_data(data)
-                self.a_b(data)
+                self.scv_data(data)
+                # self.a_b(data)
 
     def get_price(self, dealerId, seriesId):
         """获取价格"""
@@ -140,27 +140,38 @@ class Spider:
             Price = con['Price']
             yield SpecName, OriginalPrice, Price
 
-    # def scv_data(self, data):
-    #     """保存为csv"""
-    #     self.count += 1
-    #     with open("demo.csv", "a+", encoding='utf-8', newline="") as f:
-    #         k = csv.writer(f, delimiter=',')
-    #         with open("demo.csv", "r", encoding='utf-8', newline="") as f1:
-    #             reader = csv.reader(f1)
-    #             if not [row for row in reader]:
-    #                 k.writerow(['品牌索引', '品牌名称', '车系名称', '车型', '汽车型号', '指导价', '参考价', '经销商名称',
-    #                             '地区', '简称', '地址', '销售区域', '电话1', '电话2', '时间'])
-    #                 k.writerows(data)
-    #                 print('第[{}]条数据插入成功'.format(self.count))
-    #             else:
-    #                 k.writerows(data)
-    #                 print('第[{}]条数据插入成功'.format(self.count))
+    def scv_data(self, data):
+        """
+        '品牌索引', '品牌名称', '车系名称', '车型', '汽车型号', '指导价', '参考价', '经销商名称',
+        '地区', '简称', '地址', '销售区域', '电话1', '电话2', '时间'
+        :param data:
+        :return:
+        """
+        self.count += 1
+        with open("demo.csv", "a+", encoding='utf-8', newline="") as f:
+            k = csv.writer(f, delimiter=',')
+            with open("demo.csv", "r", encoding='utf-8', newline="") as f1:
+                reader = csv.reader(f1)
+                if not [row for row in reader]:
+                    k.writerow(['品牌索引', '品牌名称', '车系名称', '车型', '汽车型号', '指导价', '参考价', '经销商名称',
+                                '地区', '简称', '地址', '销售区域', '电话1', '电话2', '时间'])
+                    k.writerows(data)
+                    print('第[{}]条数据插入成功'.format(self.count))
+                else:
+                    k.writerows(data)
+                    print('第[{}]条数据插入成功'.format(self.count))
 
     def a_b(self, data):
+        """
+        保存 '品牌ID', '品牌名称', '车系ID', '车系名称', '车型ID', '年份', '车型名称'
+        :param data:
+        :return:
+        """
+
         self.count += 1
-        with open("123.csv", "a+", encoding='utf-8', newline="") as f:
+        with open("全系车型数据.csv", "a+", encoding='utf-8', newline="") as f:
             k = csv.writer(f, delimiter=',')
-            with open("123.csv", "r", encoding='utf-8', newline="") as f1:
+            with open("全系车型数据.csv", "r", encoding='utf-8', newline="") as f1:
                 reader = csv.reader(f1)
                 if not [row for row in reader]:
                     k.writerow(['品牌ID', '品牌名称', '车系ID', '车系名称', '车型ID', '年份', '车型名称'])
@@ -169,15 +180,6 @@ class Spider:
                 else:
                     k.writerows(data)
                     print('第[{}]条数据插入成功'.format(self.count))
-
-
-        # with open("./CVE.csv", "a+", newline='', encoding='utf-8') as file:
-        #     writer = csv.writer(file, delimiter=',')
-        #     writer.writerows(data)
-        #     print('成功插入一条')
-        # df = pd.DataFrame(data)
-        # df.to_csv('Demo.csv', mode='a', encoding='utf-8')
-        # print('成功插入一条')
 
     @run_time
     def run(self):
