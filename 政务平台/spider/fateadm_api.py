@@ -352,8 +352,8 @@ def TestFunc(pred_type_id='304000002', just_flag=False, balances=False):
     # result 			= api.PredictExtend(pred_type,data)   	# 直接返回识别结果
     rsp             = api.Predict(pred_type,data)				# 返回详细的识别结果
     '''
-    # card_id         = "123"
-    # card_key        = "123"
+    # card_id         = "123.py"
+    # card_key        = "123.py"
     # 充值
     # api.Charge(card_id, card_key)
     LOG("print in testfunc")

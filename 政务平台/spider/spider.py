@@ -64,6 +64,12 @@ class Spider:
             print('**********账号登录中**********')
             url = 'http://tyrz.gdbs.gov.cn/am/login/initAuth.do?gotoUrl=http%3A%2F%2Ftyrz.gdbs.gov.cn%2Fam%2Foauth2%2Fauthorize%3Fclient_id%3Dszjxgcxt%26service%3DinitService%26scope%3Dall%26redirect_uri%3Dhttps%253A%252F%252Famr.sz.gov.cn%252Fpsout%252Fjsp%252Fgcloud%252Fpubservice%252Fuserstsso%252Fgodeal.jsp%26response_type%3Dcode'
             self.driver.get(url)
+            # 判断弹窗提示
+            alert = self.driver.find_elements_by_xpath('//div[@id="alert"]/div/p[2]/a')
+            print(alert[0].is_displayed())
+            if alert:
+                alert[0].click()
+
             username = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#loginName')))
             username.clear()
             username.send_keys('wyn16888')
@@ -190,7 +196,7 @@ class Spider:
             spot_code = self.spot_code(login=True)
             print('验证码：{}'.format(spot_code))
             code.send_keys(spot_code)
-            # code.send_keys(input('123'))
+            # code.send_keys(input('123.py'))
             enter = self.driver.find_elements_by_css_selector('.btn-primary')[0]
             enter.click()
 
@@ -470,6 +476,14 @@ class Monitor:
             print('程序没有运行，启动中!')
             return False
 
+    def kill(self):
+        """
+        杀死进程
+        :return:
+        """
+        command = 'taskkill /F /IM python.exe'
+        os.system(command)
+
 
 if __name__ == '__main__':
     # 监测程序是否在运行中
@@ -490,6 +504,7 @@ if __name__ == '__main__':
                 spider.run(filename)
                 break
             except:
+                monitor.kill()
                 if count >= 50:
                     print('程序异常退出')
                     break
