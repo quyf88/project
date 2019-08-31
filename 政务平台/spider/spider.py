@@ -215,7 +215,8 @@ class Spider:
                     continue
                 elif '草稿数校验代码异常' in error_con:
                     self.driver.close()
-                    os._exit(0)
+                    monitor = Monitor()
+                    monitor.kill()
                 else:
                     return error_con, error_con
             except:
