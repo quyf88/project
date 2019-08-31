@@ -1,2 +1,4 @@
 Appium-Python-Client==0.44
 selenium==3.141.0
+pandas==0.24.2
+pillow==6.1.0

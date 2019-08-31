@@ -36,8 +36,8 @@ class WeChatSpider:
         print('**********程序启动中**********')
         # 启动微信
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
-        # 设置等待
-        self.wait = WebDriverWait(self.driver, 5, 1, AttributeError)
+        # 设置隐形等待时间
+        self.wait = WebDriverWait(self.driver, 10, 1, AttributeError)
         # 获取手机尺寸
         self.driver.get_window_size()
         self.x = self.driver.get_window_size()['width']  # 宽
@@ -162,7 +162,7 @@ class WeChatSpider:
         else:
             # 进入更多信息页面
             self.wait.until(EC.presence_of_all_elements_located((By.ID, 'android:id/title')))[2].click()
-        # time.sleep(1)
+
         # 获取个性签名信息
         sign_1 = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/dmw')))
         sign_1 = [i for i in sign_1 if i.text == '个性签名']
@@ -173,15 +173,6 @@ class WeChatSpider:
         else:
             self.content = '无个性签名'
             print('无个性签名')
-        # for i in range(len(sign_1)):
-        #     q = i if sign_1[i].text == '个性签名' else False
-        #     if q:
-        #         content = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/dmx')))[1].text
-        #         self.content = content.replace('\n', '').replace('\r', '')
-        #         print('个性签名：{}'.format(self.content))
-        #     else:
-        #         self.content = '无个性签名'
-        #         # print('无个性签名')
 
         self.driver.keyevent(4)
         time.sleep(1)
@@ -194,7 +185,7 @@ class WeChatSpider:
         # 好友微信号
         wx_num = self.wait.until(EC.presence_of_element_located((By.ID, 'com.tencent.mm:id/b45'))).text
         print(wx_num)
-        self.wx_num = re.findall(r'微信号:  (.*?)$', wx_num)[0]
+        self.wx_num = re.findall(r'微信号: (.*?)$', wx_num)[0].replace(' ', '')
 
     def judge(self):
         """
@@ -287,21 +278,7 @@ class WeChatSpider:
                             continue
                 except Exception as e:
                     continue
-                    # try:
-                    #     WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((
-                    #                                                                                                  By.XPATH,
-                    #                                                                                                  '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[2]/android.widget.TextView'.format(
-                    #                                                                                                      i + 2))))
-                    #     print('文字信息跳过')
-                    #     continue
-                    # except:
-                    #     WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((
-                    #                                                                                                  By.XPATH,
-                    #                                                                                                  '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[2]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(
-                    #                                                                                                      i + 2))))
-                    #     print('链接信息跳过')
-                    #     continue
-                    #
+
                 # 发布时间 date 日期 time 月份
                 try:
                     date = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[1]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(i))))
