@@ -20,4 +20,9 @@
         Android 环境配置
         http://ask.testfan.cn/article/902
     ```
+- ### **adb命令**  
+  - ```python   
+       adb connect 127.0.0.1:62001  # 连接设备
+       adb devices  # 查看连接设备    
+    ```
  

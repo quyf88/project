@@ -7,9 +7,11 @@ import os
 import re
 import csv
 import time
+import shutil
 import random
 import hashlib
 import datetime
+import logging
 import pandas as pd
 from PIL import Image
 from appium import webdriver
@@ -23,16 +25,38 @@ from selenium.webdriver.support import expected_conditions as EC
 """
 
 
+def log_init():
+    """日志模块"""
+    path = os.path.abspath('.') + r'\log\run.log'
+    formatter = logging.Formatter('%(asctime)s | %(name)-6s | %(levelname)-6s| %(message)s')
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    fh = logging.FileHandler(path, encoding='utf-8', mode='a+')
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    console.setFormatter(formatter)
+    # 如果需要同時需要在終端上輸出，定義一個streamHandler
+    # print_handler = logging.StreamHandler()  # 往屏幕上输出
+    # print_handler.setFormatter(formatter)  # 设置屏幕上显示的格式
+    logger = logging.getLogger("Spider")
+    # logger.addHandler(print_handler)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(console)
+    logger.addHandler(fh)
+    return logger
+
+
 class WeChatSpider:
     def __init__(self):
+        self.log = log_init()
         self.desired_caps = {
             "platformName": "Android",
-            "deviceName": "OS105",
+            "deviceName": "FFK0217B11002262",
             "appPackage": "com.tencent.mm",
             "appActivity": ".ui.LauncherUI",
             'noReset': True  # 获取登录状态
         }
-        self.driver_server = 'http://127.0.0.1:4723/wd/hub'
+        self.driver_server = 'http://127.0.0.1:4730/wd/hub'
         print('**********程序启动中**********')
         # 启动微信
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
@@ -42,6 +66,7 @@ class WeChatSpider:
         self.driver.get_window_size()
         self.x = self.driver.get_window_size()['width']  # 宽
         self.y = self.driver.get_window_size()['height']  # 长
+        print(self.x, self.y)
         self.filename = 'ExportFile/' + datetime.datetime.now().strftime('%Y-%m-%d') + '.csv'
         self.name = None
         self.content = None
@@ -99,8 +124,8 @@ class WeChatSpider:
             tab = self.wait.until(EC.presence_of_element_located((By.XPATH,
                                 '//*[@resource-id="com.tencent.mm:id/bq"]/android.widget.LinearLayout/android.widget.RelativeLayout[2]')))
             print(tab.is_displayed())
-            if tab.text != '通讯录':
-                continue
+            # if tab.text != '通讯录':
+                # continue
             if tab.is_displayed():
                 tab.click()
                 return
@@ -134,7 +159,7 @@ class WeChatSpider:
                 yield
 
             # 向上滑动一屏
-            self.driver.swipe(self.x/4, self.y*3/4, self.x/4, self.y/4, 1000)
+            self.driver.swipe(200, 1400, 200, 700, 1000)
 
     def if_one_self(self):
         """
@@ -251,7 +276,7 @@ class WeChatSpider:
                 return
             # 朋友圈数据列表
             cons = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/lk')))
-            for i in range(len(cons)-2):
+            for i in range(len(cons)-1):
                 if count == 1:
                     i = i + 2
                 else:
@@ -265,6 +290,31 @@ class WeChatSpider:
                                                                  i))))
 
                     content = con[0].text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
+                    # 发布时间 date 日期 time 月份
+                    try:
+                        date = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[1]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(i))))
+                        if len(date) > 1:
+                            release = date[1].text + date[0].text
+                        else:
+                            release = date[0].text
+                    except Exception as e:
+                        release = '今天'                                         
+                        
+                    print(release)
+                    # 获取不到月份 默认当前月份 这种情况只会在今天 昨天 数据量多时出现
+                    if release == '今天':
+                        release = datetime.datetime.now().strftime('%m,%d').replace(',', '月')
+                    elif release == '昨天':
+                        release = datetime.datetime.now() + datetime.timedelta(days=-1)
+                        release = release.strftime('%m,%d').replace(',', '月')
+                    # 判断时间
+                    old_time = datetime.datetime.strptime('2019年' + release, '%Y年%m月%d')
+                    new_time = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y,%m,%d'), '%Y,%m,%d')
+                    if (new_time-old_time).days >= self.day:
+                        print('大于{}天不获取'.format(self.day))
+                        flag = True
+                        break
+                        
                     # 效验信息是否获取
                     make = self.make_file_id(content)
                     if co == 1:
@@ -279,30 +329,7 @@ class WeChatSpider:
                 except Exception as e:
                     continue
 
-                # 发布时间 date 日期 time 月份
-                try:
-                    date = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[1]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(i))))
-                    if len(date) > 1:
-                        release = date[1].text + date[0].text
-                    else:
-                        release = date[0].text
-                except Exception as e:
-                    release = '今天'
-                    pass
-                print(release)
-                # 获取不到月份 默认当前月份 这种情况只会在今天 昨天 数据量多时出现
-                if release == '今天':
-                    release = datetime.datetime.now().strftime('%m,%d').replace(',', '月')
-                elif release == '昨天':
-                    release = datetime.datetime.now() + datetime.timedelta(days=-1)
-                    release = release.strftime('%m,%d').replace(',', '月')
-                # 判断时间
-                old_time = datetime.datetime.strptime('2019年' + release, '%Y年%m月%d')
-                new_time = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y,%m,%d'), '%Y,%m,%d')
-                if (new_time-old_time).days >= self.day:
-                    print('大于{}天不获取'.format(self.day))
-                    flag = True
-                    break
+                
 
                 # 获取图片数量
                 image_num = re.findall(r'\d', con[1].text) if len(con) > 1 else [1]
@@ -323,7 +350,7 @@ class WeChatSpider:
                         path = os.getcwd() + r'\ExportFile\image\{}'.format(name)
                         image_path.append(path)
                         self.driver.get_screenshot_as_file('ExportFile/image/{}'.format(name))
-                        self.process_image('ExportFile/image/{}'.format(name))
+                        # self.process_image('ExportFile/image/{}'.format(name))
                         print('第：[{}] 张图片下载成功,保存至：{}'.format(n + 1, path))
                         self.driver.keyevent(4)
                         time.sleep(0.5)
@@ -358,7 +385,7 @@ class WeChatSpider:
 
             # 向上滑动一屏
             count += 1
-            self.driver.swipe(self.x/4, self.y*3/4, self.x/4, self.y/4, 1500)
+            self.driver.swipe(200, 1400, 200, 700, 1000)
             time.sleep(2)
         # 写入效验文件
         make = self.make_file_id(self.name)
@@ -383,7 +410,7 @@ class WeChatSpider:
         edits = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/cw')))
         edit = [i for i in edits if i.text == '编辑']
         edit[0].click()
-
+        time.sleep(1)
         # 点击一下屏幕
         tap = self.driver.find_elements_by_class_name('android.widget.FrameLayout')
         if tap:
@@ -482,6 +509,11 @@ class WeChatSpider:
                 else:
                     k.writerows(data)
                     print('数据写入成功')
+        try:       
+            # 数据实时备份
+            shutil.copy(self.filename, '备份数据.csv')
+        except:
+            pass
 
     def run(self):
         self.get_address_book()
@@ -507,9 +539,9 @@ if __name__ == '__main__':
     # wechat = WeChatSpider()
     # wechat.run()
     # with open('ExportFile/ContentValidation.txt', 'w') as f:
-    #     f.seek(0)
-    #     f.truncate()
-    #     print('获取记录清空成功')
+        # f.seek(0)
+        # f.truncate()
+        # print('获取记录清空成功')
     start_time = datetime.datetime.now()
     print("程序开始时间：{}".format(start_time))
     count = 0
@@ -522,7 +554,9 @@ if __name__ == '__main__':
                 f.truncate()
                 print('获取记录清空成功')
             break
-        except:
+        except Exception as e:
+            log = log_init()
+            log.info(e)
             count += 1
             continue
     end_time = datetime.datetime.now()
