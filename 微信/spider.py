@@ -61,7 +61,7 @@ class WeChatSpider:
         # 启动微信
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
         # 设置隐形等待时间
-        self.wait = WebDriverWait(self.driver, 10, 1, AttributeError)
+        self.wait = WebDriverWait(self.driver, 5, 1, AttributeError)
         # 获取手机尺寸
         self.driver.get_window_size()
         self.x = self.driver.get_window_size()['width']  # 宽
@@ -160,6 +160,7 @@ class WeChatSpider:
 
             # 向上滑动一屏
             self.driver.swipe(200, 1400, 200, 700, 1000)
+            time.sleep(1)
 
     def if_one_self(self):
         """
@@ -270,9 +271,9 @@ class WeChatSpider:
             bottoms = self.driver.find_elements_by_id('com.tencent.mm:id/ahy')
             if len(bottoms):
                 self.driver.keyevent(4)
-                time.sleep(0.5)
+                time.sleep(1)
                 self.driver.keyevent(4)
-                time.sleep(0.5)
+                time.sleep(1)
                 return
             # 朋友圈数据列表
             cons = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/lk')))
@@ -290,6 +291,7 @@ class WeChatSpider:
                                                                  i))))
 
                     content = con[0].text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
+                    # print('文本：{}'.format(content))
                     # 发布时间 date 日期 time 月份
                     try:
                         date = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[1]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(i))))
@@ -324,11 +326,12 @@ class WeChatSpider:
                             break
                     co += 1
                     if self.content_validation(make):
-                            print('已处理跳过')
-                            continue
+                        print('已处理跳过')
+                        flag = True
+                        break
                 except Exception as e:
+                    # self.log.info(e)
                     continue
-
                 
 
                 # 获取图片数量
@@ -341,23 +344,28 @@ class WeChatSpider:
                     con[0].click()
                     image_path = []
                     print('图片处理中...')
-                    for n in range(int(image_num[0])):
-                        # 保存图片
-                        # 长按屏幕
-                        self.long_press()
-                        rand = random.randint(10000, 99999)
-                        name = str(round(time.time() * 1000)) + str(rand) + str(n+1) + '.png'
-                        path = os.getcwd() + r'\ExportFile\image\{}'.format(name)
-                        image_path.append(path)
-                        self.driver.get_screenshot_as_file('ExportFile/image/{}'.format(name))
-                        # self.process_image('ExportFile/image/{}'.format(name))
-                        print('第：[{}] 张图片下载成功,保存至：{}'.format(n + 1, path))
-                        self.driver.keyevent(4)
-                        time.sleep(0.5)
-                        # 切换下一张图片
-                        if n == int(image_num[0])-1:
-                            break
-                        self.driver.swipe(self.x*3/4, self.y/4, self.x/4, self.y/4, 200)
+                    try:
+                        for n in range(int(image_num[0])):
+                            # 保存图片
+                            # 长按屏幕
+                            self.long_press()
+                            rand = random.randint(10000, 99999)
+                            name = str(round(time.time() * 1000)) + str(rand) + str(n+1) + '.png'
+                            path = os.getcwd() + r'\ExportFile\image\{}'.format(name)
+                            image_path.append(path)
+                            self.driver.get_screenshot_as_file('ExportFile/image/{}'.format(name))
+                            # self.process_image('ExportFile/image/{}'.format(name))
+                            print('第：[{}] 张图片下载成功,保存至：{}'.format(n + 1, path))
+                            self.driver.keyevent(4)
+                            time.sleep(1)
+                            # 切换下一张图片
+                            if n == int(image_num[0])-1:
+                                break
+                            self.driver.swipe(self.x*3/4, self.y/4, self.x/4, self.y/4, 200)
+                    except Exception as e:
+                        print(e)
+                        self.log.info(e)
+                        continue
 
                     # 数据写入文件
                     t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -394,7 +402,7 @@ class WeChatSpider:
         self.driver.keyevent(4)
         time.sleep(1)
         self.driver.keyevent(4)
-        time.sleep(0.5)
+        time.sleep(1)
 
     def long_press(self):
         """
@@ -511,7 +519,7 @@ class WeChatSpider:
                     print('数据写入成功')
         try:       
             # 数据实时备份
-            shutil.copy(self.filename, '备份数据.csv')
+            shutil.copy(self.filename, self.filename)
         except:
             pass
 
