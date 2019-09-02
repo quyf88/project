@@ -32,7 +32,7 @@ class Spider:
         res = requests.get("http://httpbin.org/ip", headers=self.headers, proxies=self.proxies, verify=False, timeout=10).json()
         ip = str(res['origin']).split(',')
         print(ip)
-        url = 'https://cdn.av01.tv/v2/20190423_2/ssni00452/content/index4500-v1.m3u8?hdnea=ip=5.180.77.47~st=1567340896~exp=1567427296~acl=/v2/20190423_2/ssni00452/content/*~hmac=a8823f45308c2c78ba8ac5e3ba92db8f3250cc323d8b69c81e485b17ef425053'
+        url = 'https://cdn.av01.tv/v2/20190423_2/ssni00452/content/index4500-v1.m3u8?hdnea=ip=45.129.2.172~st=1567340896~exp=1567427296~acl=/v2/20190423_2/ssni00452/content/*~hmac=a8823f45308c2c78ba8ac5e3ba92db8f3250cc323d8b69c81e485b17ef425053'
         response = requests.get(url, headers=self.headers, proxies=self.proxies)
         with open('url.txt', 'w+') as m3u8_content:
             m3u8_content.write(response.text)
@@ -67,7 +67,7 @@ class Spider:
 
         }
 
-        res = requests.get("http://httpbin.org/ip", headers=headers, timeout=10).json()
+        res = requests.get("http://httpbin.org/ip", headers=headers, proxies=self.proxies,timeout=10).json()
         ip = str(res['origin']).split(',')
         print(ip)
         while True:
@@ -89,9 +89,10 @@ class Spider:
         print("{} 下载完成 耗时：{}".format(ts_path, end - start))
 
     def run(self):
-        # self.get_m3u8()
-        for url in self.get_url():
-            self.get_video(url)
+        self.get_m3u8()
+        # for url in self.get_url():
+        #     self.get_video(url)
+        #     break
 
 
 if __name__ == '__main__':
