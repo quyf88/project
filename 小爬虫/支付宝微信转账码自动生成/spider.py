@@ -73,13 +73,17 @@ class Spider:
 
     def code_generate(self, d_url):
         """
-        https://www.juhe.cn/box/index/id/296
+        https://www.juhe.cn/box/index/id/296 错误码参照表
         二维码生成
         :return:
         """
         # 转码
         d_url = quote(d_url, string.digits)
         url = 'http://apis.juhe.cn/qrcode/api?text={}&el=&bgcolor=&fgcolor=&logo=&w=&m=&lw=&type=2&key=b142a4a659dfa5237bf54a78baf8382f'.format(d_url)
+        response = requests.get(url, headers=self.headers)
+        with open('code.png', 'wb') as f:
+            f.write(response.content)
+            print('支付宝转账码生成成功!')
 
 
 if __name__ == '__main__':
