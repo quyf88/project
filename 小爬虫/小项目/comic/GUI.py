@@ -111,7 +111,7 @@ class MyThread(QThread):
         # while True:
         try:
             self.start_q.emit(True)
-            r = subprocess.Popen(['python', r'comic.py'],  # 需要执行的文件路径
+            r = subprocess.Popen(['python', r'spider.py'],  # 需要执行的文件路径
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT,
                                  bufsize=0)
@@ -132,6 +132,7 @@ class MyThread(QThread):
         except Exception as e:
             self.log_init().error(e)
             self.log_init().exception(e)
+            os._exit(0)
 
     def log_data(self, line):
         self.log_signal.emit(line)
