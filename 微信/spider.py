@@ -51,12 +51,12 @@ class WeChatSpider:
         self.log = log_init()
         self.desired_caps = {
             "platformName": "Android",
-            "deviceName": "FFK0217B11002262",
+            "deviceName": "OS105",
             "appPackage": "com.tencent.mm",
             "appActivity": ".ui.LauncherUI",
             'noReset': True  # 获取登录状态
         }
-        self.driver_server = 'http://127.0.0.1:4730/wd/hub'
+        self.driver_server = 'http://127.0.0.1:4723/wd/hub'
         print('**********程序启动中**********')
         # 启动微信
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
@@ -71,7 +71,7 @@ class WeChatSpider:
         self.name = None
         self.content = None
         # self.day = int(input('输入获取天数：'))
-        self.day = 1
+        self.day = 10
         # 好友微信号
         self.wx_num = None
 
