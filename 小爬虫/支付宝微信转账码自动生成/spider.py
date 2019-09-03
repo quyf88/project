@@ -18,7 +18,6 @@ import os
 import json
 import string
 import requests
-
 from urllib.parse import quote  # url编码
 from fake_useragent import UserAgent
 
@@ -78,6 +77,8 @@ class Spider:
         二维码生成
         :return:
         """
+        # 转码
+        d_url = quote(d_url, string.digits)
         url = 'http://apis.juhe.cn/qrcode/api?text={}&el=&bgcolor=&fgcolor=&logo=&w=&m=&lw=&type=2&key=b142a4a659dfa5237bf54a78baf8382f'.format(d_url)
 
 

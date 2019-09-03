@@ -9,7 +9,9 @@
 
 a = -5
 
-if a:
-    print(1)
-else:
-    print(2)
+from urllib.parse import quote
+import string
+
+url = 'https://dwz.cn/Tx7OJ6NO'
+
+print(quote(url, string.digits))
