@@ -9,7 +9,7 @@ import subprocess
 from PyQt5.QtGui import QIcon
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtCore import QThread, pyqtSignal, QFile, QTextStream
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QToolButton, QHBoxLayout, QVBoxLayout, \
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, \
     QLineEdit, QComboBox, QMessageBox
 
 import res
@@ -81,13 +81,15 @@ class CrawlWindow(QWidget):
         # 设置文本框尺寸
         self.money.setFixedSize(300, 35)
         # 设置默认文本
-        self.money.setPlaceholderText("请输入金额")
+        self.money.setPlaceholderText("请输入备注")
         # 限制10个中文字符
         self.money.setMaxLength(25)
 
     def source_combobox_init(self):
         """银行选择下拉框配置"""
-        save_list = ['银行选择', '工商银行', '农业银行', '中国银行']
+        save_list = ['银行选择', '中国工商银行', '中国农业银行', '中国建设银行', '招商银行', '中国银行',
+                     '中国邮政储蓄银行', '交通银行', '中信银行', '中国民生银行', '兴业银行', '浦发银行',
+                     '广发银行', '平安银行', '华夏银行', '北京银行', '上海银行', '江苏银行', '北京农商行']
         self.source_combobox.addItems(save_list)
         self.source_combobox.setFixedSize(300, 35)
         # 设置标签状态为可用
@@ -147,15 +149,60 @@ class CrawlWindow(QWidget):
         QMessageBox.information(self, "消息提示", content, QMessageBox.Yes | QMessageBox.No)
 
     def combobox_slot(self, text):
-        if text == '工商银行':
-            self.bankMark = 'BBIC'
-            self.bankName = '工商银行'
-        elif text == '农业银行':
+        if text == '中国工商银行':
+            self.bankMark = 'ICBC'
+            self.bankName = '中国工商银行'
+        elif text == '中国农业银行':
             self.bankMark = 'ABC'
-            self.bankName = '农业银行'
+            self.bankName = '中国农业银行'
+        elif text == '中国建设银行':
+            self.bankMark = 'CCB'
+            self.bankName = '中国建设银行'
+        elif text == '招商银行':
+            self.bankMark = 'CMB'
+            self.bankName = '招商银行'
         elif text == '中国银行':
-            self.bankMark = '123'
+            self.bankMark = 'BOC'
             self.bankName = '中国银行'
+        elif text == '中国邮政储蓄银行':
+            self.bankMark = 'PSBC'
+            self.bankName = '中国邮政储蓄银行'
+        elif text == '中信银行':
+            self.bankMark = 'CITIC'
+            self.bankName = '中信银行'
+        elif text == '中国民生银行':
+            self.bankMark = 'CMBC'
+            self.bankName = '中国民生银行'
+        elif text == '交通银行':
+            self.bankMark = 'COMM'
+            self.bankName = '交通银行'
+        elif text == '兴业银行':
+            self.bankMark = 'CIB'
+            self.bankName = '兴业银行'
+        elif text == '浦发银行':
+            self.bankMark = 'SPDB'
+            self.bankName = '浦发银行'
+        elif text == '广发银行':
+            self.bankMark = 'GDB'
+            self.bankName = '广发银行'
+        elif text == '平安银行':
+            self.bankMark = 'SPABANK'
+            self.bankName = '平安银行'
+        elif text == '华夏银行':
+            self.bankMark = 'HXBANK'
+            self.bankName = '华夏银行'
+        elif text == '北京银行':
+            self.bankMark = 'BJBANK'
+            self.bankName = '北京银行'
+        elif text == '上海银行':
+            self.bankMark = 'SHBANK'
+            self.bankName = '上海银行'
+        elif text == '江苏银行':
+            self.bankMark = 'JSBANK'
+            self.bankName = '江苏银行'
+        elif text == '北京农商行':
+            self.bankMark = 'JSRCU'
+            self.bankName = '北京农商行'
 
     def save_to_txt(self, bankMark, bankName):
         """保存为txt"""
@@ -212,7 +259,7 @@ class MyThread(QThread):
                                  bufsize=0)
 
             while r.poll() is None:
-                line = str(r.stdout.readline(), encoding='UTF-8')  #TODO 打包时改为GBK
+                line = str(r.stdout.readline(), encoding='GBK')  #TODO 打包时改为GBK
                 line = line.strip()
                 if line:
                     print(line)
@@ -225,8 +272,8 @@ class MyThread(QThread):
             else:
                 self.log_signal.emit('<font color="red">Subprogram failed</font>')
         except Exception as e:
-            self.log_init().error(e)
-            self.log_init().exception(e)
+            # self.log_init().error(e)
+            # self.log_init().exception(e)
             os._exit(0)
 
     def log_data(self, line):

@@ -42,6 +42,8 @@ import requests
 from urllib.parse import quote  # url编码
 from fake_useragent import UserAgent
 
+from image_process import Picture
+
 
 class Spider:
     def __init__(self):
@@ -103,7 +105,7 @@ class Spider:
         short_link = quote(short_link, string.digits)
         url = 'http://apis.juhe.cn/qrcode/api?text={}&el=&bgcolor=&fgcolor=&logo=&w=&m=&lw=&type=2&key=b142a4a659dfa5237bf54a78baf8382f'.format(short_link)
         response = requests.get(url, headers=self.headers)
-        with open('code.png', 'wb') as f:
+        with open('image/code.png', 'wb') as f:
             f.write(response.content)
             print('支付宝转账码生成成功!')
     
@@ -132,9 +134,13 @@ class Spider:
     def run(self):
         content = self.read_txt()
         _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
-               'money={}&amount=&bankMark={}&bankName={}'.format(content[1], content[0], content[2], content[3], content[4])
+               'money=&amount=&bankMark={}&bankName={}'.format(content[1], content[0], content[3], content[4])
         short_link = spider.get_url(_url)
         spider.code_generate(short_link)
+        # 图片处理
+        image_process = Picture()
+        image_process.text = content[2]
+        image_process.run()
 
 
 if __name__ == '__main__':
