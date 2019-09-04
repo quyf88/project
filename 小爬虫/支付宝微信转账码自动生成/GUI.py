@@ -55,8 +55,8 @@ class CrawlWindow(QWidget):
         self.layout_init()
 
         # 银行名称 代码
-        self.bankMark = None
-        self.bankName = None
+        self.bankMark = ''
+        self.bankName = ''
 
     def username_init(self):
         """账户名输入文本框初始化配置"""
@@ -135,7 +135,7 @@ class CrawlWindow(QWidget):
             self.pop_ups('请输入正确的金额')
             return
         self.btn_sound.play()
-        self.save_to_txt(self.bankMark)
+        self.save_to_txt(self.bankMark, self.bankName)
         # self.log_browser.append('<font color="green">{}程序启动{}</font>'.format('*'*20, '*'*20))
         # 启动线程
         self.worker.start()
@@ -157,7 +157,7 @@ class CrawlWindow(QWidget):
             self.bankMark = '123'
             self.bankName = '中国银行'
 
-    def save_to_txt(self, bankMark):
+    def save_to_txt(self, bankMark, bankName):
         """保存为txt"""
         data = []
         username = self.username.text()
@@ -167,7 +167,7 @@ class CrawlWindow(QWidget):
         data.append(account)
         data.append(money)
         data.append(bankMark)
-        print(data)
+        data.append(bankName)        
 
         with open('config.txt', 'w+', encoding='utf-8') as f:
             for i in data:

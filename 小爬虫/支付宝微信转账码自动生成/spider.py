@@ -8,11 +8,32 @@
 # @time: 2019/9/3 13:01
 
 """
+1.根据GUI写入数据拼接URL
+  # 获取GUI写入数据保存至txt 主程序读取txt文件 拼接url
+2.URL转换为短链接
+  # 百度短链转换，每天一万条免费额度 至关重要 有些短链网站转换后会出现中文乱码
+  # 中文需转码 quote
+3.短链接生成二维码
+  # 聚合数据 短链接生成二维码
+  # 中文需转码 quote
+
 短链接 转换 ：百度短链接
 支付宝 转账接口：需要urlencode  from urllib.parse import quote
 https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo=银行卡号&bankAccount=银行账户名&money=转账金额&amount=备注&bankMark=银行英文简写&bankName=银行中文名称
 查询银行代码
 https://ccdcapi.alipay.com/validateAndCacheCardInfo.json?cardNo=填写卡号&cardBinCheck=true
+
+alipays://platformapi/startapp?appId=09999988&actionType=toCard&sourceId=bill&cardNo=6217000030001234567&bankAccount=%E9%A9%AC%E4%BA%91&money=0.01&amount=0.01&bankMark=CCB&bankName=%E4%B8%AD%E5%9B%BD%E5%BB%BA%E8%AE%BE%E9%93%B6%E8%A1%8C
+参数：
+appId=09999988   // 应用ID -默认
+actionType=toCard  // 转账类型 toCard-到银行卡
+sourceId=bill  // 未知
+cardNo=6217000030001234567  // 银行卡号
+bankAccount=%E9%A9%AC%E4%BA%91  // 银行账户
+money=0.01  // 转账金额
+amount=0.01  // 转账额度
+bankMark=CCB  // 银行代号 -可选
+bankName=%E4%B8%AD%E5%9B%BD%E5%BB%BA%E8%AE%BE%E9%93%B6%E8%A1%8C  // 银行名称
 """
 import os
 import json
@@ -28,7 +49,7 @@ class Spider:
 
     def get_url(self, lang_url):
         """
-        长链接转换端链接
+        长链接转换端链接 百度短链
         0：正常返回短网址
         -1：短网址生成失败
         -2：长网址不合法
@@ -41,7 +62,7 @@ class Spider:
         :param lang_url:
         :return:
         """
-        # url 汉字转码  string.printable 跳过ascii码
+        # url 中文转码  string.printable 跳过ascii码
         lang_url = quote(lang_url, string.printable)
 
         host = 'https://dwz.cn'
@@ -71,23 +92,51 @@ class Spider:
 
             return response['ShortUrl']
 
-    def code_generate(self, d_url):
+    def code_generate(self, short_link):
         """
+        聚合数据 短链接生成二维码
         https://www.juhe.cn/box/index/id/296 错误码参照表
         二维码生成
         :return:
         """
         # 转码
-        d_url = quote(d_url, string.digits)
-        url = 'http://apis.juhe.cn/qrcode/api?text={}&el=&bgcolor=&fgcolor=&logo=&w=&m=&lw=&type=2&key=b142a4a659dfa5237bf54a78baf8382f'.format(d_url)
+        short_link = quote(short_link, string.digits)
+        url = 'http://apis.juhe.cn/qrcode/api?text={}&el=&bgcolor=&fgcolor=&logo=&w=&m=&lw=&type=2&key=b142a4a659dfa5237bf54a78baf8382f'.format(short_link)
         response = requests.get(url, headers=self.headers)
         with open('code.png', 'wb') as f:
             f.write(response.content)
             print('支付宝转账码生成成功!')
+    
+    def read_txt(self):
+        """
+        读取界面输入数据文件
+        :return: 
+        """
+        # 获取当前目录
+        path = os.getcwd()
+        # 返回指定目录下所有文件
+        files = os.listdir(path)
+        # 筛选指定文件
+        files = [i for i in files if 'config.txt' in i]
+        if not files:
+            print('读取配置文件错误,请正确填写数据!')
+            os._exit(0)
+
+        with open(files[0], 'r', encoding='UTF-8') as f:
+            content = f.read().split(',')
+            content = [i for i in content if i]
+            content = content + ['ABC', '中国农业银行'] if len(content) < 5 else content
+
+            return content
+
+    def run(self):
+        content = self.read_txt()
+        _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
+               'money={}&amount=&bankMark={}&bankName={}'.format(content[1], content[0], content[2], content[3], content[4])
+        short_link = spider.get_url(_url)
+        spider.code_generate(short_link)
 
 
 if __name__ == '__main__':
     spider = Spider()
-    _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo=123&bankAccount=哈哈&money=12&amount=&bankMark=ABC&bankName=中国农业银行'
-    d_url = spider.get_url(_url)
-    spider.code_generate(d_url)
+    spider.run()
