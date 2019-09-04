@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 class Picture:
     def __init__(self):
-        self.text = ''
+        self.text = '陈小丽'
 
     def new_image(self):
         """
@@ -21,13 +21,17 @@ class Picture:
         """
         # 获取当前文件夹中所有JPG图像
         Image.open('image/1.png')
-        im_list = [Image.open('image/'+fn) for fn in os.listdir('image/') if '.png' in fn if 'splice.png' not in fn]
-        print([fn for fn in os.listdir('image/') if '.png' in fn if 'splice.png' not in fn])
+        im_list = [fn for fn in os.listdir('image/') if '.png' in fn if 'splice.png' not in fn]
+        im_list.reverse() if im_list[0] != '1.png' else im_list
+        print(im_list)
+        im_list = [Image.open('image/' + fn) for fn in im_list]
+
         # 图片转化为相同的尺寸
         ims = []
         for i in im_list:
             new_img = i.resize((120, 120), Image.BILINEAR)
             ims.append(new_img)
+
         # 单幅图像尺寸
         width, height = ims[0].size
         # 创建空白长图

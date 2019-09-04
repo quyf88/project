@@ -89,7 +89,8 @@ class CrawlWindow(QWidget):
         """银行选择下拉框配置"""
         save_list = ['银行选择', '中国工商银行', '中国农业银行', '中国建设银行', '招商银行', '中国银行',
                      '中国邮政储蓄银行', '交通银行', '中信银行', '中国民生银行', '兴业银行', '浦发银行',
-                     '广发银行', '平安银行', '华夏银行', '北京银行', '上海银行', '江苏银行', '北京农商行']
+                     '广发银行', '平安银行', '华夏银行', '北京银行', '上海银行', '江苏银行', '北京农商行',
+                     '江西银行']
         self.source_combobox.addItems(save_list)
         self.source_combobox.setFixedSize(300, 35)
         # 设置标签状态为可用
@@ -203,6 +204,9 @@ class CrawlWindow(QWidget):
         elif text == '北京农商行':
             self.bankMark = 'JSRCU'
             self.bankName = '北京农商行'
+        elif text == '江西银行':
+            self.bankMark = 'NCB'
+            self.bankName = '江西银行'
 
     def save_to_txt(self, bankMark, bankName):
         """保存为txt"""

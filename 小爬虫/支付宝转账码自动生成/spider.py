@@ -128,7 +128,6 @@ class Spider:
             content = f.read().split(',')
             content = [i for i in content if i]
             content = content + ['ABC', '中国农业银行'] if len(content) < 5 else content
-
             return content
 
     def run(self):
