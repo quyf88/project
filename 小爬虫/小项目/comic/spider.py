@@ -5,6 +5,7 @@
 # @Software: PyCharm
 import re
 import os
+import time
 import requests
 from lxml import etree
 from retrying import retry
@@ -12,6 +13,7 @@ from fake_useragent import UserAgent
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
 class Spider:
@@ -31,9 +33,28 @@ class Spider:
         }
         # 使用无头模式
         # options.add_argument('headless')
+        # desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
+        # desired_capabilities["pageLoadStrategy"] = "none"  # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
+        prefs = {"profile.managed_default_content_settings.images": 1}  # 1 加载图片 2不加载图片,加快访问速度
+        options.add_experimental_option("prefs", prefs)
+        # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
+        options.add_experimental_option('excludeSwitches', ['enable-automation'])
         self.driver = webdriver.Chrome(chrome_options=options, desired_capabilities=desired_capabilities)
-        self.wait = WebDriverWait(self.driver, 15, 1)  # 设置隐式等待时间
+        self.wait = WebDriverWait(self.driver, 60, 1)  # 设置隐式等待时间
         self.driver.maximize_window()  # 窗口最大化
+
+    def login(self):
+        url = 'https://www.toptoon.net/#contents_80268'
+        self.driver.get(url)
+        # 获取登录前cookies
+        for ck in self.driver.get_cookies():
+            print(ck)
+        # 登录
+        input('123:')
+        # 获取登录后cookies
+        for ck in self.driver.get_cookies():
+            print(ck)
+        # driver请求添加cookie参数
 
     def read_url(self):
         """
@@ -55,6 +76,8 @@ class Spider:
         # url = 'https://www.toptoon.net/#contents_80268,7421'
         self.driver.get(url)
         response = self.driver.page_source
+        print(response)
+        return
         tree = etree.HTML(response)
         div = tree.xpath('//*[@id="viewer_data"]/@src')[0]
         _url = 'https://www.toptoon.net/' + div
@@ -108,6 +131,7 @@ class Spider:
     def run(self):
         for url in self.read_url():
             _url = self.get_extract_all_url(url)
+            return
             print(url + '图片下载中...')
             id, url_list = self.get_image_url(_url)
             self.get_image(id, url_list)
@@ -115,7 +139,8 @@ class Spider:
 
 if __name__ == '__main__':
     spider = Spider()
-    spider.run()
+    # spider.run()
+    spider.login()
 
 
 # https://www.toptoon.net/#contents_80755
