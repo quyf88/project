@@ -46,6 +46,9 @@ class Spider:
         self.wait = WebDriverWait(self.driver, 40, 1)  # 设置隐式等待时间
         self.driver.maximize_window()  # 窗口最大化
 
+        self.path_name = None
+        self.num = None
+
     def login(self):
         count = 1
         while True:
@@ -115,8 +118,10 @@ class Spider:
         # 写入文件
         path = 'image/' + str(article_name)
         path_name = path + '/' + article_name + '.txt'
+        self.path_name = path + '/' + article_name
         if not os.path.exists(path):
             os.mkdir(path)
+            self.num = int(total)
             print('{}：首次获取 共：{} 条 下载图片中...'.format(article_name, total))
         if os.path.exists(path_name):
             with open(path_name, 'r', encoding='utf-8')as f:
@@ -126,8 +131,9 @@ class Spider:
             if content[2] == total:
                 print('没有更新')
                 return False
-            num = int(total) - int(content[2])
-            print('{}：数据更新 {} 条 下载图片中...'.format(article_name, num))
+            self.num = int(total) - int(content[2])
+            print('{}：数据更新 {} 条 下载图片中...'.format(article_name, self.num))
+
         with open(path_name, 'w+', encoding='utf-8') as f:
             for i in data:
                 f.write(i)
@@ -144,29 +150,36 @@ class Spider:
         date = datetime.datetime.now().strftime('%Y-%m-%d')
         filename = date + '更新记录.txt'
         with open(filename, 'a+', encoding='utf-8') as f:
-            print(article_name, f.readlines())
+            f.seek(0)
+            print(article_name, f.read())
             if article_name not in f.readlines():
                 f.write(article_name)
                 f.write('\n')
 
-    def chapter_details(self, url):
+    def chapter_details(self):
         """
         获取章节编号拼接详情页面url
         :return: 详情url
         """
         details = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="page"]/table[2]/tbody/tr/td/div/table/tbody/tr/td/table/tbody/tr/td/table[2]/tbody/tr/td[1]/div/div')))
         details_url = []
-        for i in range(1, len(details)):
+        for i in range(1, self.num+1):
             # 获取章节标签源码
             html = details[i].get_attribute('innerHTML')
+            # print(html)
             # 提取章节ID 拼接详情url
             id = re.findall(r'episode_click(.*?),', html, re.S | re.M)
+            # 提取章节
+            chapter = re.findall(r'第(.*?)話', html)
+            # 提取金额
+            coupon = re.findall(r'&nbsp;(.*?)&nbsp;</span>', html)
             if not id:
                 continue
             id = ''.join(re.findall(r'(\d)', id[0]))
-            print(id)
-            url = url + ',' + str(id)
+
+            url = 'https://www.toptoon.net/comic/episode_view?episode_idx=' + str(id)
             details_url.append(url)
+        print(details_url)
         return details_url
 
     @retry(stop_max_attempt_number=3)
@@ -194,13 +207,11 @@ class Spider:
         :return: 文件夹名称,图片url列表
         """
         # 效验IP
-        res = requests.get("http://httpbin.org/ip", headers=self.headers, proxies=self.proxies, verify=False, timeout=10).json()
-        ip = str(res['origin']).split(',')
-        print('代理添加成功IP：{}'.format(ip))
+        # res = requests.get("http://httpbin.org/ip", headers=self.headers, proxies=self.proxies, verify=False, timeout=10).json()
+        # ip = str(res['origin']).split(',')
+        # print('代理添加成功IP：{}'.format(ip))
         # url = 'https://toptoon.net/comic/episode_view?episode_idx=27356'
         # 提取项目文件夹名称
-        id = re.findall(r'episode_idx=(.*?)$', url)[0]
-
         response = requests.get(url, headers=self.headers, proxies=self.proxies, timeout=10).text
         result = etree.HTML(response)
         image_url_list = result.xpath('//*[@id="viewer_body"]/div/div[1]/div')
@@ -209,36 +220,40 @@ class Spider:
             image_url = i.xpath('./img/@src')[0]
             url_list.append(image_url)
 
-        return id, url_list
+        return url_list
 
     @retry(stop_max_attempt_number=3)
-    def get_image(self, id, url_list):
+    def get_image(self, url_list):
         """
         下载图片
         :return:
         """
-        path = 'image/' + str(id)
-
-        if not os.path.exists(path):
-            os.mkdir(path)
         for i in range(len(url_list)):
             url = 'http:' + url_list[i]
             # print(url)
             response = requests.get(url, headers=self.headers, proxies=self.proxies, timeout=10)
             # print(response.status_code)
-            image_path = path + '/' + str(i) + '.png'
+            image_path = self.path_name + '/' + str(i) + '.png'
             with open(image_path, 'wb') as image_content:
                 image_content.write(response.content)
                 print('图片 {} 保存成功!'.format(i+1))
 
     def run(self):
-        self.login()
+        self.login()  # 登录
+        # 配置文件读取url
         for url in self.read_url():
+            # 获取漫画详细信息
             data = self.get_image_page(url)
+            # 判断是否更新
             if not self.validation(data):
                 continue
-            details_url = self.chapter_details(url)
-
+            # 提取更新章节url
+            details_url = self.chapter_details()
+            for new_url in details_url:
+                # 获取图片url
+                url_list = self.get_image_url(new_url)
+                # 下载图片
+                self.get_image(url_list)
 
 
 
