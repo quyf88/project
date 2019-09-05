@@ -1,0 +1,4 @@
+pillow==6.1.0
+PyQt5==5.12.2
+requests==2.22.0
+fake_useragent==0.1.11
