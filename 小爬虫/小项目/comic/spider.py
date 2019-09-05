@@ -6,6 +6,7 @@
 import re
 import os
 import time
+import datetime
 import requests
 from lxml import etree
 from retrying import retry
@@ -42,7 +43,7 @@ class Spider:
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
         self.driver = webdriver.Chrome(chrome_options=options, desired_capabilities=desired_capabilities)
-        self.wait = WebDriverWait(self.driver, 60, 1)  # 设置隐式等待时间
+        self.wait = WebDriverWait(self.driver, 40, 1)  # 设置隐式等待时间
         self.driver.maximize_window()  # 窗口最大化
 
     def login(self):
@@ -71,7 +72,6 @@ class Spider:
                 count += 1
                 self.driver.quit()
                 continue
-
             print('登录成功')
             return
 
@@ -92,7 +92,8 @@ class Spider:
         """
         self.driver.get(url)
         # 总章数
-        total = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="page"]/table[2]/tbody/tr/td/table/tbody/tr/td/table[2]/tbody/tr/td[1]/div/div')))
+        total = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="page"]/table[2]/tbody/tr/td/div/table/tbody/tr/td/table/tbody/tr/td/table[2]/tbody/tr/td[1]/div/div')))
+        print(len(total))
         total = str(len(total) - 1)
         print('总章数：{}'.format(total))
         # 文章名
@@ -116,6 +117,7 @@ class Spider:
         path_name = path + '/' + article_name + '.txt'
         if not os.path.exists(path):
             os.mkdir(path)
+            print('{}：首次获取 共：{} 条 下载图片中...'.format(article_name, total))
         if os.path.exists(path_name):
             with open(path_name, 'r', encoding='utf-8')as f:
                 content = f.read().split(',')
@@ -130,14 +132,42 @@ class Spider:
             for i in data:
                 f.write(i)
                 f.write(',')
+        # 写入更新记录
+        self.update_record(article_name)
         return True
 
-    def update_record(self):
+    def update_record(self, article_name):
         """
         更新记录
         :return:
         """
+        date = datetime.datetime.now().strftime('%Y-%m-%d')
+        filename = date + '更新记录.txt'
+        with open(filename, 'a+', encoding='utf-8') as f:
+            print(article_name, f.readlines())
+            if article_name not in f.readlines():
+                f.write(article_name)
+                f.write('\n')
 
+    def chapter_details(self, url):
+        """
+        获取章节编号拼接详情页面url
+        :return: 详情url
+        """
+        details = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="page"]/table[2]/tbody/tr/td/div/table/tbody/tr/td/table/tbody/tr/td/table[2]/tbody/tr/td[1]/div/div')))
+        details_url = []
+        for i in range(1, len(details)):
+            # 获取章节标签源码
+            html = details[i].get_attribute('innerHTML')
+            # 提取章节ID 拼接详情url
+            id = re.findall(r'episode_click(.*?),', html, re.S | re.M)
+            if not id:
+                continue
+            id = ''.join(re.findall(r'(\d)', id[0]))
+            print(id)
+            url = url + ',' + str(id)
+            details_url.append(url)
+        return details_url
 
     @retry(stop_max_attempt_number=3)
     def get_extract_all_url(self, url):
@@ -207,6 +237,9 @@ class Spider:
             data = self.get_image_page(url)
             if not self.validation(data):
                 continue
+            details_url = self.chapter_details(url)
+
+
 
 
 if __name__ == '__main__':
