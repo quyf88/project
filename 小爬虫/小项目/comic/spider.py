@@ -341,6 +341,8 @@ class Spider:
                 print(content[1], '图片下载完成...')
                 print('*'*50, '\n')
 
+        self.driver.quit()
+        print('End of program execution')
 
 if __name__ == '__main__':
     spider = Spider()
