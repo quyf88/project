@@ -22,6 +22,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 class Spider:
     def __init__(self):
         self.headers = {'user-agent': str(UserAgent().random),
+                        'cookie': 'user_key=074763ddf768fd23112dac389cd5b827_1567324072; auto_login=; _fbp=fb.1.1567608952522.1674628427; language_viewer=tw; contents_id=80697; redirect=; sns_redirect=; net_session=M9FF2gHrylFUSS9NK%2BtYRwn81bbTnsKEVUw4t8NIOGQWXlhWTGbrqm7B5GZpbV3ai9oZLV1WQmGov5SYlPbt%2BF6BCd8SW5U6hdVSd%2Fcu6oxp5vJH0vcci4KIvwjEG0WIajmC0H%2B2HxDjBhTXU46M188eVS1O8DReAMrMQi7roP43gCJe2lJD9dc%2Bo5gO2xdpNXltYwe3EWJPauJQ52fgt4lCQjzGm1MOoXpeWhTxIQGPHI4xXK0sEYRt9pfD938wrI7ZiCdd6qQr6XsGkEK0DtVNUcHZS2piqJRNe%2Bf%2BbvIVMDlSKLd5GwzDfqOBxRZIdPM9E2G7vWUeU4RvyJoGJqZ9NR5qOz37xIxM9iV0blZ62L9bbDTdSZgibfLW4nK9zMs5BPrEnGgw%2F6tilHle%2BItmW0AHqgRMPV9ul0YWqWFUE5xyci8buh357ZYftpDxceO5HYuDHYo1L423i9EMykmroChT56TkF1Fm4TTydJJQadsQLJDRXxQEhPQAwBVn896dxXoaST5qQtBMI%2F%2Bx94MLmDJGx19bIuJcFMpdaCA%3D8f536d6fc43b0504c24b8bfea14c2f217a9d5233; save_id=%24dspwb20190808%40outlook.com; auto_key=36c56e3f130c2410299010b3d8f31f68; social_group=; language=tw; adult_check=1; auth_key=eff065cff73e8ecfa319e6471b923665; UTC=0; private_mode=error; giftbox_today_access=1; _ga=GA1.2.260280443.1567608951; _gid=GA1.2.1593371888.1567608951; contents=80697; user_idx=6396591; p_id=; ci_cookie=a51b24164720f4c769983ade59a6a89f; view_count=7; cdn_service2=; cdn_speed2='
                         }
         self.proxies = {
             "http": "http://127.0.0.1:1080",
@@ -49,12 +50,12 @@ class Spider:
         self.comic_path = None
         # 更新的章节数
         self.num = None
-        # 章节路径
+        # 漫画章节路径
         self.chapter_path = None
 
     def login(self):
         count = 1
-        print('*'*20, '账号登录中', '*'*20)
+        print('*'*10, '账号登录', '*'*10)
         while True:
             url = 'https://www.toptoon.net'
             self.driver.get(url)
@@ -63,11 +64,15 @@ class Spider:
                 continue
             login.click()
             # 账号密码
+            print('输入账号')
             user_id = self.wait.until(EC.presence_of_element_located((By.ID, 'user_id')))
             user_id.send_keys('dspwb20190808@outlook.com')
+            print('输入密码')
             user_pw = self.driver.find_element_by_id('user_pw')
             user_pw.send_keys('Ddqqw333e123@#!!U')
+            time.sleep(1)
             self.driver.find_element_by_xpath('//*[@id="alert_data"]/div[6]/span').click()
+            print('账号登录中...')
             if count > 3:
                 print('账号登录失败,联系开发者!')
                 self.driver.quit()
@@ -166,8 +171,7 @@ class Spider:
         details = self.driver.find_elements_by_css_selector('.filtr-item')
         # 翻转列表
         details = list(reversed(details))
-        details_url = []
-        for i in range(self.num+1):
+        for i in range(self.num):
             # 获取章节标签源码
             html = details[i].get_attribute('innerHTML')
             # print(html)
@@ -175,17 +179,15 @@ class Spider:
             # 提取金额
             coupon = re.findall(r'&nbsp;(.*?)&nbsp;</span>', html)
             print(coupon)
+            # 滑动滚动条到某个指定的元素
+            js4 = "arguments[0].scrollIntoView();"
+            # 将下拉滑动条滑动到当前div区域
+            self.driver.execute_script(js4, details[i])
             if ('免費' not in coupon) and ('收藏中' not in coupon):
-                # 滑动滚动条到某个指定的元素
-                js4 = "arguments[0].scrollIntoView();"
-                # 将下拉滑动条滑动到当前div区域
-                self.driver.execute_script(js4, details[i])
-
                 # 购买章节
                 if not self.buy_comics(details[i]):
                     print('当前章节购买失败!')
                     continue
-
             # 提取章节ID 拼接详情url
             id = re.findall(r'episode_click(.*?),', html, re.S | re.M)
             if not id:
@@ -194,13 +196,23 @@ class Spider:
             # 第几章
             chapter = re.findall(r'第(.*?)話', html)
             print('第{}話'.format(chapter[0]))
-            if chapter:
-                self.chapter_path = self.comic_path + '/' + '第' + str(chapter[0]) + '話'
-                print(self.chapter_path)
+
             url = 'https://www.toptoon.net/comic/episode_view?episode_idx=' + str(id)
-            details_url.append(url)
-        print(details_url)
-        return details_url
+            self.store_url([url, '第' + str(chapter[0]) + '話'])
+            print(url, '第' + str(chapter[0]) + '話')
+        # print(details_url)
+        # return details_url
+
+    def store_url(self, data):
+        """
+        存储当前漫画章节url和章节名
+        :return:
+        """
+        with open(self.comic_path + '/url.txt', 'a+', encoding='UTF-8') as f:
+            for i in data:
+                f.write(i)
+                f.write(',')
+            f.write('\n')
 
     def buy_comics(self, detail):
         """
@@ -210,11 +222,23 @@ class Spider:
         """
         count = 1
         while True:
+            # 打印当前页面iframe
+            print(self.driver.window_handles)
+            # 获取当前窗口句柄
+            print(self.driver.current_window_handle)
             # 点击关闭
+            time.sleep(5)
             close = self.driver.find_elements_by_css_selector('#close')
+            print('关闭按钮：{}'.format(close))
             if close:
                 close[0].click()
             # 点击弹出购买窗口
+            # 滑动滚动条到某个指定的元素
+            print(detail)
+            js4 = "arguments[0].scrollIntoView();"
+            # 将下拉滑动条滑动到当前div区域
+            self.driver.execute_script(js4, detail)
+
             detail.click()
             # 判断窗口是否弹出
             buys = WebDriverWait(self.driver, 10, 1, AttributeError).until(
@@ -226,35 +250,23 @@ class Spider:
                 count += 1
                 continue
             # 点击购买当前章节
-            buys[0].click()
+            if len(buys) < 1:
+                buys[0].click()
+            buys[1].click()
             # 确认购买
-            enter = self.driver.find_element_by_css_selector('#p_btn_1')
-            print(enter.text)
-            if enter.text == '確認':
-                enter.click()
-                return True
+            enter = self.driver.find_element_by_css_selector('#p_btn_2').click()
+            print('全部购买完成!')
+            self.driver.refresh()
+            return True
+            # print(enter.text)
+            # if enter.text == '確認':
+            #     enter.click()
+            #     return True
 
-    @retry(stop_max_attempt_number=3)
-    # def get_extract_all_url(self, url):
-    #     """
-    #     提取图片真实url
-    #     :return:
-    #     """
-    #     print('提取详情url...')
-    #     # url = 'https://www.toptoon.net/#contents_80268,7421'
-    #     self.driver.get(url)
-    #     response = self.driver.page_source
-    #     print(response)
-    #     return
-    #     tree = etree.HTML(response)
-    #     div = tree.xpath('//*[@id="viewer_data"]/@src')[0]
-    #     _url = 'https://www.toptoon.net/' + div
-    #     print('成功提取详情url:{}'.format(div))
-    #     return _url
-    @retry(stop_max_attempt_number=3)
-    def get_image_url(self, url):
+    @retry(stop_max_attempt_number=5)
+    def get_image_url(self, content):
         """
-        获取图片URL
+        根据漫画章节url地址 获取图片URL地址列表 收费章节需添加cookie 才可请求成功
         :return: 文件夹名称,图片url列表
         """
         # 效验IP
@@ -263,29 +275,46 @@ class Spider:
         # print('代理添加成功IP：{}'.format(ip))
         # url = 'https://toptoon.net/comic/episode_view?episode_idx=27356'
         # 提取项目文件夹名称
-        response = requests.get(url, headers=self.headers, proxies=self.proxies, timeout=10).text
+        # response = requests.get(url, headers=self.headers, proxies=self.proxies, timeout=10).text
+
+        # 请求章节页面返回页面源码
+        print('提取详情图片url...')
+        response = requests.get(content[0], headers=self.headers, timeout=15).text
+        # XPATH 定位 图片地址
         result = etree.HTML(response)
         image_url_list = result.xpath('//*[@id="viewer_body"]/div/div[1]/div')
         url_list = []
         for i in image_url_list:
             image_url = i.xpath('./img/@src')[0]
             url_list.append(image_url)
+            # print('成功提取详情url:{}'.format(image_url))
+        self.save_details_url(url_list, content[1])
         return url_list
 
-    @retry(stop_max_attempt_number=3)
-    def get_image(self, url_list):
+    def save_details_url(self, data, chapter):
         """
-        下载图片
+        保存图片详情url
         :return:
         """
-        if not os.path.exists(self.comic_path):
-            os.mkdir(self.comic_path)
+        self.chapter_path = self.comic_path + '/' + chapter
+        if not os.path.exists(self.chapter_path):
+            os.mkdir(self.chapter_path)
+        with open(self.chapter_path + '/url.txt', 'a+', encoding='UTF-8') as f:
+            for i in data:
+                f.write(i)
+                f.write('\n')
+
+    @retry(stop_max_attempt_number=5)
+    def get_image(self, url_list):
+        """
+        根据图片真实url地址下载图片 不用添加cooike 容易请求出错需多重试几次，或添加代理
+        :return:
+        """
         for i in range(len(url_list)):
             url = 'http:' + url_list[i]
-            # print(url)
-            response = requests.get(url, headers=self.headers, proxies=self.proxies, timeout=10)
+            response = requests.get(url, headers=self.headers, timeout=15)
             # print(response.status_code)
-            image_path = self.comic_path + '/' + str(i) + '.png'
+            image_path = self.chapter_path + '/' + str(i) + '.png'
             with open(image_path, 'wb') as image_content:
                 image_content.write(response.content)
                 print('图片 {} 保存成功!'.format(i+1))
@@ -300,20 +329,22 @@ class Spider:
             if not self.validation(data):
                 continue
             # 提取更新章节url
-            details_url = self.chapter_details()
-            for new_url in details_url:
+            self.chapter_details()
+            with open(self.comic_path + '/url.txt', 'r', encoding='UTF-8') as f:
+                contents = [i.split(',') for i in f.readlines()]
+            for content in contents:
                 # 获取图片url
-                url_list = self.get_image_url(new_url)
+                url_list = self.get_image_url(content)
+                print(content[1], '图片开始下载 共 {} 张...'.format(url_list))
                 # 下载图片
                 self.get_image(url_list)
-
+                print(content[1], '图片下载完成...')
+                print('*'*50, '\n')
 
 
 if __name__ == '__main__':
     spider = Spider()
     spider.run()
-
-
 
 # https://www.toptoon.net/#contents_80755
 # dspwb20190808@outlook.com
