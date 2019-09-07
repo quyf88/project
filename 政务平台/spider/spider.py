@@ -3,6 +3,7 @@
 # 文件    ：spider.py
 # IED    ：PyCharm
 # 创建时间 ：2019/8/10 14:07
+# 更新记录 登录页面改版
 import os
 import sys
 import time
@@ -62,40 +63,42 @@ class Spider:
         count = 1
         while True:
             print('**********账号登录中**********')
-            url = 'http://tyrz.gdbs.gov.cn/am/login/initAuth.do?gotoUrl=http%3A%2F%2Ftyrz.gdbs.gov.cn%2Fam%2Foauth2%2Fauthorize%3Fclient_id%3Dszjxgcxt%26service%3DinitService%26scope%3Dall%26redirect_uri%3Dhttps%253A%252F%252Famr.sz.gov.cn%252Fpsout%252Fjsp%252Fgcloud%252Fpubservice%252Fuserstsso%252Fgodeal.jsp%26response_type%3Dcode'
+            url = 'https://amr.sz.gov.cn/aicmerout/jsp/gcloud/giapout/industry/aicmer/processpage/step_one.jsp?ywType=30'
             self.driver.get(url)
+            # 点击登录
+            self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.btn-primary:nth-child(1)'))).click()
             # 判断弹窗提示
             alert = self.driver.find_elements_by_xpath('//div[@id="alert"]/div/p[2]/a')
-            print(alert[0].is_displayed())
+            # print(alert[0].is_displayed())
             if alert:
                 alert[0].click()
 
-            username = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#loginName')))
+            username = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.gd-form-item-required:nth-child(1) input')))
             username.clear()
             username.send_keys('wyn16888')
-            password = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#loginPwd')))
+            password = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.gd-input-password input')))
             password.clear()
-            password.send_keys('wyn16888')
+            password.send_keys('Wyn16888')
             self.get_code_image(True)
-            code = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#tempValidateCode')))
+            code = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.account_verifying input')))
             spot_code = self.spot_code()
             print('验证码：{}'.format(spot_code))
             code.clear()
             code.send_keys(spot_code)
-
-            enter = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#userLoginBtn')))
-            enter.click()
+            enter = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.gd-btn-primary')))
+            enter.send_keys(Keys.ENTER)
 
             time.sleep(2)
             try:
-                self.driver.find_element_by_xpath('//*[(@id="tempValiCode_msg")]')
-                print('验证码输入错误：重试')
-                self.spot_code(just_flag=True)
-                if count > 2:
-                    print('登录失败，联系开发者！！！')
-                    exit()
-                count += 1
-                continue
+                prompt = self.driver.find_element_by_xpath('/html/body/div[2]/div[2]/div/div').text
+                if prompt == '图形验证码错误':
+                    print('验证码输入错误：重试')
+                    self.spot_code(just_flag=True)
+                    if count > 2:
+                        print('登录失败，联系开发者！！！')
+                        exit()
+                    count += 1
+                    continue
             except:
                 print('登录成功')
                 break
@@ -113,14 +116,18 @@ class Spider:
         self.driver.save_screenshot('./code/button.png')
         if login:
             # 登录页面 定位需要截图的元素
-            element = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#codeIm')))
+            # element = self.wait.until(EC.presence_of_element_located((By.XPATH, '//img')))
             # print(element.location)  # 打印元素坐标
             # print(element.size)  # 打印元素大小
             # 构造元素坐标
-            left = element.location['x']
-            top = element.location['y']
-            right = element.location['x'] + element.size['width']
-            bottom = element.location['y'] + element.size['height']
+            # left = element.location['x']
+            # top = element.location['y']
+            # right = element.location['x'] + element.size['width']
+            # bottom = element.location['y'] + element.size['height']
+            left = 1025
+            top = 355
+            right = 1175
+            bottom = 405
         else:
             # 查询页面
             left = 820
@@ -173,7 +180,7 @@ class Spider:
                 count += 1
                 continue
             # 拷贝验证码图片至新目录
-            shutil.copy('./code/code.png', './codes/{}.png'.format(rsp.pred_rsp.value))
+            # shutil.copy('./code/code.png', './codes/{}.png'.format(rsp.pred_rsp.value))
             self.rsp = rsp
             print(self.rsp.ret_code, self.rsp.request_id)
             return rsp.pred_rsp.value
@@ -417,23 +424,25 @@ class Spider:
 
     @run_time
     def run(self, filename):
-        self.login()
-        print('**********读取数据文件**********')
-        print(filename)
-        datas = self.read_xls(filename=filename)
-        for indexs, pre_name, pre_code, pre_type in datas:
-            print('*' * 20, '第:', indexs, '条数据获取中', '*' * 20)
-            print(indexs, pre_name, pre_code, pre_type)
-            # 获取信息提取手机号
-            self.phone, self.number = self.get_phone(pre_name, pre_code, pre_type)
-            print('{} {} {} 数据写入成功'.format(pre_name, self.phone, self.number))
-            print('*' * 60, '\n')
-
+        try:
+            self.login()
+            print('**********读取数据文件**********')
+            print(filename)
+            datas = self.read_xls(filename=filename)
+            for indexs, pre_name, pre_code, pre_type in datas:
+                print('*' * 20, '第:', indexs, '条数据获取中', '*' * 20)
+                print(indexs, pre_name, pre_code, pre_type)
+                # 获取信息提取手机号
+                self.phone, self.number = self.get_phone(pre_name, pre_code, pre_type)
+                print('{} {} {} 数据写入成功'.format(pre_name, self.phone, self.number))
+                print('*' * 60, '\n')
+        except:
+            self.driver.quit()
         # 查询打码平台余额
         self.spot_code(balances=True)
         # 移动已处理完文件
         shutil.move(filename, '完成/')
-
+        self.driver.quit()
 
 class Monitor:
     def write(self):
@@ -499,15 +508,21 @@ if __name__ == '__main__':
     for i in files:
         filename = i
         count = 1
-        while True:
-            try:
-                spider = Spider()
-                spider.run(filename)
-                break
-            except:
-                monitor.kill()
-                if count >= 50:
-                    print('程序异常退出')
-                    break
-                count += 1
-                continue
+        spider = Spider()
+        spider.run(filename)
+        # while True:
+        #     try:
+        #         spider = Spider()
+        #         spider.run(filename)
+        #         break
+        #     except:
+        #         monitor.kill()
+        #         if count >= 50:
+        #             print('程序异常退出')
+        #             break
+        #         count += 1
+        #         continue
+
+
+# 账号：wyn168168
+# 密码：Wyn168168
