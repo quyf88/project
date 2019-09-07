@@ -288,7 +288,7 @@ class Spider:
                         XuKeXinXi.click()
                         phone, number = self.process_phone(pre_type=5)
                         return phone, number
-                    elif pre_type == '有限责任公司分公司(自然人投资或控股的法人独资)' or pre_type == '其他有限责任公司分公司':
+                    elif pre_type == '有限责任公司分公司(自然人投资或控股的法人独资)' or pre_type == '其他有限责任公司分公司' or pre_type == '有限责任公司分公司（自然人独资）':
                         FZRBG = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="FZRBG"]/div')))
                         FZRBG.click()
                         LSQYBG = self.driver.find_element_by_xpath('//*[@id="LSQYBG"]/div')
@@ -436,13 +436,14 @@ class Spider:
                 self.phone, self.number = self.get_phone(pre_name, pre_code, pre_type)
                 print('{} {} {} 数据写入成功'.format(pre_name, self.phone, self.number))
                 print('*' * 60, '\n')
+            # 查询打码平台余额
+            self.spot_code(balances=True)
+            # 移动已处理完文件
+            shutil.move(filename, '完成/')
+            self.driver.quit()
         except:
             self.driver.quit()
-        # 查询打码平台余额
-        self.spot_code(balances=True)
-        # 移动已处理完文件
-        shutil.move(filename, '完成/')
-        self.driver.quit()
+
 
 class Monitor:
     def write(self):
