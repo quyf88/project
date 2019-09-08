@@ -20,8 +20,8 @@ from config import res
 class CrawlWindow(QWidget):
     def __init__(self):
         super(CrawlWindow, self).__init__()
-        self.resize(500, 500)
-        self.setWindowTitle('toptoon漫画更新监测')
+        self.resize(700, 700)
+        self.setWindowTitle('av01视频下载')
         self.setWindowIcon(QIcon(':reson/maoyan.ico'))
 
         # 初始化启动按钮
@@ -59,7 +59,7 @@ class CrawlWindow(QWidget):
     def table_init(self):
         """表格控件 配置"""
         self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(['漫画名', '更新章节', 'URL地址'])
+        self.table.setHorizontalHeaderLabels(['视频名', '存储路径', 'URL地址'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     def set_log_init(self):
@@ -136,7 +136,7 @@ class MyThread(QThread):
                                  bufsize=0)
 
             while r.poll() is None:
-                line = str(r.stdout.readline(), encoding='GBK')  # TODO 打包时改为GBK
+                line = str(r.stdout.readline(), encoding='UTF-8')  # TODO 打包时改为GBK
                 line = line.strip()
                 if line:
                     print(line)
