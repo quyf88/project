@@ -443,6 +443,7 @@ class Spider:
             self.driver.quit()
         except:
             self.driver.quit()
+            raise
 
 
 class Monitor:
