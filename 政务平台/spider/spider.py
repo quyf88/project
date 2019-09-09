@@ -502,28 +502,24 @@ if __name__ == '__main__':
     if monitor.run():
         os._exit(0)
 
-    path = os.getcwd()
-    files = os.listdir(path)
-    files = [i for i in files if '.xlsx' in i if '备份数据' not in i]
-    print(files)
-    for i in files:
-        filename = i
-        count = 1
-        spider = Spider()
-        spider.run(filename)
-        # while True:
-        #     try:
-        #         spider = Spider()
-        #         spider.run(filename)
-        #         break
-        #     except:
-        #         monitor.kill()
-        #         if count >= 50:
-        #             print('程序异常退出')
-        #             break
-        #         count += 1
-        #         continue
-
+    count = 1
+    while True:
+        path = os.getcwd()
+        files = os.listdir(path)
+        files = [i for i in files if '.xlsx' in i if '备份数据' not in i]
+        print(files)
+        for i in files:
+            filename = i
+            try:
+                spider = Spider()
+                spider.run(filename)
+            except:
+                if count >= 3:
+                    monitor.kill()
+                    print('程序异常退出')
+                    os._exit(0)
+                count += 1
+                break
 
 # 账号：wyn168168
 # 密码：Wyn168168
