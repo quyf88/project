@@ -507,6 +507,8 @@ if __name__ == '__main__':
         path = os.getcwd()
         files = os.listdir(path)
         files = [i for i in files if '.xlsx' in i if '备份数据' not in i]
+        if not files:
+            os._exit(0)
         print(files)
         for i in files:
             filename = i
