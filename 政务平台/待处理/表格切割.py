@@ -94,4 +94,4 @@ def separation(share):
 
 if __name__ == '__main__':
     # share 分割表格数据数量
-    separation(share=200)
+    separation(share=500)
