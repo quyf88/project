@@ -3,6 +3,7 @@
 # @Author  : project
 # @File    : GUI.py
 # @Software: PyCharm
+import re
 import os
 import sys
 import ast
@@ -69,7 +70,7 @@ class CrawlWindow(QWidget):
         # 输出至表格控件
         self.worker.result_signal.connect(self.set_table_slot)
         # 调用清屏槽
-        self.worker.start_q.connect(self.set_start_slot)
+        # self.worker.start_q.connect(self.set_start_slot)
 
     def layout_init(self):
         """页面布局"""
@@ -140,6 +141,7 @@ class MyThread(QThread):
                 line = line.strip()
                 if line:
                     print(line)
+                    # self.log_init().info(line)
                     self.log_data(line)
 
             # 判断子进程状态
@@ -157,8 +159,13 @@ class MyThread(QThread):
     def log_data(self, line):
         self.log_signal.emit(line)
         if 'content' in line:
-            content = ast.literal_eval(line)
-            article_name, total, url = content['content']
+            self.log_init().info(line)
+            # content = ast.literal_eval(line)
+            content = re.findall(r'content:(.*?)$', line)[0]
+            self.log_init().info(1)
+            self.log_init().info(content)
+            article_name, total, url = ast.literal_eval(content)
+            self.log_init().info(2)
             self.result_signal.emit(str(article_name), str(total), str(url))
 
     def log_init(self):
