@@ -7,6 +7,7 @@
 import os
 import re
 import time
+import logging
 import datetime
 from lxml import etree
 from retrying import retry
@@ -16,6 +17,7 @@ import urllib.request, urllib.error, requests
 
 class Spider:
     def __init__(self):
+        # self.log = self.log_init()
         self.headers = {'user-agent': str(UserAgent().random),
                         'authority': 'cdn.av01.tv',
                         'method': 'GET',
@@ -31,6 +33,26 @@ class Spider:
             }
         # 视频路径
         self.path = None
+
+    # def log_init(self):
+    #     """日志模块"""
+    #     path = os.path.abspath('.') + r'\log\spider.log'
+    #     formatter = logging.Formatter('%(asctime)s | %(name)-6s | %(levelname)-6s| %(message)s')
+    #     console = logging.StreamHandler()
+    #     console.setLevel(logging.DEBUG)
+    #     fh = logging.FileHandler(path, encoding='utf-8', mode='a+')
+    #     fh.setLevel(logging.DEBUG)
+    #     fh.setFormatter(formatter)
+    #     console.setFormatter(formatter)
+    #     # 如果需要同時需要在終端上輸出，定義一個streamHandler
+    #     # print_handler = logging.StreamHandler()  # 往屏幕上输出
+    #     # print_handler.setFormatter(formatter)  # 设置屏幕上显示的格式
+    #     logger = logging.getLogger("spider")
+    #     # logger.addHandler(print_handler)
+    #     logger.setLevel(logging.DEBUG)
+    #     logger.addHandler(console)
+    #     logger.addHandler(fh)
+    #     return logger
 
     @retry(stop_max_attempt_number=3)
     def get_video_url(self):
@@ -111,7 +133,8 @@ class Spider:
         """
         # os.sep 根据系统自动选择适合的拼接拼接符
         self.path = os.getcwd() + os.sep + 'video' + os.sep + series[0]
-        print(f'视频保存地址：{self.path}')
+        # print(f'视频保存地址：{self.path}')
+        # self.log.info(f'视频保存地址：{self.path}')
         if not os.path.exists(self.path):
             os.mkdir(self.path)
 
@@ -126,16 +149,17 @@ class Spider:
                 for k in i:
                     f.write(k)
                 f.write('\n')
-            print('视频 {} 基本信息保存成功!'.format(series[0]))
+            # print('视频 {} 基本信息保存成功!'.format(series[0]))
+            # self.log.info('视频 {} 基本信息保存成功!'.format(series[0]))
 
     def get_m3u8(self, url):
         """
         获取视频TS流下载地址
         :return:
         """
-        # res = requests.get("http://httpbin.org/ip", headers=self.headers, proxies=self.proxies, verify=False, timeout=10).json()
-        # ip = str(res['origin']).split(',')
-        # print(ip)
+        res = requests.get("http://httpbin.org/ip", headers=self.headers, proxies=self.proxies, verify=False, timeout=10).json()
+        ip = str(res['origin']).split(',')
+        print(ip)
         # url = 'https://cdn.av01.tv/v2/20190423_2/ssni00452/content/index4500-v1.m3u8?hdnea=ip=193.38.139.232~st=1567914459~exp=1568000859~acl=/v2/20190423_2/ssni00452/content/*~hmac=49a05a8ea1dd09464a2e8dcac677fb371d204a0042038f9dabdfe57e5349d270'
         response = requests.get(url, headers=self.headers, timeout=30)
         with open('config/m3u8_url.txt', 'w') as m3u8_content:
@@ -148,6 +172,7 @@ class Spider:
         for line in _urls.readlines():
             if '.ts' in line:
                 # movies_url.append('https://cdn.av01.tv/v2/20190423_2/ssni00452/content/' + line)
+                # 根据具体视频修改
                 movies_url.append('https://cdn.av01.tv/v2/20190529_2/miaa00079/content/' + line)
             else:
                 continue
@@ -164,24 +189,29 @@ class Spider:
         num = re.findall(r'file4500-(.*?)-v1', video_url)[0]
         start = datetime.datetime.now().replace(microsecond=0)
         ts_path = self.path + os.sep + num + '.ts'
-        urllib.request.urlretrieve(video_url, filename=ts_path)
-        end = datetime.datetime.now().replace(microsecond=0)
-        print("{} 下载完成 耗时：{}".format(num + '.ts', end - start))
-        # while True:
-        #     try:
-        #         # 根据TS流地址保存视频至指定文件
-        #         urllib.request.urlretrieve(video_url, filename=ts_path)
-        #         end = datetime.datetime.now().replace(microsecond=0)
-        #         print("{} 下载完成 耗时：{}".format(num + '.ts', end - start))
-        #         break
-        #     except urllib.error.URLError as e:
-        #         # hasttr(e, 'code')，判断e 是否有.code属性，因为不确定是不是HTTPError错误，URLError包含HTTPError，但是HTTPError以外的错误是不返回错误码(状态码)的
-        #         if hasattr(e, 'code'):
-        #             print(e.code)  # 打印服务器返回的错误码（状态码），如403，404,501之类的
-        #         elif hasattr(e, 'reason'):
-        #             print(e.reason)  # 打印错误原因
-        #         print(e)
-        #         continue
+        # urllib.request.urlretrieve(video_url, filename=ts_path)
+        # end = datetime.datetime.now().replace(microsecond=0)
+        # print("{} 下载完成 耗时：{}".format(num + '.ts', end - start))
+        print(video_url)
+        while True:
+            try:
+                # 根据TS流地址保存视频至指定文件
+                urllib.request.urlretrieve(video_url, filename=ts_path)
+                end = datetime.datetime.now().replace(microsecond=0)
+                print("{} 下载完成 耗时：{}".format(num + '.ts', end - start))
+                # self.log.info("{} 下载完成 耗时：{}".format(num + '.ts', end - start))
+                break
+            except urllib.error.URLError as e:
+                # hasttr(e, 'code')，判断e 是否有.code属性，因为不确定是不是HTTPError错误，URLError包含HTTPError，但是HTTPError以外的错误是不返回错误码(状态码)的
+                if hasattr(e, 'code'):
+                    print(e.code)  # 打印服务器返回的错误码（状态码），如403，404,501之类的
+                    # self.log.info(e.code)  # 打印服务器返回的错误码（状态码），如403，404,501之类的
+                elif hasattr(e, 'reason'):
+                    print(e.reason)  # 打印错误原因
+                    # self.log.info(e.reason)  # 打印错误原因
+                print(e)
+                # self.log.info(e)
+                continue
 
     def ts_to_pm4(self, series):
         """
@@ -190,21 +220,27 @@ class Spider:
         """
         # os.popen 调用系统命令 注意文件路径
         path = self.path + '\*.ts'
+        print(f'path:{path}')
         new_path = self.path + os.sep + series[0] + '.mp4'
         res = os.popen(f'copy/b {path} {new_path}')
         print(res.read())
+        # self.log.info(res.read())
         print(f'{series[0]} 视频合并成功!')
+        # self.log.info(f'{series[0]} 视频合并成功!')
 
     def run(self, url, m3u8_url):
         print('*'*20, '程序启动', '*'*20)
         count = 1
         # 读取配置文件url
         print('读取配置文件,读取URL')
+        # self.log.info('读取配置文件,读取URL')
         # for url in self.read_url():
         # 获取视频摘要信息
         content, series = self.get_summary(url)
         print(content, series)
+        # self.log.info(f'{content}, {series}')
         print(f'----{series[0]} 视频下载中----')
+        # self.log.info(f'----{series[0]} 视频下载中----')
         # 构造视频保存路径
         self.video_path(series)
         # 保存视频基本信息
@@ -214,10 +250,11 @@ class Spider:
         # 视频下载
         for video_url in self.get_url():
             self.get_video(video_url)
-            # count += 1
-            # if count > 5:
-            #     break
+            count += 1
+            if count > 10:
+                break
         print('TS文件下载完成,合并中...')
+        # self.log.info('TS文件下载完成,合并中...')
         time.sleep(3)
         # TS合并文件为MP4
         self.ts_to_pm4(series)
@@ -226,12 +263,13 @@ class Spider:
         print('*' * 50, '\n')
         # os._exit(0)
         print('End of program execution')
+        # self.log.info('End of program execution')
 
 
 if __name__ == '__main__':
     url = 'https://www.av01.tv/video/27581/miaa-079-%E6%B7%B1%E5%A4%9C%E5%8B%A4%E5%8B%99ntr-%E3%83%90%E3%82%A4%E3%83%88%E5%85%88%E3%81%AE%E3%82%B2%E3%82%B9%E5%BA%97%E9%95%B7%E3%81%AB%E6%B7%B1%E5%A4%9C%E3%81%8B%E3%82%89%E6%9C%9D%E3%81%BE%E3%81%A7%E3%83%8F%E3%83%A1%E3%82%89%E3%82%8C%E7%B6%9A%E3%81%91%E3%81%9F%E4%B8%80%E9%83%A8%E5%A7%8B%E7%B5%82-%E7%BE%8E%E8%B0%B7%E6%9C%B1%E9%87%8C'
+    m3u8_url = 'https://cdn.av01.tv/v2/20190529_2/miaa00079/content/index4500-v1.m3u8?hdnea=ip=139.28.235.116~st=1568091395~exp=1568177795~acl=/v2/20190529_2/miaa00079/content/*~hmac=1fcc2008fc9d6a0342f4b0cd0b5ec45075c333648f4dbe30054719bb3ce15c75'
     # m3u8 播放地址
-    m3u8_url = 'https://cdn.av01.tv/v2/20190529_2/miaa00079/content/index4500-v1.m3u8?hdnea=ip=193.38.139.232~st=1567946521~exp=1568032921~acl=/v2/20190529_2/miaa00079/content/*~hmac=15fea577d4a2b3a54a9000246cda46aa7e2defe3452e92baa4151c135823cb12'
     spider = Spider()
     spider.run(url, m3u8_url)
     # spider.get_video_url()
