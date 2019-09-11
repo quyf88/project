@@ -10,14 +10,40 @@
 # print(os.sep)
 
 # import os
-# path="video/MIAA-079/"  #待读取的文件夹
+# print(os.getcwd())
+# path="video/MIAA-079/"
 # path_list=os.listdir(path)
-# path_list=[i for i in path_list if 'mp4' in i]
+# path_list=[i for i in path_list if 'ts' in i]
 # print(path_list)
-# path_list.sort(key= lambda x:int(x[:-4]))
+# # lambda 剔除
+# path_list.sort(key=lambda x: int(x[:-3]))
+# path_list = [path + i for i in path_list]
+# print(path_list)
+# print('+'.join(path_list))
 #
-# for filename in path_list:
-# 	print(os.path.join(path,filename))
+# res = os.popen(f'copy/b {path_list} {"1.mp4"}')
+# print(res.read())
+import subprocess
+import os
+path = os.getcwd() + '/video/MIAA-079/'
+os.chdir(path)
+
+
+r = subprocess.Popen(['python', r'merge.py'],  # 需要执行的文件路径
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT,
+                                 bufsize=0)
+
+while r.poll() is None:
+    line = str(r.stdout.readline(), encoding='UTF-8')  # TODO 打包时改为GBK
+    line = line.strip()
+    if line:
+        print(line)
+
+
+
+
+
 # import wget
 # count=0
 # while count<3: #count的值表示总共要下多少ts文件，要查阅m3u8文件
@@ -28,21 +54,41 @@
 #     except:
 #         continue
 
+# """多进程"""
+# from multiprocessing import Pool
+#
+# # 创建进程池,执行10个任务
+# pool = Pool(10)
+# for i in range(30):
+#     pool.apply_async(run, (i,))
+# pool.close()
+# pool.join()
+import urllib.request, urllib.error, requests
 
 
+# def user_proxy(proxy_addr, url):
+#     import urllib.request
+#     proxy = urllib.request.ProxyHandler({'http:': proxy_addr, 'https:': proxy_addr})
+#     opener = urllib.request.build_opener(proxy)
+#     urllib.request.install_opener(opener)
+#     data = urllib.request.urlopen(url).read().decode('utf-8')
+#     return data
+#
+#
+# proxy_addr = "58.253.154.35:9999"
+# data = user_proxy(proxy_addr, "http://httpbin.org/ip")
+# print(data)
+# print(len(data))
 
 
-import os
-filelist=os.listdir('./')
-for file in filelist:
-    orgName=file
-    file=file.split("_")
-    if len(file[3])<7:
-        for i in range(7-len(file[3])):
-            file[3]="0"+file[3]
-        print(file)
-        filename="_".join(file)
-        print(filename)
-        os.rename(orgName,filename)
-    else:
-        pass
+# import urllib.request
+# url = 'http://httpbin.org/ip'
+# proxies = {'http:': '195.9.162.186:8080'}
+# proxy_support = urllib.request.ProxyHandler(proxies)
+# # 创建opener
+# opener = urllib.request.build_opener(proxy_support)
+# # 安装opener，此后调用urlopen()时都会使用安装过的opener对象
+# urllib.request.install_opener(opener)
+# response = urllib.request.urlopen(url)
+# html = response.read().decode('utf-8')
+# print(html)
