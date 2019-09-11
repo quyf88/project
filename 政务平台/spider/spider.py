@@ -204,7 +204,7 @@ class Spider:
             spot_code = self.spot_code(login=True)
             print('验证码：{}'.format(spot_code))
             code.send_keys(spot_code)
-            # code.send_keys(input('123.py'))
+            # code.send_keys(input('merge.py'))
             enter = self.driver.find_elements_by_css_selector('.btn-primary')[0]
             enter.click()
 
