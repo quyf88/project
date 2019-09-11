@@ -15,7 +15,7 @@ from multiprocessing import Pool
 from fake_useragent import UserAgent
 import urllib.request, urllib.error, requests
 import socket
-socket.setdefaulttimeout(5)  # 设置超时时间
+socket.setdefaulttimeout(10)  # 设置超时时间
 
 
 class Spider:
@@ -176,7 +176,7 @@ class Spider:
             if '.ts' in line:
                 # movies_url.append('https://cdn.av01.tv/v2/20190423_2/ssni00452/content/' + line)
                 # 根据具体视频修改
-                movies_url.append('https://cdn.av01.tv/v2/20190529_2/miaa00079/content/' + line)
+                movies_url.append('https://cdn.av01.tv/v2/20190328b/wanz00575/content/' + line)
             else:
                 continue
         for url in movies_url:
@@ -265,13 +265,13 @@ class Spider:
         self.get_m3u8(m3u8_url)
         # 视频下载
         # 创建进程池,执行20个任务
-        pool = Pool(20)
+        pool = Pool(10)
         for video_url in self.get_url():
             # 启动线程
             pool.apply_async(self.get_video, (video_url,))
-            count += 1
-            if count > 30:
-                break
+            # count += 1
+            # if count > 20:
+            #     break
         pool.close()
         pool.join()
         print('TS文件下载完成,合并中...')
@@ -288,9 +288,14 @@ class Spider:
 
 
 if __name__ == '__main__':
-    url = 'https://www.av01.tv/video/27581/miaa-079-%E6%B7%B1%E5%A4%9C%E5%8B%A4%E5%8B%99ntr-%E3%83%90%E3%82%A4%E3%83%88%E5%85%88%E3%81%AE%E3%82%B2%E3%82%B9%E5%BA%97%E9%95%B7%E3%81%AB%E6%B7%B1%E5%A4%9C%E3%81%8B%E3%82%89%E6%9C%9D%E3%81%BE%E3%81%A7%E3%83%8F%E3%83%A1%E3%82%89%E3%82%8C%E7%B6%9A%E3%81%91%E3%81%9F%E4%B8%80%E9%83%A8%E5%A7%8B%E7%B5%82-%E7%BE%8E%E8%B0%B7%E6%9C%B1%E9%87%8C'
-    m3u8_url = 'https://cdn.av01.tv/v2/20190529_2/miaa00079/content/index4500-v1.m3u8?hdnea=ip=139.28.235.116~st=1568173394~exp=1568259794~acl=/v2/20190529_2/miaa00079/content/*~hmac=13e3b4a2b7f6413984b755e37ce6073905bb1912d10ad53eef0e6d27c23731a6'
+    url = 'https://www.av01.tv/video/26196/wanz-575-%E3%81%84%E3%81%98%E3%82%81%E3%81%A3%E5%A8%98jk%E3%81%AE%E6%9D%AD%E6%89%93%E3%81%A1%E9%A8%8E%E4%B9%97%E4%BD%8D%E4%B8%AD%E5%87%BA%E3%81%97-%E6%A4%8E%E5%90%8D%E3%81%9D%E3%82%89'
+    m3u8_url = 'https://cdn.av01.tv/v2/20190328b/wanz00575/content/index4500-v1.m3u8?hdnea=ip=5.180.77.46~st=1568213501~exp=1568299901~acl=/v2/20190328b/wanz00575/content/*~hmac=949d535d89a58244c9814b916bc71d6acf750cc8e3c446f33316d0e396ffe3e1'
     # m3u8 播放地址
     spider = Spider()
     spider.run(url, m3u8_url)
     # spider.get_video_url()
+
+# 代理
+# https://www.proxydocker.com/zh/buyproxy/
+# adsffqweriifgsfgwer@protonmail.com
+# DFDSq345

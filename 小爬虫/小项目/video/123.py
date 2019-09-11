@@ -25,20 +25,20 @@
 # print(res.read())
 import subprocess
 import os
-path = os.getcwd() + '/video/MIAA-079/'
-os.chdir(path)
-
-
-r = subprocess.Popen(['python', r'merge.py'],  # 需要执行的文件路径
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT,
-                                 bufsize=0)
-
-while r.poll() is None:
-    line = str(r.stdout.readline(), encoding='UTF-8')  # TODO 打包时改为GBK
-    line = line.strip()
-    if line:
-        print(line)
+# path = os.getcwd() + '/video/MIAA-079/'
+# os.chdir(path)
+#
+#
+# r = subprocess.Popen(['python', r'merge.py'],  # 需要执行的文件路径
+#                                  stdout=subprocess.PIPE,
+#                                  stderr=subprocess.STDOUT,
+#                                  bufsize=0)
+#
+# while r.poll() is None:
+#     line = str(r.stdout.readline(), encoding='UTF-8')  # TODO 打包时改为GBK
+#     line = line.strip()
+#     if line:
+#         print(line)
 
 
 
@@ -92,3 +92,18 @@ import urllib.request, urllib.error, requests
 # response = urllib.request.urlopen(url)
 # html = response.read().decode('utf-8')
 # print(html)
+
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:65.0) Gecko/20100101 Firefox/65.0'}
+proxies = {
+    "https": "http://103.111.55.58:3128",
+}
+url = 'https://www.baidu.com/'
+response = requests.get(url, headers=headers, proxies=proxies, timeout=15)
+# status_code 请求返回状态码
+code = response.status_code
+print(code)
+# 查看本机ip，查看代理是否起作用
+res = requests.get("http://httpbin.org/ip", headers=headers, proxies=proxies, verify=False, timeout=3)
+print(res.text)
+
+
