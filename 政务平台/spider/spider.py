@@ -98,7 +98,8 @@ class Spider:
                         print('登录失败，联系开发者！！！')
                         exit()
                     count += 1
-                    continue
+                print('登录成功1')
+                break
             except:
                 print('登录成功')
                 break
@@ -426,9 +427,11 @@ class Spider:
     def run(self, filename):
         try:
             self.login()
+            time.sleep(3)
             print('**********读取数据文件**********')
             print(filename)
             datas = self.read_xls(filename=filename)
+            time.sleep(3)
             for indexs, pre_name, pre_code, pre_type in datas:
                 print('*' * 20, '第:', indexs, '条数据获取中', '*' * 20)
                 print(indexs, pre_name, pre_code, pre_type)
@@ -507,7 +510,7 @@ if __name__ == '__main__':
     while True:
         path = os.getcwd()
         files = os.listdir(path)
-        files = [i for i in files if '.xlsx' in i if '备份数据' not in i]
+        files = [i for i in files if '.xls' in i if '备份数据' not in i]
         if not files:
             os._exit(0)
         print(files)
