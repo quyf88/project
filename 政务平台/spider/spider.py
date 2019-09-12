@@ -371,7 +371,11 @@ class Spider:
         number_img = Image.open('code/number.png')
         # 识别图片
         phone = pytesseract.image_to_string(phone_img)
+        if not phone:
+            phone = '无数据'
         number = pytesseract.image_to_string(number_img)
+        if not number:
+            number = '无数据'
         # print('成功获取手机号：{}'.format(phone))
         # print('成功获取身份证号：{}'.format(number))
         return phone, number

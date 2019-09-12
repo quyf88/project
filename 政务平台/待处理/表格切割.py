@@ -78,7 +78,8 @@ def separation(share):
                 count += 1
 
         # 合并后文件名
-        new_file_name = str(number) + '.xlsx'
+        (name, extension) = os.path.splitext(files[i])  # 提取文件名
+        new_file_name = name + '_' + str(number+1) + '.xlsx'
         # 保存合并后文件
         filename.save(new_file_name)
         print("我已经将文件拆分成1个文件，并命名为{}快打开看看正确不？".format(new_file_name))
