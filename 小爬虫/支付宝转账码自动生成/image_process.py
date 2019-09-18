@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 class Picture:
     def __init__(self):
-        self.text = '陈小丽'
+        self.text = '蛋蛋'
 
     def new_image(self):
         """
