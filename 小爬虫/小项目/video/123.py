@@ -92,18 +92,29 @@ import urllib.request, urllib.error, requests
 # response = urllib.request.urlopen(url)
 # html = response.read().decode('utf-8')
 # print(html)
+#
+# headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:65.0) Gecko/20100101 Firefox/65.0'}
+# proxies = {
+#     "https": "http://103.111.55.58:3128",
+# }
+# url = 'https://www.baidu.com/'
+# response = requests.get(url, headers=headers, proxies=proxies, timeout=15)
+# # status_code 请求返回状态码
+# code = response.status_code
+# print(code)
+# # 查看本机ip，查看代理是否起作用
+# res = requests.get("http://httpbin.org/ip", headers=headers, proxies=proxies, verify=False, timeout=3)
+# print(res.text)
+#
+#
+# a = 'https://cdn.av01.tv/v2/20190911_3/miaa00155/content/index4500-v1.m3u8?hdnea=ip=5.180.77.47~st=1568792746~exp=1568879146~acl=/v2/20190911_3/miaa00155/content/*~hmac=f03bee0bd42efe0d032d526d75e72e8d1fcf032c5286e584995fe648a278912a'
+# import re
+# print(re.findall(r'^(.*?)index', a))
+#
+# from merge import Merge
+#
+# m = Merge()
+# m.path = r'D:\project\小爬虫\小项目\video\video\MIAA-155'
+# m.run()
 
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:65.0) Gecko/20100101 Firefox/65.0'}
-proxies = {
-    "https": "http://103.111.55.58:3128",
-}
-url = 'https://www.baidu.com/'
-response = requests.get(url, headers=headers, proxies=proxies, timeout=15)
-# status_code 请求返回状态码
-code = response.status_code
-print(code)
-# 查看本机ip，查看代理是否起作用
-res = requests.get("http://httpbin.org/ip", headers=headers, proxies=proxies, verify=False, timeout=3)
-print(res.text)
-
-
+os.system('python D:/project/小爬虫/小项目/video/video/MIAA-155/merge.py')

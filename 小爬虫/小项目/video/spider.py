@@ -7,6 +7,7 @@
 import os
 import re
 import time
+import shutil
 import logging
 import datetime
 from lxml import etree
@@ -68,7 +69,7 @@ class Spider:
             print(url)
             response = requests.get(url, headers=self.headers, timeout=30)
             response = response.content.decode('utf-8')
-            result = etree.HTML(response)
+            result = lxml.html.etree.HTML(response)
             url_list = result.xpath('//*[@class="well well-sm "]/a/@href')
             # print(url_list)
             with open('config/url.txt', 'a', encoding='utf-8') as f:
@@ -168,7 +169,9 @@ class Spider:
         with open('config/m3u8_url.txt', 'w') as m3u8_content:
             m3u8_content.write(response.text)
 
-    def get_url(self):
+    def get_url(self, m3u8_url):
+        # 提取请求头
+        headred = re.findall(r'^(.*?)index', m3u8_url)[0]
         # 提取ts视频的url
         movies_url = []
         _urls = open('config/m3u8_url.txt', 'r')
@@ -176,7 +179,7 @@ class Spider:
             if '.ts' in line:
                 # movies_url.append('https://cdn.av01.tv/v2/20190423_2/ssni00452/content/' + line)
                 # 根据具体视频修改
-                movies_url.append('https://cdn.av01.tv/v2/20190328b/wanz00575/content/' + line)
+                movies_url.append(headred + line)
             else:
                 continue
         for url in movies_url:
@@ -266,18 +269,20 @@ class Spider:
         # 视频下载
         # 创建进程池,执行20个任务
         pool = Pool(10)
-        for video_url in self.get_url():
+        for video_url in self.get_url(m3u8_url):
             # 启动线程
             pool.apply_async(self.get_video, (video_url,))
-            # count += 1
-            # if count > 20:
-            #     break
+            count += 1
+            if count > 50:
+                break
         pool.close()
         pool.join()
         print('TS文件下载完成,合并中...')
         # self.log.info('TS文件下载完成,合并中...')
         time.sleep(3)
         # TS合并文件为MP4
+        # 移动合并脚本至下载目录
+        shutil.copy('merge.py', self.path + os.sep + 'merge.py')
         self.ts_to_pm4(series)
         content = {'content': [series[0], self.path, url]}
         # print(content)
@@ -288,8 +293,8 @@ class Spider:
 
 
 if __name__ == '__main__':
-    url = 'https://www.av01.tv/video/26196/wanz-575-%E3%81%84%E3%81%98%E3%82%81%E3%81%A3%E5%A8%98jk%E3%81%AE%E6%9D%AD%E6%89%93%E3%81%A1%E9%A8%8E%E4%B9%97%E4%BD%8D%E4%B8%AD%E5%87%BA%E3%81%97-%E6%A4%8E%E5%90%8D%E3%81%9D%E3%82%89'
-    m3u8_url = 'https://cdn.av01.tv/v2/20190328b/wanz00575/content/index4500-v1.m3u8?hdnea=ip=5.180.77.46~st=1568213501~exp=1568299901~acl=/v2/20190328b/wanz00575/content/*~hmac=949d535d89a58244c9814b916bc71d6acf750cc8e3c446f33316d0e396ffe3e1'
+    url = 'https://www.av01.tv/video/29379/miaa-155-%E9%83%A8%E4%B8%8B%E3%81%AE%E5%BE%A1%E4%B8%96%E8%BE%9E%E3%82%92%E5%A5%BD%E6%84%8F%E3%81%A8%E5%8F%97%E3%81%91%E5%8F%96%E3%81%A3%E3%81%9F-%E3%82%BB%E3%82%AF%E3%83%8F%E3%83%A9%E4%B8%8A%E5%8F%B8%E3%81%AE%E8%83%8C%E4%B8%AD%E3%81%BE%E3%81%A7%E5%B1%8A%E3%81%8F%E3%82%82%E3%81%AE%E5%87%84%E3%81%84%E5%B0%BB%E5%B0%84-%E7%AF%A0%E7%94%B0%E3%82%86%E3%81%86'
+    m3u8_url = 'https://cdn.av01.tv/v2/20190911_3/miaa00155/content/index4500-v1.m3u8?hdnea=ip=5.180.77.47~st=1568792746~exp=1568879146~acl=/v2/20190911_3/miaa00155/content/*~hmac=f03bee0bd42efe0d032d526d75e72e8d1fcf032c5286e584995fe648a278912a'
     # m3u8 播放地址
     spider = Spider()
     spider.run(url, m3u8_url)
