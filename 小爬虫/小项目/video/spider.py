@@ -16,7 +16,7 @@ from multiprocessing import Pool
 from fake_useragent import UserAgent
 import urllib.request, urllib.error, requests
 import socket
-socket.setdefaulttimeout(10)  # 设置超时时间
+socket.setdefaulttimeout(30)  # 设置超时时间
 
 
 class Spider:
@@ -37,6 +37,8 @@ class Spider:
             }
         # 视频路径
         self.path = None
+        # TS文件数量
+        self.movies_url = None
 
     # def log_init(self):
     #     """日志模块"""
@@ -69,12 +71,13 @@ class Spider:
             print(url)
             response = requests.get(url, headers=self.headers, timeout=30)
             response = response.content.decode('utf-8')
-            result = lxml.html.etree.HTML(response)
+            print(response)
+            result = etree.HTML(response)
             url_list = result.xpath('//*[@class="well well-sm "]/a/@href')
             # print(url_list)
             with open('config/url.txt', 'a', encoding='utf-8') as f:
                 for _url in url_list:
-                    _url = 'https://www.av01.tv/' + _url
+                    _url = 'https://www.av01.tv' + _url
                     print(_url)
                     f.write(_url)
                     f.write('\n')
@@ -141,6 +144,12 @@ class Spider:
         # self.log.info(f'视频保存地址：{self.path}')
         if not os.path.exists(self.path):
             os.mkdir(self.path)
+            return
+        files = os.listdir(self.path)
+        print(files)
+        if series[0] + '.mp4' in files:
+            print('当前视频已经下载!')
+            return True
 
     def save_video_info(self, content, series):
         """
@@ -153,7 +162,7 @@ class Spider:
                 for k in i:
                     f.write(k)
                 f.write('\n')
-            # print('视频 {} 基本信息保存成功!'.format(series[0]))
+            print('视频 {} 基本信息保存成功!'.format(series[0]))
             # self.log.info('视频 {} 基本信息保存成功!'.format(series[0]))
 
     def get_m3u8(self, url):
@@ -168,6 +177,7 @@ class Spider:
         response = requests.get(url, headers=self.headers, timeout=30)
         with open('config/m3u8_url.txt', 'w') as m3u8_content:
             m3u8_content.write(response.text)
+        print('成功获取m3u8视频下载URL!')
 
     def get_url(self, m3u8_url):
         # 提取请求头
@@ -182,6 +192,8 @@ class Spider:
                 movies_url.append(headred + line)
             else:
                 continue
+        print(f'共：{len(movies_url)} 个TS文件')
+        self.movies_url = len(movies_url)
         for url in movies_url:
             yield url
 
@@ -236,16 +248,77 @@ class Spider:
 
     def ts_to_pm4(self, series):
         """
-        ts文件合并为MP4
-        :return:
+        合并TS视频文件,输出为MP4
+        os.popen(f'copy/b {files} {new_path}') 合并上限为100个文件
         """
-        # os.popen 调用系统命令 注意文件路径
-        path = self.path + '\*.ts'
-        print(f'path:{path}')
-        new_path = self.path + os.sep + series[0] + '.mp4'
-        res = os.popen(f'copy/b {path} {new_path}')
-        print(res.read())
-        # self.log.info(f'{series[0]} 视频合并成功!')
+        # 读取指定目录下的ts文件列表
+        path_list = os.listdir(self.path)
+        ts_list = [i for i in path_list if 'ts' in i]
+        # 效验是否下载完整
+        if self.movies_url == len(ts_list):
+            print('数据效验成功,已全部下载!')
+        # lambda 剔除
+        # 按照文件名顺序排序(数字)
+        ts_list.sort(key=lambda x: int(x[:-3]))
+        # 拼接ts文件绝对路径,os.sep自适应路径拼接符
+        ts_list = [self.path + os.sep + i for i in ts_list]
+        # 用+把需要合并的ts文件拼接起来
+        files = '+'.join(ts_list)
+        print(len(ts_list))
+        # 判断TS文件数量
+        if len(ts_list) > 100:
+            count = 1
+            for i in range(0, len(ts_list), 100):
+                print(f'i:{i}')
+                # 一次提取400个TS文件用于合并
+                _path = ts_list[i:i + 100]
+                # 用+把需要合并的ts文件拼接起来
+                files = '+'.join(_path)
+                # 合并后小段mp4文件名称
+                new_path = self.path + os.sep + str(count) + '.mp4'
+                # 合并ts视频 为MP4
+                res = os.popen(f'copy/b {files} {new_path}')
+                print(res.read())
+                print(f'{series[0]}_{count} 视频合并成功!')
+                count += 1
+            # 删除ts文件
+            p = self.path + os.sep + '*.ts'
+            os.system(f'del /Q {p}')
+            print(f'{series[0]} TS缓存文件删除成功!')
+
+            # 把小段MP4视频合并为完整视频
+            while True:
+                # 合并为一个MP4文件
+                print('等待缓存文件写入')
+                time.sleep(3)
+                path_list = os.listdir(self.path)
+                mp4_list = [i for i in path_list if 'mp4' in i]
+                mp4_list.sort(key=lambda x: int(x[:-4]))
+                print(mp4_list)
+                if not len(mp4_list):
+                    continue
+                mp4_list = [self.path + os.sep + i for i in mp4_list]
+                files = '+'.join(mp4_list)
+                # 合并ts视频 为MP4
+                mp4_path = self.path + os.sep + series[0] + '.mp4'
+                print('视频转码合并中')
+
+                res = os.popen(f'copy/b {files} {mp4_path}')
+                print(res.read())
+                print('视频合并成功!')
+                break
+
+        else:
+            # mp4文件名称
+            new_path = self.path + os.sep + series[0] + '.mp4'
+            # 合并ts视频 为MP4
+            res = os.popen(f'copy/b {files} {new_path}')
+            print(res.read())
+            print(f'{series[0]} 视频合并成功!')
+            # 删除ts和m3u8文件
+            p = self.path + os.sep + '*.ts'
+            os.system(f'del /Q {p}')
+            print(f'{series[0]} TS缓存文件删除成功!')
 
     def run(self, url, m3u8_url):
         print('*'*20, '程序启动', '*'*20)
@@ -259,30 +332,31 @@ class Spider:
         print(content, series)
         # self.log.info(f'{content}, {series}')
         print(f'----{series[0]} 视频下载中----')
+        print('效验代理成功!')
         # self.log.info(f'----{series[0]} 视频下载中----')
         # 构造视频保存路径
-        self.video_path(series)
+        if self.video_path(series):
+            return
         # 保存视频基本信息
         self.save_video_info(content, series)
         # 获取TS流URL地址
         self.get_m3u8(m3u8_url)
         # 视频下载
         # 创建进程池,执行20个任务
-        pool = Pool(10)
+        print('创建进程池')
+        pool = Pool(30)
         for video_url in self.get_url(m3u8_url):
             # 启动线程
             pool.apply_async(self.get_video, (video_url,))
             count += 1
-            if count > 50:
-                break
+            # if count > 500:
+            #     break
         pool.close()
         pool.join()
         print('TS文件下载完成,合并中...')
         # self.log.info('TS文件下载完成,合并中...')
         time.sleep(3)
         # TS合并文件为MP4
-        # 移动合并脚本至下载目录
-        shutil.copy('merge.py', self.path + os.sep + 'merge.py')
         self.ts_to_pm4(series)
         content = {'content': [series[0], self.path, url]}
         # print(content)
@@ -293,12 +367,19 @@ class Spider:
 
 
 if __name__ == '__main__':
-    url = 'https://www.av01.tv/video/29379/miaa-155-%E9%83%A8%E4%B8%8B%E3%81%AE%E5%BE%A1%E4%B8%96%E8%BE%9E%E3%82%92%E5%A5%BD%E6%84%8F%E3%81%A8%E5%8F%97%E3%81%91%E5%8F%96%E3%81%A3%E3%81%9F-%E3%82%BB%E3%82%AF%E3%83%8F%E3%83%A9%E4%B8%8A%E5%8F%B8%E3%81%AE%E8%83%8C%E4%B8%AD%E3%81%BE%E3%81%A7%E5%B1%8A%E3%81%8F%E3%82%82%E3%81%AE%E5%87%84%E3%81%84%E5%B0%BB%E5%B0%84-%E7%AF%A0%E7%94%B0%E3%82%86%E3%81%86'
-    m3u8_url = 'https://cdn.av01.tv/v2/20190911_3/miaa00155/content/index4500-v1.m3u8?hdnea=ip=5.180.77.47~st=1568792746~exp=1568879146~acl=/v2/20190911_3/miaa00155/content/*~hmac=f03bee0bd42efe0d032d526d75e72e8d1fcf032c5286e584995fe648a278912a'
+    # url = 'https://www.av01.tv/video/29379/miaa-155-%E9%83%A8%E4%B8%8B%E3%81%AE%E5%BE%A1%E4%B8%96%E8%BE%9E%E3%82%92%E5%A5%BD%E6%84%8F%E3%81%A8%E5%8F%97%E3%81%91%E5%8F%96%E3%81%A3%E3%81%9F-%E3%82%BB%E3%82%AF%E3%83%8F%E3%83%A9%E4%B8%8A%E5%8F%B8%E3%81%AE%E8%83%8C%E4%B8%AD%E3%81%BE%E3%81%A7%E5%B1%8A%E3%81%8F%E3%82%82%E3%81%AE%E5%87%84%E3%81%84%E5%B0%BB%E5%B0%84-%E7%AF%A0%E7%94%B0%E3%82%86%E3%81%86'
+    # m3u8_url = 'https://cdn.av01.tv/v2/20190911_3/miaa00155/content/index4500-v1.m3u8?hdnea=ip=139.28.235.118~st=1568863059~exp=1568949459~acl=/v2/20190911_3/miaa00155/content/*~hmac=146cd1d663e5d7bc1ddd490a1979e7a9f45c06f9ba83501c7ba47294b3b22ea1'
     # m3u8 播放地址
     spider = Spider()
-    spider.run(url, m3u8_url)
-    # spider.get_video_url()
+    # spider.get_video_url()  # 获取指定女优所有视频URL地址
+    with open('config/url.txt', 'r', encoding='utf-8') as f:
+            urls = f.readlines()
+            urls = [i.replace('\n', '') for i in urls]
+    for url in urls:
+        print(url)
+        m3u8_url = input('m3u8地址：')
+        spider.run(url, m3u8_url)
+
 
 # 代理
 # https://www.proxydocker.com/zh/buyproxy/

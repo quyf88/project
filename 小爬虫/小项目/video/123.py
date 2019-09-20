@@ -29,7 +29,7 @@ import os
 # os.chdir(path)
 #
 #
-# r = subprocess.Popen(['python', r'merge.py'],  # 需要执行的文件路径
+# r = subprocess.Popen(['python', r'1.py'],  # 需要执行的文件路径
 #                                  stdout=subprocess.PIPE,
 #                                  stderr=subprocess.STDOUT,
 #                                  bufsize=0)
@@ -117,4 +117,24 @@ import urllib.request, urllib.error, requests
 # m.path = r'D:\project\小爬虫\小项目\video\video\MIAA-155'
 # m.run()
 
-os.system('python D:/project/小爬虫/小项目/video/video/MIAA-155/merge.py')
+# os.system('python D:/project/小爬虫/小项目/video/video/MIAA-155/1.py')
+
+# path_list = os.listdir(r'D:\project\小爬虫\小项目\video\video\MIAA-155')
+# path_list = [i for i in path_list if 'ts' in i]
+# path_list = [r'D:\project\小爬虫\小项目\video\video\MIAA-155' + os.sep + i for i in path_list]
+# print(path_list)
+# files = '+'.join(path_list)
+#
+#
+# # 合并ts视频 为MP4
+# res = os.popen(f'copy/b {files} 1.mp4')
+# print(res.read())
+# print('视频合并成功!')
+import time
+
+
+
+with open('config/url.txt', 'r', encoding='utf-8') as f:
+    a = f.readlines()
+    a = [i.replace('\n', '')for i in a]
+    print(a)
