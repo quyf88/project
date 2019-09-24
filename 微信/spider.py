@@ -257,6 +257,20 @@ class WeChatSpider:
         # 保存
         phone_image.save(image_name)
 
+    def key_words(self, word):
+        """
+        效验关键词
+        :param word:
+        :return: True 有关键词
+        """
+        with open('关键词.txt', 'r') as f:
+            cons = f.readlines()
+            cons = [i.replace('\n', '') for i in cons]
+        for i in cons:
+            if i in word:
+                return True
+        return False
+
     def get_circle_of_friends(self):
         """
         获取朋友圈信息
@@ -289,8 +303,11 @@ class WeChatSpider:
                         EC.presence_of_all_elements_located((By.XPATH,
                                                              '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[2]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(
                                                                  i))))
-
+                    # 信息内容
                     content = con[0].text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
+                    # 判断内容是否包含监控关键词
+                    if not self.key_words(content):
+                        break
                     # print('文本：{}'.format(content))
                     # 发布时间 date 日期 time 月份
                     try:
