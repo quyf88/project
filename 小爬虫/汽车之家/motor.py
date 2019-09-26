@@ -191,9 +191,9 @@ class Spider:
                 data = []
                 dealerId = contents['dealerId']  # 经销商ID
                 for u in self.get_price(str(dealerId), str(model_l)):
-                    SpecName, front_tire, rear_tire, Gearbox, Displacement, Environmental, Timetomarket, Energytype, Fuelform, \
+                    SpecName, front_tire, Cylinder, rear_tire, Gearbox, Displacement, Environmental, Timetomarket, Energytype, Fuelform, \
                         Vehiclewarranty, seats, Suspension, Parking = u
-                    data.append([brand_l, brand_n, car_l, model_n, SpecName, front_tire, rear_tire, Gearbox, Displacement, Environmental, Timetomarket, Energytype, Fuelform,
+                    data.append([brand_l, brand_n, car_l, model_n, SpecName, front_tire, Cylinder, rear_tire, Gearbox, Displacement, Environmental, Timetomarket, Energytype, Fuelform,
                         Vehiclewarranty, seats, Suspension, Parking, datetime.now()])
 
                     print('[{} {}]'.format(model_n, SpecName))
@@ -216,9 +216,9 @@ class Spider:
             SpecName = con['SpecName']
             # 汽车型号ID 获取车型信息用
             SpecId = con['SpecId']
-            front_tire, rear_tire, Gearbox, Displacement, Environmental, Timetomarket, Energytype, Fuelform, \
+            front_tire, Cylinder, rear_tire, Gearbox, Displacement, Environmental, Timetomarket, Energytype, Fuelform, \
             Vehiclewarranty, seats, Suspension, Parking = self.tire_size(SpecId)
-            yield SpecName, front_tire, rear_tire, Gearbox, Displacement, Environmental, Timetomarket, Energytype, Fuelform, \
+            yield SpecName, front_tire, Cylinder, rear_tire, Gearbox, Displacement, Environmental, Timetomarket, Energytype, Fuelform, \
                Vehiclewarranty, seats, Suspension, Parking
 
     def tire_size(self, SpecId):
@@ -227,13 +227,20 @@ class Spider:
         print(url)
         response = self._parse_url(url)
         content = response.text
-        # 发动机气缸
         pattern = re.compile(r'\s|\n|<td>', re.S)
+        # 发动机气缸
         front_tire = re.findall(r'<th>每缸气门数\(个\)</th>(.*?)</td>', content, re.S | re.M)
         if not len(front_tire):
             front_tire = '暂无数据'
         else:
             front_tire = pattern.sub('', front_tire[0])
+        # 气缸排列形式
+        Cylinder = re.findall(r'<th>气缸排列形式</th>(.*?)</td>', content, re.S | re.M)
+        if not len(Cylinder):
+            Cylinder = '暂无数据'
+        else:
+            Cylinder = pattern.sub('', Cylinder[0])
+
         # 气门
         rear_tire = re.findall(r'<th>每缸气门数\(个\)</th>(.*?)</td>', content, re.S | re.M)
         if not len(rear_tire):
@@ -302,7 +309,7 @@ class Spider:
             Parking = pattern.sub('', Parking[0])
 
         print(f'气缸数：{front_tire}, 气门数：{rear_tire}, 发动机型号：{Gearbox}')
-        return front_tire, rear_tire, Gearbox, Displacement, Environmental, Timetomarket, Energytype, Fuelform, \
+        return front_tire, Cylinder, rear_tire, Gearbox, Displacement, Environmental, Timetomarket, Energytype, Fuelform, \
                Vehiclewarranty, seats, Suspension, Parking
 
     def scv_data(self, data):
@@ -313,7 +320,7 @@ class Spider:
             with open("全系发动机数据.csv", "r", encoding='utf-8', newline="") as f1:
                 reader = csv.reader(f1)
                 if not [row for row in reader]:
-                    k.writerow(['品牌索引', '品牌名称', '车系名称', '车型', '汽车型号', '气缸数', '气门数', '变速箱', '排量',
+                    k.writerow(['品牌索引', '品牌名称', '车系名称', '车型', '汽车型号', '气缸数', '气缸排列形式', '气门数', '变速箱', '排量',
                                 '环保标准', '上市时间', '能源类型', '燃油标号', '整车质保', '座位数（个）', '后悬架类型', '驻车制动类型', '时间'])
                     k.writerows(data)
                     print('第[{}]条数据插入成功'.format(self.count))
