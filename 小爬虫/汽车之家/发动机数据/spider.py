@@ -5,6 +5,7 @@
 # project :project
 
 import csv
+import time
 import json
 import requests
 import threading
@@ -86,128 +87,157 @@ class Spider:
                     # 品牌ID,品牌首字母,名称,车系名称,车型ID, 车型名称
                     yield che_id, brand_l, brand_n, car_l, model_l, model_n
 
-    def test(self):
-        for u in self.get_model():
-            # 品牌ID,品牌首字母,名称,车系名称,车系ID, 车型名称
-            che_id, brand_l, brand_n, car_l, model_l, model_n = u
-            # 车系参数url
-            url = f'https://car.autohome.com.cn/config/series/{18}.html'
-            print(url)
-            self.driver.get(url)
-            # 提取全部车型, 定位全部车型 判断有没有停售车型
-            models = self.wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="other-car"]')))
-            ActionChains(self.driver).move_to_element(models).perform()  # 鼠标移动至车型列表
-            print(models.text)
-            if '停售' in models.text:
-                print('获取停售车型数据')
-                self.get_discontinued_models(model_l)
-            break
+    def get_model_param(self, model_l):
+        """
+        获取车型参数url
+        :param model_l:
+        :return:
+        """
+        urls = []
+        # 车系参数url
+        url = f'https://car.autohome.com.cn/config/series/{model_l}.html'
+        self.driver.get(url)
+        # 提取全部车型, 定位全部车型 判断有没有停售车型
+        models = self.wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="other-car"]')))
+        ActionChains(self.driver).move_to_element(models).perform()  # 鼠标移动至车型列表
+        if '停售' in models.text:
+            print('有停售车型,获取停售车型数据')
+            urls = self.get_discontinued_models(model_l)
+        urls.append(url)
+        return urls
 
     def get_discontinued_models(self, model_id):
         """
-        提取停售车型年份ID
+        提取停售车型年份ID 拼接车系参数url
         model_id ： 车系id
-        :return:
+        :return: 车型详细参数url
         """
-        url = f'https://www.autohome.com.cn/{18}/sale.html'
+        urls = []
+        url = f'https://www.autohome.com.cn/{model_id}/sale.html'
         print(url)
         response = self._parse_url(url)
-        print(response.text)
         html = etree.HTML(response.text)
-        # 判断是否有更多
+        # 停售车型ID
+        years_id = html.xpath('//div[@class="title-subcnt-tab"]/ul/li/a/@data-yearid')
+        # 判断是否有更多停售车型
         title = html.xpath('//div[@class="title-subcnt-tab"]/ul/li//text()')
         if '更多' in title:
-            print(title)
-            print('有更多')
-        # 年份ID
-        titles = html.xpath('//div[@class="title-subcnt-tab"]/ul/li/a/@data-yearid')
-        print(titles)
+            more = html.xpath('//li[@data-toggle="overlay"]/div/dl/dd/a/@data-yearid')
+            titles = years_id + more
+        else:
+            titles = years_id
+        # 根据年份ID拼接停售车型参数url
+        for i in titles:
+            _url = f'https://car.autohome.com.cn/config/series/{model_id}-{i}.html'
+            urls.append(_url)
+        return urls
 
-    def get_motor(self):
+    def get_motor(self, urls):
         """
         获取车型参数信息
         :return:
         """
-        for u in self.get_model():
-            # 品牌ID,品牌首字母,名称,车系名称,车系ID, 车型名称
-            che_id, brand_l, brand_n, car_l, model_l, model_n = u
+        for url in urls:
             # 车系参数url
-            url = f'https://car.m.autohome.com.cn/config/series/{model_l}.html'
             print(url)
             self.driver.get(url)
-            # time.sleep(3)
-            # print(self.driver.page_source)
-            try:
-                # 车型列表
-                title = WebDriverWait(self.driver, 5, 1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="compare"]/div[2]/div/div')))
-                title = [i.text.replace('\n', ' ') for i in title]
-                # 发动机型号
-                engine_model = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="detail"]/div[2]/div/div[3]/div[1]/div')))
-                engine_model = [i.text for i in engine_model]
-                # 气缸数
-                front_tire = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="detail"]/div[2]/div/div[3]/div[5]/div')))
-                front_tire = [i.text for i in front_tire]
-                # 气缸排列形式
-                Cylinder = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="detail"]/div[2]/div/div[3]/div[4]/div')))
-                Cylinder = [i.text for i in Cylinder]
-                # 气门数
-                rear_tire = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="detail"]/div[2]/div/div[3]/div[6]/div')))
-                rear_tire = [i.text for i in rear_tire]
-                # 排量
-                Displacement = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="detail"]/div[2]/div/div[3]/div[2]/div')))
-                Displacement = [i.text for i in Displacement]
-                # 环保标准
-                Environmental = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="detail"]/div[2]/div/div[3]/div[22]/div')))
-                Environmental = [i.text for i in Environmental]
-                # 燃料形式
-                Energytype = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="detail"]/div[2]/div/div[3]/div[17]/div')))
-                Energytype = [i.text for i in Energytype]
-                # 燃油标号
-                Fuelform = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="detail"]/div[2]/div/div[3]/div[18]/div')))
-                Fuelform = [i.text for i in Fuelform]
-                # 变速箱
-                Gearbox = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="detail"]/div[2]/div/div[1]/div[12]/div')))
-                Gearbox = [i.text for i in Gearbox]
-                # 上市时间
-                market = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="detail"]/div[2]/div/div[1]/div[8]/div')))
-                market = [i.text for i in market]
-                # 整车质保
-                Warranty = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="detail"]/div[2]/div/div[1]/div[21]/div')))
-                Warranty = [i.text for i in Warranty]
-                # 座位数（个）
-                seats = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="detail"]/div[2]/div/div[2]/div[10]/div')))
-                seats = [i.text for i in seats]
-
-                motors = zip(title, engine_model, front_tire, Cylinder, rear_tire, Displacement, Environmental, Energytype,
-                             Fuelform, Gearbox, market, Warranty, seats)
-                motors = [i for i in motors if len(i)]
-            except:
-                continue
-
-            for motor in motors:
-                if not motor[0]:
-                    continue
-                data = (brand_l, brand_n, car_l, che_id, model_l) + motor
-                print(list(data))
-                self.scv_data([list(data)])
+            time.sleep(1)
+            # 车辆型号
+            title = self.driver.find_elements_by_xpath('//*[@id="config_nav"]/table/tbody/tr/td/div[2]/div')
+            title = [i.text for i in title]
+            nums = len(title)
+            # 指导价
+            price = self.driver.find_elements_by_xpath('//*[@id="tr_2000"]/td/div')
+            price = [price[i].text for i in range(nums)]
+            # 上市时间
+            market = self.driver.find_elements_by_xpath('//*[@id="tr_4"]/td/div')
+            market = [market[i].text for i in range(nums)]
+            # 能源类型
+            energy = self.driver.find_elements_by_xpath('//*[@id="tr_2"]/td/div')
+            energy = [energy[i].text for i in range(nums)]
+            # 环保类型
+            environmental = self.driver.find_elements_by_xpath('//*[@id="tr_3"]/td/div')
+            environmental = [environmental[i].text for i in range(nums)]
+            # 最大功率
+            max_power = self.driver.find_elements_by_xpath('//*[@id="tr_5"]/td/div')
+            max_power = [max_power[i].text for i in range(nums)]
+            # 最大扭矩
+            max_torque = self.driver.find_elements_by_xpath('//*[@id="tr_6"]/td/div')
+            max_torque = [max_torque[i].text for i in range(nums)]
+            # 发动机
+            engine = self.driver.find_elements_by_xpath('//*[@id="tr_7"]/td/div')
+            engine = [engine[i].text for i in range(nums)]
+            # 变速箱
+            gearbox = self.driver.find_elements_by_xpath('//*[@id="tr_8"]/td/div')
+            gearbox = [gearbox[i].text for i in range(nums)]
+            # 外观尺寸
+            size = self.driver.find_elements_by_xpath('//*[@id="tr_9"]/td/div')
+            size = [size[i].text for i in range(nums)]
+            # 车身结构
+            structure = self.driver.find_elements_by_xpath('//*[@id="tr_10"]/td/div')
+            structure = [structure[i].text for i in range(nums)]
+            # 最高车速
+            max_speed = self.driver.find_elements_by_xpath('//*[@id="tr_11"]/td/div')
+            max_speed = [max_speed[i].text for i in range(nums)]
+            # 0-100 加速
+            accelerate = self.driver.find_elements_by_xpath('//*[@id="tr_12"]/td/div')
+            accelerate = [accelerate[i].text for i in range(nums)]
+            # 油耗
+            fuel = self.driver.find_elements_by_xpath('//*[@id="tr_12"]/td/div')
+            fuel = [fuel[i].text for i in range(nums)]
+            # 整车质保
+            warranty = self.driver.find_elements_by_xpath('//*[@id="tr_17"]/td')
+            warranty = [warranty[i].text for i in range(nums)]
+            # 发动机型号
+            engine_model = self.driver.find_elements_by_xpath('//*[@id="tr_31"]/td/div')
+            engine_model = [engine_model[i].text for i in range(nums)]
+            # 排量（L）
+            displacement = self.driver.find_elements_by_xpath('//*[@id="tr_33"]/td/div')
+            displacement = [displacement[i].text for i in range(nums)]
+            # 气缸排列形式
+            cylinder = self.driver.find_elements_by_xpath('//*[@id="tr_35"]/td/div')
+            cylinder = [cylinder[i].text for i in range(nums)]
+            # 气缸数
+            front_tire = self.driver.find_elements_by_xpath('//*[@id="tr_36"]/td/div')
+            front_tire = [front_tire[i].text for i in range(nums)]
+            # 气门数
+            rear_tire = self.driver.find_elements_by_xpath('//*[@id="tr_37"]/td/div')
+            rear_tire = [rear_tire[i].text for i in range(nums)]
+            contents = zip(title, price, market, energy, environmental, max_power, max_torque, engine, gearbox, size,
+                           structure, max_speed, accelerate, fuel, warranty, engine_model, displacement, cylinder,
+                           front_tire, rear_tire)
+            for cont in contents:
+                yield cont
 
     def scv_data(self, data):
         """保存为csv"""
         self.count += 1
-        with open("1.csv", "a+", encoding='utf-8', newline="") as f:
+        with open("全系发动机数据.csv", "a+", encoding='utf-8', newline="") as f:
             k = csv.writer(f, delimiter=',')
-            with open("1.csv", "r", encoding='utf-8', newline="") as f1:
+            with open("全系发动机数据.csv", "r", encoding='utf-8', newline="") as f1:
                 reader = csv.reader(f1)
                 if not [row for row in reader]:
-                    k.writerow(['品牌索引', '品牌名称', '车系名称', '品牌ID', '车系ID', '汽车型号', '发动机型号', '气缸数', '气缸排列形式', '气门数', '排量',
-                                '环保标准', '燃料形式', '燃油标号', '变速箱', '上市时间', '整车质保', '座位数（个）'])
+                    k.writerow(['品牌索引', '品牌ID', '车系ID', '品牌名称', '车系名称', '汽车型号', '指导价', '上市时间', '能源类型',
+                                '环保类型', '最大功率', '最大扭矩', '发动机', '变速箱', '外观尺寸', '车身结构', '最高车速', '0-100 加速',
+                                '油耗', '整车质保', '发动机型号', '排量（L）', '气缸排列形式', '气缸数', '气门数'])
                     k.writerows(data)
                     print('第[{}]条数据插入成功'.format(self.count))
                 else:
                     k.writerows(data)
                     print('第[{}]条数据插入成功'.format(self.count))
 
+    def run(self):
+        for u in self.get_model():
+            # 品牌ID,品牌首字母,名称,车系名称,车系ID, 车型名称
+            che_id, brand_l, brand_n, car_l, model_l, model_n = u
+            urls = self.get_model_param(model_l)
+            for content in self.get_motor(urls):
+                data = [list((brand_l, che_id, model_l, brand_n, car_l) + content)]
+                self.scv_data(data)
+        import os
+        os._exit(0)
+
 
 if __name__ == '__main__':
     spider = Spider()
-    spider.test()
+    spider.run()
