@@ -8,10 +8,12 @@ import csv
 import json
 import requests
 import threading
+from lxml import etree
 from datetime import datetime
 from retrying import retry
 from fake_useragent import UserAgent
 from selenium import webdriver
+from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
@@ -46,7 +48,7 @@ class Spider:
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
         chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
         self.driver = webdriver.Chrome(chrome_options=chrome_options)
-        self.wait = WebDriverWait(self.driver, 30, 1)  # 设置隐式等待时间
+        self.wait = WebDriverWait(self.driver, 5, 1)  # 设置隐式等待时间
         self.driver.maximize_window()  # 窗口最大化
 
     @retry(stop_max_attempt_number=5)
@@ -83,6 +85,43 @@ class Spider:
                     model_n = t['N']
                     # 品牌ID,品牌首字母,名称,车系名称,车型ID, 车型名称
                     yield che_id, brand_l, brand_n, car_l, model_l, model_n
+
+    def test(self):
+        for u in self.get_model():
+            # 品牌ID,品牌首字母,名称,车系名称,车系ID, 车型名称
+            che_id, brand_l, brand_n, car_l, model_l, model_n = u
+            # 车系参数url
+            url = f'https://car.autohome.com.cn/config/series/{18}.html'
+            print(url)
+            self.driver.get(url)
+            # 提取全部车型, 定位全部车型 判断有没有停售车型
+            models = self.wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="other-car"]')))
+            ActionChains(self.driver).move_to_element(models).perform()  # 鼠标移动至车型列表
+            print(models.text)
+            if '停售' in models.text:
+                print('获取停售车型数据')
+                self.get_discontinued_models(model_l)
+            break
+
+    def get_discontinued_models(self, model_id):
+        """
+        提取停售车型年份ID
+        model_id ： 车系id
+        :return:
+        """
+        url = f'https://www.autohome.com.cn/{18}/sale.html'
+        print(url)
+        response = self._parse_url(url)
+        print(response.text)
+        html = etree.HTML(response.text)
+        # 判断是否有更多
+        title = html.xpath('//div[@class="title-subcnt-tab"]/ul/li//text()')
+        if '更多' in title:
+            print(title)
+            print('有更多')
+        # 年份ID
+        titles = html.xpath('//div[@class="title-subcnt-tab"]/ul/li/a/@data-yearid')
+        print(titles)
 
     def get_motor(self):
         """
@@ -155,9 +194,9 @@ class Spider:
     def scv_data(self, data):
         """保存为csv"""
         self.count += 1
-        with open("全系发动机数据.csv", "a+", encoding='utf-8', newline="") as f:
+        with open("1.csv", "a+", encoding='utf-8', newline="") as f:
             k = csv.writer(f, delimiter=',')
-            with open("全系发动机数据.csv", "r", encoding='utf-8', newline="") as f1:
+            with open("1.csv", "r", encoding='utf-8', newline="") as f1:
                 reader = csv.reader(f1)
                 if not [row for row in reader]:
                     k.writerow(['品牌索引', '品牌名称', '车系名称', '品牌ID', '车系ID', '汽车型号', '发动机型号', '气缸数', '气缸排列形式', '气门数', '排量',
@@ -171,4 +210,4 @@ class Spider:
 
 if __name__ == '__main__':
     spider = Spider()
-    spider.get_motor()
+    spider.test()

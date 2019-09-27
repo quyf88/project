@@ -160,27 +160,27 @@ class Spider:
                             f.write(str(model_l))
                             f.write('\n')
                             print('插入成功')
-                        break
-                        # if i + 1 == 329:
-                        #     print(brand_l, brand_n, car_l, model_n, '无数据')
-                        #     self.scv_data([[brand_l, brand_n, car_l, model_n, '无数据']])
-                        #     count = 1
-                        #     cityid_num = 0
-                        #     cityid_list = [i for i in cityid_li if int(i['CityLevel']) == count]
-                        #     break
-                        # if len(cityid_list)-1 > cityid_num:
-                        #     cityid_num += 1
-                        #     continue
-                        # if count < 5:
-                        #     count += 1
-                        #     cityid_num = 0
-                        #     cityid_list = [i for i in cityid_li if int(i['CityLevel']) == count]
-                        #     continue
-                        # else:
-                        #     count = 1
-                        #     cityid_num = 0
-                        #     cityid_list = [i for i in cityid_li if int(i['CityLevel']) == count]
-                        #     continue
+                        # break
+                        if i + 1 == 329:
+                            print(brand_l, brand_n, car_l, model_n, '无数据')
+                            self.scv_data([[brand_l, brand_n, car_l, model_n, '无数据']])
+                            count = 1
+                            cityid_num = 0
+                            cityid_list = [i for i in cityid_li if int(i['CityLevel']) == count]
+                            break
+                        if len(cityid_list)-1 > cityid_num:
+                            cityid_num += 1
+                            continue
+                        if count < 5:
+                            count += 1
+                            cityid_num = 0
+                            cityid_list = [i for i in cityid_li if int(i['CityLevel']) == count]
+                            continue
+                        else:
+                            count = 1
+                            cityid_num = 0
+                            cityid_list = [i for i in cityid_li if int(i['CityLevel']) == count]
+                            continue
                 except:
                     print('获取信息失败，切换地区获取')
                     break
@@ -266,7 +266,7 @@ class Spider:
         else:
             Environmental = pattern.sub('', Environmental[0])
         # 上市时间
-        Timetomarket = re.findall(r'<th>环保标准</th>(.*?)</td>', content, re.S | re.M)
+        Timetomarket = re.findall(r'<th>上市时间</th>(.*?)</td>', content, re.S | re.M)
         if not len(Timetomarket):
             Timetomarket = '暂无数据'
         else:
@@ -315,9 +315,9 @@ class Spider:
     def scv_data(self, data):
         """保存为csv"""
         self.count += 1
-        with open("全系发动机数据.csv", "a+", encoding='utf-8', newline="") as f:
+        with open("456.csv", "a+", encoding='utf-8', newline="") as f:
             k = csv.writer(f, delimiter=',')
-            with open("全系发动机数据.csv", "r", encoding='utf-8', newline="") as f1:
+            with open("456.csv", "r", encoding='utf-8', newline="") as f1:
                 reader = csv.reader(f1)
                 if not [row for row in reader]:
                     k.writerow(['品牌索引', '品牌名称', '车系名称', '车型', '汽车型号', '气缸数', '气缸排列形式', '气门数', '变速箱', '排量',
