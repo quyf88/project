@@ -105,7 +105,7 @@ class Spider:
         short_link = quote(short_link, string.digits)
         url = 'http://apis.juhe.cn/qrcode/api?text={}&el=&bgcolor=&fgcolor=&logo=&w=&m=&lw=&type=2&key=b142a4a659dfa5237bf54a78baf8382f'.format(short_link)
         response = requests.get(url, headers=self.headers)
-        with open('image/code.png', 'wb') as f:
+        with open('config/code.png', 'wb') as f:
             f.write(response.content)
             print('支付宝转账码生成成功!')
     
