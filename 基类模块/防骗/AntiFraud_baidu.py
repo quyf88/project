@@ -2,7 +2,7 @@ from aip import AipSpeech
 
 
 def aipspeech():
-    """ 你的 APPID AK SK """
+    """ 18210836362 你的 APPID AK SK """
     APP_ID = '15434389'
     API_KEY = 'LwmLHenAnw8ku15M75XCmQBq'
     SECRET_KEY = 'RdNdVyolT8XZ1wtEA2SZO59REDhodpcc'
