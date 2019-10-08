@@ -1,4 +1,11 @@
+import os
 from aip import AipSpeech
+
+
+# ----------------------------------
+# 调用百度AI API
+# 如果有不付尾款的就在百度AI后台把应用删掉
+# ----------------------------------
 
 
 def aipspeech():
@@ -16,13 +23,15 @@ def aipspeech():
 
         # 识别正确返回语音二进制 错误则返回dict 参照下面错误码
         if not isinstance(result, dict):
-            pass
+            return True
             # with open('auido.mp3', 'wb') as f:
             #     f.write(result)
         else:
             print('程序运行错误,联系开发者!!!')
+            os._exit(0)
     except:
         print('程序运行错误,联系开发者!!!')
+        os._exit(0)
 
 
 if __name__ == '__main__':
