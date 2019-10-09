@@ -8,8 +8,10 @@ import time
 import requests
 from imp import reload
 from aip import AipSpeech
+from retrying import retry
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from urllib.parse import quote
 from urllib.parse import urlencode
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -118,6 +120,8 @@ class SpiderAliShop(Spider):
                     '.site-nav-bd > ul.site-nav-bd-l > li#J_SiteNavLogin > div.site-nav-menu-hd > div.site-nav-user > a.site-nav-login-info-nick ')))
                 # 输出淘宝昵称
                 print('账号：{}登录成功'.format(taobao_name.text))
+                for item in self.browser.get_cookies():
+                    self.cookie[item["name"]] = item["value"]
                 break
             else:
                 print("等待登录中...")
@@ -143,7 +147,7 @@ class SpiderAliShop(Spider):
         self.wait_login()
         # 爬去url
         url = 'https://s.1688.com/company/company_search.htm?'  # keywords=%BA%EC%C5%A3&=top&earseDirect=false&n=y'
-        params = {"keywords": keywords.encode('GBK'), "button_click": "top", "earseDirect": "false", "n": "y"}
+        params = {"keywords": quote(keywords, encoding='gbk'), "button_click": "top", "earseDirect": "false", "n": "y"}
         self.browser.get(url + urlencode(params))
         i = 1
         while i < 100:
@@ -158,30 +162,22 @@ class SpiderAliShop(Spider):
                 a_obj = bs.select('a.list-item-title-text')
                 for item in a_obj:
                     href_value = item.attrs["href"]
-                    print(href_value)
                     # 组建头部
-                    headers = {
-                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                        "Accept-Encoding": "gzip, deflate, sdch, br",
-                        "Accept-Language": "zh-CN,zh;q=0.8",
-                        "Referer": href_value,
-                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
-                    }
-                    title_value = item.text
-                    response = requests.get(href_value, headers=headers, cookies=self.cookie)
-                    bs2 = BeautifulSoup(response.text, "html.parser")
+                    # headers = {
+                    #     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                    #     "Accept-Encoding": "gzip, deflate, sdch, br",
+                    #     "Accept-Language": "zh-CN,zh;q=0.8",
+                    #     "Referer": href_value,
+                    #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+                    # }
+                    # response = requests.get(href_value, headers=headers, cookies=self.cookie)
+                    # bs2 = BeautifulSoup(response.text, "html.parser")
                     # contact_li_a_obj = bs2.select('li.contactinfo-page a')[0].attrs["href"]
-                    contact_li_a_obj = href_value+"/page/contactinfo.htm"
 
-                    headers = {
-                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                        "Accept-Encoding": "gzip, deflate, sdch, br",
-                        "Accept-Language": "zh-CN,zh;q=0.8",
-                        "Referer": contact_li_a_obj,
-                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
-                    }
-                    response2 = requests.get(contact_li_a_obj, headers=headers, cookies=self.cookie)
-                    bs3 = BeautifulSoup(response2.text, "html.parser")
+                    # 商家名称
+                    title_value = item.text
+
+                    bs3 = self.get_content(href_value)
                     if bs3.select(".m-mobilephone dd"):
                         tel = bs3.select(".m-mobilephone dd")[0].text.strip()
                         if tel == '登录后可见':
@@ -198,23 +194,48 @@ class SpiderAliShop(Spider):
                         person = bs3.select("a.membername")[0].text.strip()
                     else:
                         person = ''
+                    print(href_value)
                     print("%s,%s,%s,%s" % (title_value, tel, person, address))
                     data = [[title_value, href_value, person, tel, address]]
                     self.scv_data(data)
             except Exception as e:
                 print(e)
-                print(self.browser.current_url)
-                if 'https://login' in self.browser.current_url:
-                    self.wait_login()
-                else:
-                    try:
-                        print('next')
-                        page = self.wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '.page-next')))[0]
-                        page.click()
-                    except Exception as e:
-                        print(e)
-                        self.browser.refresh()
-                i += 1
+            print(self.browser.current_url)
+            if 'https://login' in self.browser.current_url:
+                self.wait_login()
+            else:
+                try:
+                    print('next')
+                    page = self.wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '.page-next')))[0]
+                    page.click()
+                except Exception as e:
+                    print(e)
+                    self.browser.refresh()
+            i += 1
+
+    @retry(stop_max_attempt_number=3)
+    def get_content(self, href_value):
+        """
+        获取商家信息
+        :return:
+        """
+        while 3:
+            # 商家详情页URL
+            contact_li_a_obj = href_value + "/page/contactinfo.htm"
+            headers = {
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Accept-Encoding": "gzip, deflate, sdch, br",
+                "Accept-Language": "zh-CN,zh;q=0.8",
+                "Referer": contact_li_a_obj,
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+            }
+            # print(self.cookie)
+            response = requests.get(contact_li_a_obj, headers=headers, cookies=self.cookie, timeout=5)
+
+            bs3 = BeautifulSoup(response.text, "html.parser")
+            if '登录后可见' in bs3:
+                continue
+            return bs3
 
 
 if __name__ == '__main__':
