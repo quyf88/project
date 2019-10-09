@@ -85,6 +85,7 @@ class SpiderAliShop(Spider):
         #     else:
         #         print("等待扫码中...")
         #         time.sleep(5)
+
         """
         微博登录
         :return:
