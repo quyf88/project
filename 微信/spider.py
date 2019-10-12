@@ -7,6 +7,7 @@ import os
 import re
 import csv
 import time
+import psutil
 import shutil
 import random
 import hashlib
@@ -61,7 +62,7 @@ class WeChatSpider:
         # 启动微信
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
         # 设置隐形等待时间
-        self.wait = WebDriverWait(self.driver, 5, 1, AttributeError)
+        self.wait = WebDriverWait(self.driver, 10, 1, AttributeError)
         # 获取手机尺寸
         self.driver.get_window_size()
         self.x = self.driver.get_window_size()['width']  # 宽
@@ -74,6 +75,8 @@ class WeChatSpider:
         self.day = 1
         # 好友微信号
         self.wx_num = None
+        # 是否到达底部
+        self.bottom = False
 
     def login(self):
         """登录模块"""
@@ -156,6 +159,12 @@ class WeChatSpider:
                 usernames[i].click()
                 yield
 
+            # 是否到达底部
+            if self.if_bottom():
+                print('到达底部')
+                self.bottom = True
+                break
+
             # 向上滑动一屏
             self.driver.swipe(200, 1400, 200, 700, 1000)
             time.sleep(1)
@@ -227,6 +236,9 @@ class WeChatSpider:
             print('好友没有开通朋友圈')
             self.driver.keyevent(4)
             time.sleep(0.5)
+            # 写入效验文件
+            make = self.make_file_id(self.name)
+            self.friend_validation(make, vali=False)
             return False
 
         # 判断好友是否设置隐私
@@ -237,8 +249,14 @@ class WeChatSpider:
             time.sleep(1)
             self.driver.keyevent(4)
             time.sleep(0.5)
+            # 写入效验文件
+            make = self.make_file_id(self.name)
+            self.friend_validation(make, vali=False)
             return False
         except:
+            # 写入效验文件
+            make = self.make_file_id(self.name)
+            self.friend_validation(make, vali=False)
             return True
 
     def process_image(self, image_name):
@@ -330,6 +348,8 @@ class WeChatSpider:
                         break
                     # 判断内容是否包含监控关键词
                     if not self.key_words(content):
+                        make = self.make_file_id(self.name)
+                        self.friend_validation(make, vali=False)
                         continue
                     # 效验信息是否获取
                     make = self.make_file_id(content)
@@ -365,8 +385,8 @@ class WeChatSpider:
                             name = str(round(time.time() * 1000)) + str(rand) + str(n+1) + '.png'
                             path = os.getcwd() + r'\ExportFile\image\{}'.format(name)
                             image_path.append(path)
-                            self.driver.get_screenshot_as_file('ExportFile/image/{}'.format(name))
-                            # self.process_image('ExportFile/image/{}'.format(name))
+                            self.driver.get_screenshot_as_file('ExportFile/config/{}'.format(name))
+                            # self.process_image('ExportFile/config/{}'.format(name))
                             print('第：[{}] 张图片下载成功,保存至：{}'.format(n + 1, path))
                             self.driver.keyevent(4)
                             time.sleep(1)
@@ -407,6 +427,7 @@ class WeChatSpider:
             count += 1
             self.driver.swipe(200, 1400, 200, 700, 1000)
             time.sleep(2)
+
         # 写入效验文件
         make = self.make_file_id(self.name)
         self.friend_validation(make, vali=False)
@@ -439,12 +460,15 @@ class WeChatSpider:
     def if_bottom(self):
         """
         判断是否到达底部
-        :return:
+        :return: True 到达底部
         """
+        # print('判断是否到达底部')
         bottom = self.driver.find_elements_by_id('com.tencent.mm:id/b0p')
         if bottom:
-            print('程序执行完毕!')
-            os._exit(0)
+            return True
+            # print('程序执行完毕!')
+            # os._exit(0)
+        return False
 
     def content_validation(self, make, vali=True):
         """
@@ -552,8 +576,57 @@ class WeChatSpider:
                 continue
                 # 获取朋友圈信息
             self.get_circle_of_friends()
-            # 是否获取完成
-            self.if_bottom()
+
+
+class Monitor:
+    def write(self):
+        """
+        将主程序进程号写入文件
+        :return:
+        """
+        # 获取当前进程号
+        pid = os.getpid()
+        print('当前进程号：{}'.format(pid))
+        with open('pid.txt', 'w') as f:
+            f.write(str(pid))
+
+    def read(self):
+        """
+        读取进程中的数据
+        :return:
+        """
+        if os.path.exists('pid.txt'):
+            with open('pid.txt', 'r') as f:
+                pid = f.read()
+                return pid
+        else:
+            return '0'
+
+    def run(self):
+        pid = int(self.read())
+        print('读取进程号：{}'.format(pid))
+        if pid:
+            # 获取所有进程pid
+            running_pids = psutil.pids()
+            if pid in running_pids:
+                print('程序正在运行中!')
+                return True
+            else:
+                self.write()
+                print('程序没有运行，启动中!')
+                return False
+        else:
+            self.write()
+            print('程序没有运行，启动中!')
+            return False
+
+    def kill(self):
+        """
+        杀死进程
+        :return:
+        """
+        command = 'taskkill /F /IM python.exe'
+        os.system(command)
 
 
 if __name__ == '__main__':
@@ -563,6 +636,10 @@ if __name__ == '__main__':
     #     f.seek(0)
     #     f.truncate()
     #     print('获取记录清空成功')
+    # 监测程序是否在运行中
+    monitor = Monitor()
+    if monitor.run():
+        os._exit(0)
     start_time = datetime.datetime.now()
     print("程序开始时间：{}".format(start_time))
     count = 0
@@ -570,16 +647,19 @@ if __name__ == '__main__':
         try:
             wechat = WeChatSpider()
             wechat.run()
-            with open('ExportFile/ContentValidation.txt', 'w') as f:
+            with open('ExportFile/FriendValidation.txt', 'w') as f:
                 f.seek(0)
                 f.truncate()
                 print('获取记录清空成功')
-            break
+            if wechat.bottom:
+                continue
+
         except Exception as e:
             log = log_init()
             log.info(e)
             count += 1
             continue
+
     end_time = datetime.datetime.now()
     print('程序异常次数：{}'.format(count))
     print("程序结束时间：{}".format(end_time))
