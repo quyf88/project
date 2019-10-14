@@ -72,7 +72,7 @@ class WeChatSpider:
         self.name = None
         self.content = None
         # self.day = int(input('输入获取天数：'))
-        self.day = 1
+        self.day = 2
         # 好友微信号
         self.wx_num = None
         # 是否到达底部
@@ -336,6 +336,8 @@ class WeChatSpider:
                     # 获取不到月份 默认当前月份 这种情况只会在今天 昨天 数据量多时出现
                     if release == '今天':
                         release = datetime.datetime.now().strftime('%m,%d').replace(',', '月')
+                        # 跳过今天数据
+                        continue
                     elif release == '昨天':
                         release = datetime.datetime.now() + datetime.timedelta(days=-1)
                         release = release.strftime('%m,%d').replace(',', '月')
@@ -343,6 +345,8 @@ class WeChatSpider:
                     old_time = datetime.datetime.strptime('2019年' + release, '%Y年%m月%d')
                     new_time = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y,%m,%d'), '%Y,%m,%d')
                     if (new_time-old_time).days >= self.day:
+                        print(release)
+                        print((new_time-old_time).days)
                         print('大于{}天不获取'.format(self.day))
                         flag = True
                         break
