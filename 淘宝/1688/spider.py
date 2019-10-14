@@ -18,7 +18,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 reload(sys)
-keywords = '肇庆服装'
+keywords = '女装'
 
 
 class Spider:
@@ -75,43 +75,51 @@ class SpiderAliShop(Spider):
 
     def wait_login(self):
         # 扫码登录
-        # while True:
-        #     if 'data' in self.browser.current_url:
-        #         print("等待扫码中...")
-        #         time.sleep(5)
-        #     if 'login.taobao.com' not in self.browser.current_url:
-        #         print("登录成功")
-        #         break
-        #     else:
-        #         print("等待扫码中...")
-        #         time.sleep(5)
+        while True:
+            if 'data' in self.browser.current_url:
+                print("等待扫码中...")
+                time.sleep(5)
+            if 'login.taobao.com' not in self.browser.current_url:
+                # 直到获取到淘宝会员昵称才能确定是登录成功
+                taobao_name = self.wait.until(EC.presence_of_element_located((
+                    By.CSS_SELECTOR,
+                    '.site-nav-bd > ul.site-nav-bd-l > li#J_SiteNavLogin > div.site-nav-menu-hd > div.site-nav-user > a.site-nav-login-info-nick ')))
+                # 输出淘宝昵称
+                print('账号：{}登录成功'.format(taobao_name.text))
+                for item in self.browser.get_cookies():
+                    self.cookie[item["name"]] = item["value"]
+                break
+            else:
+                print("等待扫码中...")
+                time.sleep(5)
+                continue
 
         """
         微博登录
         :return:
         """
-        weibo_username = "18210836362"  # 改成你的微博账号
-        weibo_password = "chenxiaoli2013"  # 改成你的微博密码
-        # 等待 密码登录选项 出现
-        password_login = self.wait.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, '.qrcode-login > .login-links > .forget-pwd')))
-        password_login.click()
-
-        # 等待 微博登录选项 出现
-        weibo_login = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.weibo-login')))
-        weibo_login.click()
-
-        # 等待 微博账号 出现
-        weibo_user = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.username > .W_input')))
-        weibo_user.send_keys(weibo_username)
-
-        # 等待 微博密码 出现
-        weibo_pwd = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.password > .W_input')))
-        weibo_pwd.send_keys(weibo_password)
-
-        # 等待 登录按钮 出现
-        submit = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.btn_tip > a > span')))
-        submit.click()
+        # weibo_username = "18210836362"  # 改成你的微博账号
+        # weibo_password = "chenxiaoli2013"  # 改成你的微博密码
+        # # 等待 密码登录选项 出现
+        # password_login = self.wait.until(
+        #     EC.presence_of_element_located((By.CSS_SELECTOR, '.qrcode-login > .login-links > .forget-pwd')))
+        # password_login.click()
+        #
+        # # 等待 微博登录选项 出现
+        # weibo_login = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.weibo-login')))
+        # weibo_login.click()
+        #
+        # # 等待 微博账号 出现
+        # weibo_user = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.username > .W_input')))
+        # weibo_user.send_keys(weibo_username)
+        #
+        # # 等待 微博密码 出现
+        # weibo_pwd = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.password > .W_input')))
+        # weibo_pwd.send_keys(weibo_password)
+        #
+        # # 等待 登录按钮 出现
+        # submit = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.btn_tip > a > span')))
+        # submit.click()
         while True:
             if 'login.taobao.com' not in self.browser.current_url:
                 print("登录成功")
