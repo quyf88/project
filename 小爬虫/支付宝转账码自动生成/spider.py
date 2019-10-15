@@ -34,6 +34,14 @@ money=0.01  // 转账金额
 amount=0.01  // 转账额度
 bankMark=CCB  // 银行代号 -可选
 bankName=%E4%B8%AD%E5%9B%BD%E5%BB%BA%E8%AE%BE%E9%93%B6%E8%A1%8C  // 银行名称
+
+接口：
+    转账到银行卡：
+        https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo=622203***4880&bankAccount=陈建军&money=1&amount=1&bankMark=ICBC&amp;bankName=工商银行&cardIndex=1909221389508861750&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from&buyId=auto
+    转账到支付宝账户：
+        https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{支付宝账号}%26amount%3D%26memo%3D
+    跳转到转账页面：
+        alipays://platformapi/startapp?appId=09999988&actionType=toAccount&goBack=NO&amount=1.00&userId=2088521328947850&memo=QQ_765858558
 """
 import os
 import json
