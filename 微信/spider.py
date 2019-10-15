@@ -77,6 +77,10 @@ class WeChatSpider:
         self.wx_num = None
         # 是否到达底部
         self.bottom = False
+        # 读取关键词
+        self.key_wo = self.key_words()
+        # 日期
+        self.release = None
 
     def login(self):
         """登录模块"""
@@ -273,20 +277,17 @@ class WeChatSpider:
         # 保存
         phone_image.save(image_name)
 
-    def key_words(self, word):
+    def key_words(self):
         """
-        效验关键词
-        :param word:
+        读取关键词
+        :param
         :return: True 有关键词
         """
         with open('关键词.txt', 'r') as f:
             cons = f.readlines()
             cons = [i.replace('\n', '') for i in cons]
-        for i in cons:
-            if i in word:
-                return True
-        print('未检测到关键词,跳过!')
-        return False
+        print(f'读取关键词成功：{cons}')
+        return cons
 
     def get_circle_of_friends(self):
         """
@@ -322,39 +323,40 @@ class WeChatSpider:
                     # 信息内容
                     content = con[0].text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
                     print('文本：{}'.format(content))
+
                     # 发布时间 date 日期 time 月份
                     try:
                         date = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[1]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(i))))
                         if len(date) > 1:
-                            release = date[1].text + date[0].text
+                            self.release = date[1].text + date[0].text
                         else:
-                            release = date[0].text
-                    except Exception as e:
-                        release = '今天'                                         
-                        
-                    # print(release)
+                            self.release = date[0].text
+                    except:
+                        pass
+                    print(self.release)
                     # 获取不到月份 默认当前月份 这种情况只会在今天 昨天 数据量多时出现
-                    if release == '今天':
-                        release = datetime.datetime.now().strftime('%m,%d').replace(',', '月')
+                    if self.release == '今天':
+                        # release = datetime.datetime.now().strftime('%m,%d').replace(',', '月')
                         # 跳过今天数据
                         continue
-                    elif release == '昨天':
+                    elif self.release == '昨天':
                         release = datetime.datetime.now() + datetime.timedelta(days=-1)
                         release = release.strftime('%m,%d').replace(',', '月')
+                    else:
+                        release = self.release
                     # 判断时间
                     old_time = datetime.datetime.strptime('2019年' + release, '%Y年%m月%d')
                     new_time = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y,%m,%d'), '%Y,%m,%d')
                     if (new_time-old_time).days >= self.day:
-                        print(release)
-                        print((new_time-old_time).days)
                         print('大于{}天不获取'.format(self.day))
                         flag = True
                         break
                     # 判断内容是否包含监控关键词
-                    if not self.key_words(content):
-                        make = self.make_file_id(self.name)
-                        self.friend_validation(make, vali=False)
+                    key_word = [i for i in self.key_wo if i in content]
+                    if not key_word:
+                        print('未检测到关键词,跳过!')
                         continue
+
                     # 效验信息是否获取
                     make = self.make_file_id(content)
                     if co == 1:
@@ -429,7 +431,7 @@ class WeChatSpider:
 
             # 向上滑动一屏
             count += 1
-            self.driver.swipe(200, 1400, 200, 700, 1000)
+            self.driver.swipe(200, 1200, 200, 500, 800)
             time.sleep(2)
 
         # 写入效验文件
@@ -557,11 +559,10 @@ class WeChatSpider:
                 else:
                     k.writerows(data)
                     print('数据写入成功')
-        try:       
-            # 数据实时备份
-            shutil.copy(self.filename, self.filename)
-        except:
-            pass
+
+        # 数据实时备份
+        shutil.copy(self.filename, '备份.csv')
+
 
     def run(self):
         time.sleep(2)
@@ -574,7 +575,7 @@ class WeChatSpider:
             # 获取微信号
             self.get_friend_num()
             # 获取个性签名
-            self.get_signature()
+            # self.get_signature()
             # 异常判断
             if not self.judge():
                 continue
@@ -663,10 +664,10 @@ if __name__ == '__main__':
             log.info(e)
             count += 1
             continue
-
-    end_time = datetime.datetime.now()
-    print('程序异常次数：{}'.format(count))
-    print("程序结束时间：{}".format(end_time))
-    print("程序执行用时：{}s".format((end_time - start_time)))
+    #
+    # end_time = datetime.datetime.now()
+    # print('程序异常次数：{}'.format(count))
+    # print("程序结束时间：{}".format(end_time))
+    # print("程序执行用时：{}s".format((end_time - start_time)))
 
 
