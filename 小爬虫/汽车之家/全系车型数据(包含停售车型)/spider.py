@@ -3,7 +3,7 @@
 # datetime:2019/9/26 0026 14:10
 # software:PyCharm
 # project :project
-import os
+import re
 import csv
 import time
 import json
@@ -49,15 +49,18 @@ class Spider:
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
         chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
         self.driver = webdriver.Chrome(chrome_options=chrome_options)
-        self.wait = WebDriverWait(self.driver, 5, 1)  # 设置隐式等待时间
+        self.wait = WebDriverWait(self.driver, 100, 1)  # 设置隐式等待时间
         self.driver.maximize_window()  # 窗口最大化
 
-    @retry(stop_max_attempt_number=5)
+        # 车型id
+        self.car_id = None
+
+    @retry(stop_max_attempt_number=30)
     def _parse_url(self, url):
         """url请求"""
         while True:
             try:
-                response = requests.get(url, headers=self.headers, timeout=5)
+                response = requests.get(url, headers=self.headers, timeout=30)
             except Exception as e:
                 print(e)
                 continue
@@ -150,30 +153,89 @@ class Spider:
             print(url)
             self.driver.get(url)
             time.sleep(1)
-            # 车辆型号
-            title = self.driver.find_elements_by_xpath('//*[@id="config_nav"]/table/tbody/tr/td/div[2]/div')
-            title = [i.text for i in title]
-            nums = len(title)
-            # 指导价
-            price = self.driver.find_elements_by_xpath('//*[@id="tr_2000"]/td/div')
-            price = [price[i].text for i in range(nums)]
-            # 上市时间
-            market = self.driver.find_elements_by_xpath('//*[@id="tr_4"]/td/div')
-            market = [market[i].text for i in range(nums)]
-
-            contents = zip(title, price, market)
+            try:
+                # 车型ID
+                self.car_id = re.findall(r'series/(.*?).html', url)[0]
+                # 车辆型号
+                title = self.driver.find_elements_by_xpath('//*[@id="config_nav"]/table/tbody/tr/td/div[2]/div')
+                title = [i.text for i in title]
+                nums = len(title)
+                # 指导价
+                price = self.driver.find_elements_by_xpath('//*[@id="tr_2000"]/td/div')
+                price = [price[i].text for i in range(nums)]
+                # 上市时间
+                market = self.driver.find_elements_by_xpath('//*[@id="tr_4"]/td/div')
+                market = [market[i].text for i in range(nums)]
+                # 能源类型
+                energy = self.driver.find_elements_by_xpath('//*[@id="tr_2"]/td/div')
+                energy = [energy[i].text for i in range(nums)]
+                # 环保类型
+                environmental = self.driver.find_elements_by_xpath('//*[@id="tr_3"]/td/div')
+                environmental = [environmental[i].text for i in range(nums)]
+                # 最大功率
+                max_power = self.driver.find_elements_by_xpath('//*[@id="tr_5"]/td/div')
+                max_power = [max_power[i].text for i in range(nums)]
+                # 最大扭矩
+                max_torque = self.driver.find_elements_by_xpath('//*[@id="tr_6"]/td/div')
+                max_torque = [max_torque[i].text for i in range(nums)]
+                # 发动机
+                engine = self.driver.find_elements_by_xpath('//*[@id="tr_7"]/td/div')
+                engine = [engine[i].text for i in range(nums)]
+                # 变速箱
+                gearbox = self.driver.find_elements_by_xpath('//*[@id="tr_8"]/td/div')
+                gearbox = [gearbox[i].text for i in range(nums)]
+                # 外观尺寸
+                size = self.driver.find_elements_by_xpath('//*[@id="tr_9"]/td/div')
+                size = [size[i].text for i in range(nums)]
+                # 车身结构
+                structure = self.driver.find_elements_by_xpath('//*[@id="tr_10"]/td/div')
+                structure = [structure[i].text for i in range(nums)]
+                # 最高车速
+                max_speed = self.driver.find_elements_by_xpath('//*[@id="tr_11"]/td/div')
+                max_speed = [max_speed[i].text for i in range(nums)]
+                # 0-100 加速
+                accelerate = self.driver.find_elements_by_xpath('//*[@id="tr_12"]/td/div')
+                accelerate = [accelerate[i].text for i in range(nums)]
+                # 油耗
+                fuel = self.driver.find_elements_by_xpath('//*[@id="tr_12"]/td/div')
+                fuel = [fuel[i].text for i in range(nums)]
+                # 整车质保
+                warranty = self.driver.find_elements_by_xpath('//*[@id="tr_17"]/td')
+                warranty = [warranty[i].text for i in range(nums)]
+                # 发动机型号
+                engine_model = self.driver.find_elements_by_xpath('//*[@id="tr_31"]/td/div')
+                engine_model = [engine_model[i].text for i in range(nums)]
+                # 排量（L）
+                displacement = self.driver.find_elements_by_xpath('//*[@id="tr_33"]/td/div')
+                displacement = [displacement[i].text for i in range(nums)]
+                # 气缸排列形式
+                cylinder = self.driver.find_elements_by_xpath('//*[@id="tr_35"]/td/div')
+                cylinder = [cylinder[i].text for i in range(nums)]
+                # 气缸数
+                front_tire = self.driver.find_elements_by_xpath('//*[@id="tr_36"]/td/div')
+                front_tire = [front_tire[i].text for i in range(nums)]
+                # 气门数
+                rear_tire = self.driver.find_elements_by_xpath('//*[@id="tr_37"]/td/div')
+                rear_tire = [rear_tire[i].text for i in range(nums)]
+            except:
+                continue
+            contents = zip(title, price, market, energy, environmental, max_power, max_torque, engine, gearbox, size,
+                           structure, max_speed, accelerate, fuel, warranty, engine_model, displacement, cylinder,
+                           front_tire, rear_tire)
             for cont in contents:
                 yield cont
 
     def scv_data(self, data):
         """保存为csv"""
         self.count += 1
-        with open("在售(停售)全系车型数据.csv", "a+", encoding='utf-8', newline="") as f:
+        with open("全系发动机数据.csv", "a+", encoding='utf-8', newline="") as f:
             k = csv.writer(f, delimiter=',')
-            with open("在售(停售)全系车型数据.csv", "r", encoding='utf-8', newline="") as f1:
+            with open("全系发动机数据.csv", "r", encoding='utf-8', newline="") as f1:
                 reader = csv.reader(f1)
                 if not [row for row in reader]:
-                    k.writerow(['品牌索引', '品牌ID', '车系ID', '品牌名称', '车系名称', '汽车型号', '指导价(万元)', '上市时间'])
+                    k.writerow(['品牌索引', '品牌ID', '品牌名称', '车系ID', '车系名称', '车型ID', '汽车型号', '指导价', '上市时间', '能源类型',
+                                '环保类型', '最大功率', '最大扭矩', '发动机', '变速箱', '外观尺寸', '车身结构', '最高车速', '0-100 加速',
+                                '油耗', '整车质保', '发动机型号', '排量（L）', '气缸排列形式', '气缸数', '气门数'])
                     k.writerows(data)
                     print('第[{}]条数据插入成功'.format(self.count))
                 else:
@@ -186,7 +248,7 @@ class Spider:
             che_id, brand_l, brand_n, car_l, model_l, model_n = u
             urls = self.get_model_param(model_l, model_n)
             for content in self.get_motor(urls):
-                data = [list((brand_l, che_id, model_l, brand_n, car_l) + content)]
+                data = [list((brand_l, che_id, brand_n, model_l, car_l, self.car_id) + content)]
                 print(data)
                 self.scv_data(data)
 
