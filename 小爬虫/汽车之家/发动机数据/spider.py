@@ -149,11 +149,11 @@ class Spider:
         :return:
         """
         for url in urls:
-            # 车系参数url
-            print(url)
-            self.driver.get(url)
-            time.sleep(1)
             try:
+                # 车系参数url
+                print(url)
+                self.driver.get(url)
+                time.sleep(1)
                 # 车型ID
                 self.car_id = re.findall(r'series/(.*?).html', url)[0]
                 # 车辆型号
