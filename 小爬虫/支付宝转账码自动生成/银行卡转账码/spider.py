@@ -140,7 +140,12 @@ class Spider:
 
     def run(self):
         content = self.read_txt()
-        _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=1603271394329096300&cardNo=621468***9469&bankAccount=陈丽丽&money=1.00&amount=1.00&bankMark=BJBANK&bankName=北京银行&cardIndex=cardid&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
+        # 隐藏卡号url
+        # _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=1603271394329096300&cardNo=621468***9469&bankAccount=陈丽丽&money=1.00&amount=1.00&bankMark=BJBANK&bankName=北京银行&cardIndex=cardid&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
+        # 普通转账url
+        _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
+               'money=&amount=&bankMark={}&bankName={}'.format(content[1], content[0], content[3], content[4])
+
         short_link = spider.get_url(_url)
         spider.code_generate(short_link)
         # 图片处理
