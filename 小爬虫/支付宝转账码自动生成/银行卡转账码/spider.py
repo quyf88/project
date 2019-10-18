@@ -18,8 +18,6 @@
   # 中文需转码 quote
 
 短链接 转换 ：百度短链接
-支付宝 转账接口：需要urlencode  from urllib.parse import quote
-https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo=银行卡号&bankAccount=银行账户名&money=转账金额&amount=备注&bankMark=银行英文简写&bankName=银行中文名称
 查询银行代码
 https://ccdcapi.alipay.com/validateAndCacheCardInfo.json?cardNo=填写卡号&cardBinCheck=true
 
@@ -37,11 +35,18 @@ bankName=%E4%B8%AD%E5%9B%BD%E5%BB%BA%E8%AE%BE%E9%93%B6%E8%A1%8C  // 银行名称
 
 接口：
     转账到银行卡：
-        https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo=622203***4880&bankAccount=陈建军&money=1&amount=1&bankMark=ICBC&amp;bankName=工商银行&cardIndex=1909221389508861750&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from&buyId=auto
-    转账到支付宝账户：
-        https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{支付宝账号}%26amount%3D%26memo%3D
-    跳转到转账页面：
-        alipays://platformapi/startapp?appId=09999988&actionType=toAccount&goBack=NO&amount=1.00&userId=2088521328947850&memo=QQ_765858558
+        支付宝 转账接口：需要urlencode  from urllib.parse import quote
+        https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo=银行卡号&bankAccount=银行账户名&money=转账金额&amount=备注&bankMark=银行英文简写&bankName=银行中文名称
+
+    隐藏卡号：
+        cardid，cardno，bankname，bankshortname，cardname
+        cardid=是一个银行卡的一个ID，估计是zfb自己定义的吧
+        cardno=隐藏的卡号
+        bankname=银行名称
+        bankshortname=银行简称
+        cardname=真实姓名
+        https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo=cardno&bankAccount=cardname&money=1.00&amount=1.00&bankMark=bankshortname&bankName=bankname&cardIndex=cardid&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from
+
 """
 import os
 import json
@@ -59,7 +64,7 @@ class Spider:
 
     def get_url(self, lang_url):
         """
-        长链接转换端链接 百度短链
+        长链接转换短链接 百度短链
         0：正常返回短网址
         -1：短网址生成失败
         -2：长网址不合法
@@ -113,7 +118,7 @@ class Spider:
         short_link = quote(short_link, string.digits)
         url = 'http://apis.juhe.cn/qrcode/api?text={}&el=&bgcolor=&fgcolor=&logo=&w=&m=&lw=&type=2&key=b142a4a659dfa5237bf54a78baf8382f'.format(short_link)
         response = requests.get(url, headers=self.headers)
-        with open('config/code.png', 'wb') as f:
+        with open('image/code.png', 'wb') as f:
             f.write(response.content)
             print('支付宝转账码生成成功!')
     
@@ -139,16 +144,23 @@ class Spider:
             return content
 
     def run(self):
-        content = self.read_txt()
         # 隐藏卡号url
-        # _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=1603271394329096300&cardNo=621468***9469&bankAccount=陈丽丽&money=1.00&amount=1.00&bankMark=BJBANK&bankName=北京银行&cardIndex=cardid&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
-        # 普通转账url
-        _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
-               'money=&amount=&bankMark={}&bankName={}'.format(content[1], content[0], content[3], content[4])
+        # cardID 隐藏卡号 获取方法  https://zhuanlan.zhihu.com/p/65495172
+        content = ['621468***9469', 'BJBANK', '陈丽丽', '北京银行', '1603271394329096300']
+        _url = f'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={content[0]}&' \
+               f'bankAccount={content[2]}&money=&amount=&bankMark={content[1]}&bankName={content[3]}&cardIndex={content[4]}&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
 
-        short_link = spider.get_url(_url)
-        spider.code_generate(short_link)
-        # 图片处理
+        # 普通转账url
+        # content = self.read_txt()
+        # _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
+        #        'money=&amount=&bankMark={}&bankName={}'.format(content[1], content[0], content[3], content[4])
+
+        # 长链接转换短链接
+        short_link = self.get_url(_url)
+        # 短链接生成二维码
+        self.code_generate(short_link)
+
+        # 二维码处理
         image_process = Picture()
         image_process.text = content[2]
         image_process.run()
