@@ -131,10 +131,10 @@ class Spider:
             bottom = 405
         else:
             # 查询页面
-            left = 820
-            top = 510
-            right = 910
-            bottom = 545
+            left = 870
+            top = 405
+            right = 960
+            bottom = 450
 
         # 根据坐标位置拷贝
         im = Image.open('./code/button.png')
