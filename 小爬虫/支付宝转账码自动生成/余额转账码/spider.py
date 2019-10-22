@@ -115,7 +115,7 @@ class Spider:
         short_link = quote(short_link, string.digits)
         url = 'http://apis.juhe.cn/qrcode/api?text={}&el=&bgcolor=&fgcolor=&logo=&w=&m=&lw=&type=2&key=b142a4a659dfa5237bf54a78baf8382f'.format(short_link)
         response = requests.get(url, headers=self.headers)
-        with open('config/code.png', 'wb') as f:
+        with open('image/code.png', 'wb') as f:
             f.write(response.content)
             print('支付宝转账码生成成功!')
     
@@ -143,10 +143,10 @@ class Spider:
     def run(self):
         content = self.read_txt()
         # 跳转到转账页面
-        # _url = f'https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=1.00&userId={2088621232375489}&memo=QQ_1033383881'
+        # _url = f'https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=&userId={2088632465859457}&memo='
 
         # 跳转到支付宝账户页面
-        alipay = '1218036117@qq.com'
+        alipay = '17689394006@qq.com'
         _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{alipay}%26amount%3D%26memo%3D'
 
         # 长链接生成短链
