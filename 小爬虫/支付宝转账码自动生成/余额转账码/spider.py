@@ -142,7 +142,13 @@ class Spider:
 
     def run(self):
         content = self.read_txt()
-        _url = f'https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=1.00&userId={2088621232375489}&memo=QQ_1033383881'
+        # 跳转到转账页面
+        # _url = f'https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=1.00&userId={2088621232375489}&memo=QQ_1033383881'
+
+        # 跳转到支付宝账户页面
+        alipay = '1218036117@qq.com'
+        _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{alipay}%26amount%3D%26memo%3D'
+
         # 长链接生成短链
         short_link = self.get_url(_url)
         # 短链生成二维码
