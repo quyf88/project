@@ -14,6 +14,7 @@ from retrying import retry
 from fake_useragent import UserAgent
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -39,7 +40,7 @@ class Spider:
         # options.add_argument('headless')
         desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
         desired_capabilities["pageLoadStrategy"] = "none"  # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
-        prefs = {"profile.managed_default_content_settings.images": 1}  # 1 加载图片 2不加载图片,加快访问速度
+        prefs = {"profile.managed_default_content_settings.images": 2}  # 1 加载图片 2不加载图片,加快访问速度
         options.add_experimental_option("prefs", prefs)
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
@@ -69,16 +70,47 @@ class Spider:
         # 粉丝
         fan = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[5]/div[2]/a/span[1]/span'))).text
         print(fan)
-
         print(f'账号：ashrafghani, 发布推特数量：{Twitter_num}, 关注人数：{attention_num}, 粉丝：{fan}')
 
         # 获取关注ID列表
         self.driver.get(attention_url)
-        attention_id = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/section/div/div/div/div/div/div/div/div[2]/div[1]/div[1]/a/div/div[1]/div[1]/span/span')))
-        attention_id = [i.text for i in attention_id]
-        print(attention_id)
+
+        time.sleep(3)
+        attentions_id = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/section/div/div/div/div')))
+        attentions_id[0].send_keys(Keys.PAGE_DOWN)
+        attentions_id = [i.text for i in attentions_id if i.text]
+
+        attention_id = []
+        for i in attentions_id:
+            i = i.split('\n')
+            attention_id.append(i[0])
+        print(f'关注列表：{attention_id}')
+
+    def get_teitter_content(self):
+        """
+        获取推特文本内容及相应获赞数量，评论数量，转发数量
+        :return:
+        """
+        url = 'https://twitter.com/ashrafghani'
+        self.driver.get(url)
+        tweets = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/div/div/div[2]/section/div/div/div/div/div/article/div/div[2]/div[2]')))
+        print(len(tweets))
+
+        tweets[0].sendKeys(Keys.PAGE_DOWN)
+
+
+        time.sleep(100)
+
+    def quit(self):
+        """
+        关闭浏览器
+        :return:
+        """
+        self.driver.quit()
 
 
 if __name__ == '__main__':
     spider = Spider()
     spider.get_basic()
+    spider.get_teitter_content()
+    spider.quit()
