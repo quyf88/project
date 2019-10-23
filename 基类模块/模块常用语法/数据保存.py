@@ -18,3 +18,17 @@ def save_data(self, datas):
             f.write('\n')
             print(f'第：{self.count}条数据成功写入!')
             self.count += 1
+
+
+def save_data(self, data):
+    """保存为csv"""
+    with open("twitter.csv", "a+", encoding='utf-8', newline="") as f:
+        k = csv.writer(f, delimiter=',')
+        with open("twitter.csv", "r", encoding='utf-8', newline="") as f1:
+            reader = csv.reader(f1)
+            if not [row for row in reader]:
+                k.writerow(['ID', '推文数量', '关注人数', '关注列表', '粉丝数', '推文内容', '评论数', '转发数', '点赞数'])
+                k.writerows(data)
+            else:
+                k.writerows(data)
+        print(f'第：{self.count}条数据插入成功!')
