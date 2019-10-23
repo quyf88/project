@@ -57,6 +57,7 @@ class Spider:
         self.phone = 0
         self.number = 0
         self.rsp = None
+        self.count = 0
 
     def login(self):
         """登录"""
@@ -315,6 +316,7 @@ class Spider:
                 except:
                     print('获取数据失败：重试')
                     if count >= 2:
+                        self.count += 1
                         return '暂无数据', '暂无数据'
                     count += 1
                     continue
@@ -437,6 +439,8 @@ class Spider:
             datas = self.read_xls(filename=filename)
             time.sleep(3)
             for indexs, pre_name, pre_code, pre_type in datas:
+                if self.count >= 10:
+                    self.driver.quit()
                 print('*' * 20, '第:', indexs, '条数据获取中', '*' * 20)
                 print(indexs, pre_name, pre_code, pre_type)
                 # 获取信息提取手机号
