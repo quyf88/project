@@ -6,6 +6,7 @@
 import re
 import csv
 import time
+import hashlib
 import pandas as pd
 from datetime import datetime
 from fake_useragent import UserAgent
@@ -79,6 +80,30 @@ class Spider:
             data = df.ix[indexs, ID]
             yield data
 
+    def make_file_id(self, src):
+        """
+        生成哈希MD5码
+        :param src: 字符串
+        :return:
+        """
+        m1 = hashlib.md5()
+        m1.update(src.encode('utf-8'))
+        return m1.hexdigest()
+
+    def friend_validation(self, make):
+        """
+        效验是否获取过该条推文信息
+        :return:
+        """
+        with open('config/FriendValidation.txt', 'r') as f:
+            flight = [i.replace('\n', '') for i in f.readlines()]
+            if make in flight:
+                return True
+            with open('config/FriendValidation.txt', 'a+') as f1:
+                f1.write(make)
+                f1.write('\n')
+            return False
+
     def get_basic(self, acc_id):
         """
         获取基本信息: 推文数量、关注数、关注ID列表、粉丝数
@@ -120,26 +145,34 @@ class Spider:
         content = [acc_id, Twitter_num, attention_num, fan, attention_id]
         return content
 
-    def get_teitter_content(self, Twitter_num):
+    def get_teitter_content(self, Twitter_num, acc_id):
         """
         获取推特文本内容及相应获赞数量，评论数量，转发数量
         :return:
         """
-        url = 'https://twitter.com/ashrafghani'
+        url = f'https://twitter.com/{acc_id}'
         self.driver.get(url)
         count = 1
 
         while True:
-            if count >= Twitter_num:
+            if count >= Twitter_num-70:
                 break
             # 设置休眠时间 防止页面元素加载出错
             time.sleep(2)
             # 推文信息
-            tweets = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/div/div/div[2]/section/div/div/div/div/div/article/div/div[2]/div[2]')))
-            if not tweets:
-                continue
-            tweets = [i.text.split('\n') for i in tweets if i.text]
-            # print(tweets, len(tweets))  # 列表镶嵌列表
+            while True:
+                try:
+                    tweets = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/div/div/div[2]/section/div/div/div/div/div/article/div/div[2]/div[2]')))
+                    if not tweets:
+                        continue
+                    tweets = [i.text.split('\n') for i in tweets if i.text]
+                    # print(tweets, len(tweets))  # 列表镶嵌列表
+                    break
+                except:
+                    # 滚动屏幕
+                    scroll = "window.scrollTo(0,document.body.scrollHeight)"
+                    self.driver.execute_script(scroll)
+                    continue
             yield tweets
             # 滚动屏幕
             scroll = "window.scrollTo(0,document.body.scrollHeight)"
@@ -155,10 +188,17 @@ class Spider:
         """
         for tweet in tweets:
             content = tweet[4]
+            release_time = tweet[3]
             comment = tweet[-3]
             forward = tweet[-2]
             like = tweet[-1]
-            yield content, comment, forward, like
+            # 效验是否获取过此条推文
+            make = self.make_file_id(content)
+            if self.friend_validation(make):
+                print('数据重复,跳过!')
+                continue
+
+            yield content, release_time, comment, forward, like
 
     def save_data(self, data):
         """保存为csv"""
@@ -167,7 +207,7 @@ class Spider:
             with open("twitter.csv", "r", encoding='utf-8', newline="") as f1:
                 reader = csv.reader(f1)
                 if not [row for row in reader]:
-                    k.writerow(['ID', '推文数量', '关注人数', '关注列表', '粉丝数', '推文内容', '评论数', '转发数', '点赞数'])
+                    k.writerow(['ID', '推文数量', '关注人数', '关注列表', '粉丝数', '推文内容', '发布时间', '评论数', '转发数', '点赞数'])
                     k.writerows(data)
                 else:
                     k.writerows(data)
@@ -182,19 +222,25 @@ class Spider:
 
     def run(self):
         for acc_id in self.read_xls():
+            print(f'当前获取id：{acc_id}')
             # 获取个人基本信息
             acc, Twitter_num, attention_num, fan, attention_id = self.get_basic(acc_id)
             # 推文数量
             Twitter_num = int(''.join(re.findall(r'\d', Twitter_num)))
             # 获取推文信息
-            for tweets in self.get_teitter_content(Twitter_num):
+            for tweets in self.get_teitter_content(Twitter_num, acc_id):
                 # 提取信息
                 for contents in self.processing(tweets):
-                    content, comment, forward, like = contents
+                    content, release_time, comment, forward, like = contents
                     # 数据保存
-                    data = [[acc, Twitter_num, attention_num, attention_id, fan, content, comment, forward, like]]
+                    data = [[acc, Twitter_num, attention_num, attention_id, fan, content, release_time, comment, forward, like]]
                     self.save_data(data)
                     self.count += 1
+            # 清空效验文件
+            with open('config/FriendValidation.txt', 'w') as f:
+                f.seek(0)  # 光标移动至文件开头
+                f.truncate()  # 清空文件
+                print(f'ID:{acc_id} 效验文件清空成功')
         self.quit()
 
 
