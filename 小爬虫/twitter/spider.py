@@ -59,6 +59,9 @@ class Spider:
         self.wait = WebDriverWait(self.driver, 5, 1)  # 设置隐式等待时间
         self.driver.maximize_window()  # 窗口最大化
 
+        # 登录账号
+        self.driver.get('https://twitter.com/login/error?redirect_after_login=%2Fashrafghani')
+        input('账号登录')
         self.count = 1
 
     def read_xls(self):
@@ -90,16 +93,16 @@ class Spider:
         m1.update(src.encode('utf-8'))
         return m1.hexdigest()
 
-    def friend_validation(self, make):
+    def friend_validation(self, make, filename):
         """
         效验是否获取过该条推文信息
         :return:
         """
-        with open('config/FriendValidation.txt', 'r') as f:
+        with open(f'config/{filename}', 'r') as f:
             flight = [i.replace('\n', '') for i in f.readlines()]
             if make in flight:
                 return True
-            with open('config/FriendValidation.txt', 'a+') as f1:
+            with open(f'config/{filename}', 'a+') as f1:
                 f1.write(make)
                 f1.write('\n')
             return False
@@ -111,8 +114,6 @@ class Spider:
         """
         url = f'https://twitter.com/{acc_id}'
         self.driver.get(url)
-        # 登录账号
-        input('账号登录')
         # 发布文章数量
         Twitter_num = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[1]/div/div/div/div/div/div[2]/div/div'))).text
         # print(Twitter_num)
@@ -153,32 +154,36 @@ class Spider:
         url = f'https://twitter.com/{acc_id}'
         self.driver.get(url)
         count = 1
-
         while True:
-            if count >= Twitter_num-70:
-                break
             # 设置休眠时间 防止页面元素加载出错
             time.sleep(2)
             # 推文信息
-            while True:
-                try:
-                    tweets = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/div/div/div[2]/section/div/div/div/div/div/article/div/div[2]/div[2]')))
-                    if not tweets:
-                        continue
-                    tweets = [i.text.split('\n') for i in tweets if i.text]
-                    # print(tweets, len(tweets))  # 列表镶嵌列表
-                    break
-                except:
-                    # 滚动屏幕
-                    scroll = "window.scrollTo(0,document.body.scrollHeight)"
-                    self.driver.execute_script(scroll)
+            try:
+                tweets = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/div/div/div[2]/section/div/div/div/div/div/article/div/div[2]/div[2]')))
+                if not tweets:
                     continue
+                tweets = [i.text.split('\n') for i in tweets if i.text]
+                # print(tweets, len(tweets))  # 列表镶嵌列表
+
+                # 效验是否获取过此条推文
+                twee = [self.make_file_id(u) for i in tweets for u in i]
+                print(twee)
+                print(''.join(twee))
+                make = self.make_file_id(''.join(twee))
+                print(make)
+                if self.friend_validation(make, 'valida.txt'):
+                    print('获取完成,退出，继续下一个!')
+                    return
+            except:
+                # 滚动屏幕
+                scroll = "window.scrollTo(0,document.body.scrollHeight)"
+                self.driver.execute_script(scroll)
+                count += 1
+                continue
             yield tweets
             # 滚动屏幕
             scroll = "window.scrollTo(0,document.body.scrollHeight)"
             self.driver.execute_script(scroll)
-
-            count += 1
 
     def processing(self, tweets):
         """
@@ -194,7 +199,7 @@ class Spider:
             like = tweet[-1]
             # 效验是否获取过此条推文
             make = self.make_file_id(content)
-            if self.friend_validation(make):
+            if self.friend_validation(make, 'FriendValidation.txt'):
                 print('数据重复,跳过!')
                 continue
 
