@@ -7,9 +7,8 @@ import re
 import csv
 import time
 import hashlib
-import pandas as pd
+import openpyxl
 from datetime import datetime
-from fake_useragent import UserAgent
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -33,12 +32,6 @@ def run_time(func):
 
 class Spider:
     def __init__(self):
-        print('*'*15, '程序启动', '*'*15)
-        self.headers = {'user-agent': str(UserAgent().random)}
-        self.proxies = {
-            "http": "http://127.0.0.1:1080",
-            "https": "https://127.0.0.1:1080"
-            }
         options = Options()
         # 设置代理
         desired_capabilities = webdriver.DesiredCapabilities.INTERNETEXPLORER.copy()
@@ -64,24 +57,28 @@ class Spider:
         input('账号登录')
         self.count = 1
 
-    def read_xls(self):
+    def loop_xlsx(self, header=True):
         """
-        读取 表格数据
-        :return:
+        读取表格数据
+        :return: ID URL
         """
-        print('读取配置文件')
-        # 加载数据
-        df_read = pd.read_excel('config/用户id列表.xlsx')
-        df = pd.DataFrame(df_read)
-        # 获取指定表头的列数
-        ID = 0
-        for i in range(len(df.keys())):
-            if df.keys()[i] == 'ID':
-                ID = i
-        for indexs in df.index:
-            # 读取指定行列数据 df.ix[行,列]
-            data = df.ix[indexs, ID]
-            yield data
+        # 打开文件
+        print('Open with openpyxl')
+        workbook = openpyxl.load_workbook('config/用户id列表.xlsx')
+        # 指定工作表
+        sheet = 'Sheet1'
+        sheet = workbook[workbook.sheetnames[sheet]] if isinstance(
+            sheet, int) else workbook[sheet]
+
+        # cell.value:单元格值 url:单元格超链接
+        for row in sheet.iter_rows(min_row=1 + header):
+            for c, cell in enumerate(row):
+                url = cell.hyperlink.target if cell.hyperlink else None
+                # print(' | ' if c else '', end='')
+                if not cell.value:
+                    return
+                # print(f'{cell.value}{" (" + url + ")" if url else ""}', end='')
+                yield cell.value, url
 
     def make_file_id(self, src):
         """
@@ -107,12 +104,11 @@ class Spider:
                 f1.write('\n')
             return False
 
-    def get_basic(self, acc_id):
+    def get_basic(self, acc_id, url):
         """
         获取基本信息: 推文数量、关注数、关注ID列表、粉丝数
         :return:
         """
-        url = f'https://twitter.com/{acc_id}'
         self.driver.get(url)
         # 发布文章数量
         Twitter_num = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[1]/div/div/div/div/div/div[2]/div/div'))).text
@@ -146,12 +142,11 @@ class Spider:
         content = [acc_id, Twitter_num, attention_num, fan, attention_id]
         return content
 
-    def get_teitter_content(self, Twitter_num, acc_id):
+    def get_teitter_content(self, url):
         """
         获取推特文本内容及相应获赞数量，评论数量，转发数量
         :return:
         """
-        url = f'https://twitter.com/{acc_id}'
         self.driver.get(url)
         count = 1
         while True:
@@ -167,12 +162,15 @@ class Spider:
 
                 # 效验是否获取过此条推文
                 twee = [self.make_file_id(u) for i in tweets for u in i]
-                print(twee)
-                print(''.join(twee))
+                # print(twee)
+                # print(''.join(twee))
                 make = self.make_file_id(''.join(twee))
-                print(make)
+                # print(make)
                 if self.friend_validation(make, 'valida.txt'):
                     print('获取完成,退出，继续下一个!')
+                    # 初始化计数
+                    global COUNT
+                    COUNT = 1
                     return
             except:
                 # 滚动屏幕
@@ -202,7 +200,6 @@ class Spider:
             if self.friend_validation(make, 'FriendValidation.txt'):
                 print('数据重复,跳过!')
                 continue
-
             yield content, release_time, comment, forward, like
 
     def save_data(self, data):
@@ -226,14 +223,15 @@ class Spider:
         self.driver.quit()
 
     def run(self):
-        for acc_id in self.read_xls():
-            print(f'当前获取id：{acc_id}')
+        for accunt in self.loop_xlsx():
+            acc_id, url = accunt
+            print(f'当前获取id：{acc_id} {url}')
             # 获取个人基本信息
-            acc, Twitter_num, attention_num, fan, attention_id = self.get_basic(acc_id)
+            acc, Twitter_num, attention_num, fan, attention_id = self.get_basic(acc_id, url)
             # 推文数量
             Twitter_num = int(''.join(re.findall(r'\d', Twitter_num)))
             # 获取推文信息
-            for tweets in self.get_teitter_content(Twitter_num, acc_id):
+            for tweets in self.get_teitter_content(url):
                 # 提取信息
                 for contents in self.processing(tweets):
                     content, release_time, comment, forward, like = contents
@@ -246,9 +244,23 @@ class Spider:
                 f.seek(0)  # 光标移动至文件开头
                 f.truncate()  # 清空文件
                 print(f'ID:{acc_id} 效验文件清空成功')
+            with open('config/valida.txt', 'w') as f:
+                f.seek(0)  # 光标移动至文件开头
+                f.truncate()  # 清空文件
+                print(f'ID:{acc_id} 效验文件清空成功')
         self.quit()
 
 
+def version():
+    # 版本号
+    print('*' * 20)
+    print('脚本启动')
+    print(f'selenium: {webdriver.__version__}')
+    print(f'openpyxl: {openpyxl.__version__}')
+    print('*' * 20)
+
+
 if __name__ == '__main__':
+    version()
     spider = Spider()
     spider.run()
