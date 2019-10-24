@@ -146,7 +146,7 @@ class Spider:
         # _url = f'https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=&userId={2088632465859457}&memo='
 
         # 跳转到支付宝账户页面
-        alipay = '17689394006@qq.com'
+        alipay = '16506570622'
         _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{alipay}%26amount%3D%26memo%3D'
 
         # 长链接生成短链
