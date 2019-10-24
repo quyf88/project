@@ -33,6 +33,7 @@ COUNT = 1
 class Spider:
     def __init__(self):
         self.headers = {'user-agent': str(UserAgent().random)}
+        self.count = 1
 
     # 如果请求超时让被装饰的函数反复执行三次，三次全部报错才会报错
     @retry(stop_max_attempt_number=5)
@@ -67,7 +68,8 @@ class Spider:
         获取商品url列表
         :return:
         """
-        for i in range(1, int(page)+1):
+        for i in range(60001, 70001):
+            print(page)
             url = f'http://www.chinaplc.net/plccp_vlist/35-p{i}.html'
             print(url)
             yield url
@@ -149,7 +151,7 @@ class Spider:
 
             # 创建进程池,执行5个任务
             print('创建进程池')
-            pool = Pool(3)
+            pool = Pool(5)
             #  获取商品url列表
             for commodity_url in self.get_commodity_url(page):
                 # 启动线程
