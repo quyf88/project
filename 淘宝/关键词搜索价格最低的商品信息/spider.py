@@ -25,8 +25,8 @@ class Spider(object):
         self.count = 0  # 写入计数
 
         chrome_options = Options()
-        # desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
-        # desired_capabilities["pageLoadStrategy"] = "none"  # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
+        desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
+        desired_capabilities["pageLoadStrategy"] = "none"  # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
         prefs = {"profile.managed_default_content_settings.images": 1}  # 1 加载图片 2不加载图片,加快访问速度
         chrome_options.add_experimental_option("prefs", prefs)
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
@@ -60,10 +60,10 @@ class Spider(object):
             else:
                 print("等待扫码中...")
                 time.sleep(5)
-        """
-        微博登录
-        :return:
-        """
+        # """
+        # 微博登录
+        # :return:
+        # """
         # self.driver.get('https://login.taobao.com/member/login.jhtml')
         # weibo_username = "18210836362"  # 改成你的微博账号
         # weibo_password = "chenxiaoli2013"  # 改成你的微博密码
@@ -121,6 +121,18 @@ class Spider(object):
             print(pre_name)
             yield (pre_name)
 
+    def start_search_result(self, keys):
+
+        self.driver.get('https://www.taobao.com/')
+
+        # 给搜索框赋值
+        kw = self.driver.find_element_by_id("q")  # q
+        kw.send_keys(keys)
+
+        # 模拟点击搜索按钮事件
+        iconfont = self.driver.find_element_by_class_name('search-button')
+        iconfont.click()
+
     def search_words(self):
         """
         关键词搜索
@@ -130,14 +142,17 @@ class Spider(object):
         for words in self.read_xls():
             # words = '万智牌全军覆灭'
             # sort=price-asc 按照价格从低到高排序
+            self.start_search_result(words)
             url = f'https://s.taobao.com/search?q={quote(words)}&sort=price-asc'
-            self.driver.get(url)
+            # print(url)
+            # self.driver.get(url)
             html = self.driver.page_source
             commodity_id = re.findall(r'data-nid="(.*?)"', html, re.S | re.M)
 
-            time.sleep(2)
+            time.sleep(5)
             commodity_url = f'https://item.taobao.com/item.htm?ft=t&id={commodity_id[0]}'
             self.driver.get(commodity_url)
+            print(commodity_url)
 
             # 店铺
             shop = self.wait.until(EC.presence_of_element_located((By.XPATH,'//*[@id="J_ShopInfo"]/div/div[1]/div[1]/dl/dd/strong/a'))).text
@@ -151,10 +166,11 @@ class Spider(object):
             writertime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             print(f'牌名:{words} 店名:{shop} 最低价:{money} 分类:{title} 时间:{writertime}')
             self.model_csv([[words, shop, money, title, writertime]])
-            time.sleep(2)
-            if not count % 5:
+            time.sleep(5)
+            count += 1
+            if not count % 10:
                 print("程序等待60秒后继续运行：防止操作太快出错")
-                time.sleep(60)
+                time.sleep(30)
 
     def model_csv(self, data):
         """保存数据"""
@@ -172,7 +188,7 @@ class Spider(object):
                     print('第[{}]条数据插入成功'.format(self.count))
 
     def run(self):
-        self.login_by_scan()
+        # self.login_by_scan()
         self.search_words()
 
 
