@@ -33,13 +33,13 @@ class Spider(object):
         chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
 
         # 设置代理
-        desired_capabilities = webdriver.DesiredCapabilities.INTERNETEXPLORER.copy()
-        desired_capabilities['proxy'] = {
-            "httpProxy": "https://127.0.0.1:1080",
-            "proxyType": "MANUAL",  # 此项不可注释
-        }
+        # desired_capabilities = webdriver.DesiredCapabilities.INTERNETEXPLORER.copy()
+        # desired_capabilities['proxy'] = {
+        #     "httpProxy": "https://127.0.0.1:1080",
+        #     "proxyType": "MANUAL",  # 此项不可注释
+        # }
 
-        self.driver = webdriver.Chrome(chrome_options=chrome_options, desired_capabilities=desired_capabilities)
+        self.driver = webdriver.Chrome(chrome_options=chrome_options)
         self.wait = WebDriverWait(self.driver, 60, 0.5)
         self.driver.maximize_window()
 
@@ -49,58 +49,58 @@ class Spider(object):
         :return:
         """
         print("开始登录,请等待页面加载完成后,扫码登录...")
-        # self.driver.get('https://login.taobao.com/member/login.jhtml?redirectURL=https://www.taobao.com/')
-        # while True:
-        #     if 'data' in self.driver.current_url:
-        #         print("等待扫码中...")
-        #         time.sleep(5)
-        #     if 'login.taobao.com' not in self.driver.current_url:
-        #         print("登录成功")
-        #         break
-        #     else:
-        #         print("等待扫码中...")
-        #         time.sleep(5)
+        self.driver.get('https://login.taobao.com/member/login.jhtml?redirectURL=https://www.taobao.com/')
+        while True:
+            if 'data' in self.driver.current_url:
+                print("等待扫码中...")
+                time.sleep(5)
+            if 'login.taobao.com' not in self.driver.current_url:
+                print("登录成功")
+                break
+            else:
+                print("等待扫码中...")
+                time.sleep(5)
         """
         微博登录
         :return:
         """
-        self.driver.get('https://login.taobao.com/member/login.jhtml')
-        weibo_username = "18210836362"  # 改成你的微博账号
-        weibo_password = "chenxiaoli2013"  # 改成你的微博密码
-        # 等待 密码登录选项 出现
-        password_login = self.wait.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, '.qrcode-login > .login-links > .forget-pwd')))
-        password_login.click()
-
-        # 等待 微博登录选项 出现
-        weibo_login = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.weibo-login')))
-        weibo_login.click()
-
-        # 等待 微博账号 出现
-        weibo_user = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.username > .W_input')))
-        weibo_user.send_keys(weibo_username)
-
-        # 等待 微博密码 出现
-        weibo_pwd = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.password > .W_input')))
-        weibo_pwd.send_keys(weibo_password)
-
-        # 等待 登录按钮 出现
-        submit = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.btn_tip > a > span')))
-        submit.click()
-        while True:
-            if 'login.taobao.com' not in self.driver.current_url:
-                print("登录成功")
-                # 直到获取到淘宝会员昵称才能确定是登录成功
-                taobao_name = self.wait.until(EC.presence_of_element_located((
-                    By.CSS_SELECTOR,
-                    '.site-nav-bd > ul.site-nav-bd-l > li#J_SiteNavLogin > div.site-nav-menu-hd > div.site-nav-user > a.site-nav-login-info-nick ')))
-                # 输出淘宝昵称
-                print('账号：{}登录成功'.format(taobao_name.text))
-                break
-            else:
-                print("等待登录中...")
-                time.sleep(5)
-                continue
+        # self.driver.get('https://login.taobao.com/member/login.jhtml')
+        # weibo_username = "18210836362"  # 改成你的微博账号
+        # weibo_password = "chenxiaoli2013"  # 改成你的微博密码
+        # # 等待 密码登录选项 出现
+        # password_login = self.wait.until(
+        #     EC.presence_of_element_located((By.CSS_SELECTOR, '.qrcode-login > .login-links > .forget-pwd')))
+        # password_login.click()
+        #
+        # # 等待 微博登录选项 出现
+        # weibo_login = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.weibo-login')))
+        # weibo_login.click()
+        #
+        # # 等待 微博账号 出现
+        # weibo_user = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.username > .W_input')))
+        # weibo_user.send_keys(weibo_username)
+        #
+        # # 等待 微博密码 出现
+        # weibo_pwd = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.password > .W_input')))
+        # weibo_pwd.send_keys(weibo_password)
+        #
+        # # 等待 登录按钮 出现
+        # submit = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.btn_tip > a > span')))
+        # submit.click()
+        # while True:
+        #     if 'login.taobao.com' not in self.driver.current_url:
+        #         print("登录成功")
+        #         # 直到获取到淘宝会员昵称才能确定是登录成功
+        #         taobao_name = self.wait.until(EC.presence_of_element_located((
+        #             By.CSS_SELECTOR,
+        #             '.site-nav-bd > ul.site-nav-bd-l > li#J_SiteNavLogin > div.site-nav-menu-hd > div.site-nav-user > a.site-nav-login-info-nick ')))
+        #         # 输出淘宝昵称
+        #         print('账号：{}登录成功'.format(taobao_name.text))
+        #         break
+        #     else:
+        #         print("等待登录中...")
+        #         time.sleep(5)
+        #         continue
 
     def read_xls(self):
         """
@@ -126,6 +126,7 @@ class Spider(object):
         关键词搜索
         :return:
         """
+        count = 0
         for words in self.read_xls():
             # words = '万智牌全军覆灭'
             # sort=price-asc 按照价格从低到高排序
@@ -151,6 +152,9 @@ class Spider(object):
             print(f'牌名:{words} 店名:{shop} 最低价:{money} 分类:{title} 时间:{writertime}')
             self.model_csv([[words, shop, money, title, writertime]])
             time.sleep(2)
+            if not count % 5:
+                print("程序等待60秒后继续运行：防止操作太快出错")
+                time.sleep(60)
 
     def model_csv(self, data):
         """保存数据"""
