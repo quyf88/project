@@ -68,11 +68,11 @@ class WeChatSpider:
         self.x = self.driver.get_window_size()['width']  # 宽
         self.y = self.driver.get_window_size()['height']  # 长
         print(self.x, self.y)
-        self.filename = 'ExportFile/' + datetime.datetime.now().strftime('%Y-%m-%d') + '.csv'
+        self.filename = datetime.datetime.now().strftime('%Y-%m-%d') + '.csv'
         self.name = None
         self.content = None
         # self.day = int(input('输入获取天数：'))
-        self.day = 2
+        self.day = 10
         # 好友微信号
         self.wx_num = None
         # 是否到达底部
@@ -130,7 +130,7 @@ class WeChatSpider:
         while True:
             tab = self.wait.until(EC.presence_of_element_located((By.XPATH,
                                 '//*[@resource-id="com.tencent.mm:id/bq"]/android.widget.LinearLayout/android.widget.RelativeLayout[2]')))
-            print(tab.is_displayed())
+            # print(tab.is_displayed())
             if tab.is_displayed():
                 tab.click()
                 return
@@ -145,7 +145,10 @@ class WeChatSpider:
             usernames = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/ng')))
             for i in range(len(usernames)-2):
                 print('总 {}  第 {}'.format(len(usernames), i))
-                self.name = usernames[i].text
+                try:
+                    self.name = usernames[i].text
+                except:
+                    break
                 print('*'*50)
                 print('好友：[{}] 信息获取中'.format(self.name))
                 jumps = ['微信团队', '微信支付小管家', '文件传输助手']
@@ -308,7 +311,7 @@ class WeChatSpider:
                 return
             # 朋友圈数据列表
             cons = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/lk')))
-            for i in range(len(cons)-1):
+            for i in range(len(cons)-2):
                 if count == 1:
                     i = i + 2
                 else:
@@ -318,64 +321,67 @@ class WeChatSpider:
                     # 获取信息内容和图片数量
                     con = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(
                         EC.presence_of_all_elements_located((By.XPATH,
-                                                             '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[2]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(
-                                                                 i))))
+                                                             f'//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{i}]/android.widget.LinearLayout/android.widget.LinearLayout[2]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView')))
                     # 信息内容
                     content = con[0].text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
-                    print('文本：{}'.format(content))
-
-                    # 发布时间 date 日期 time 月份
+                    # 获取图片数量
+                    image_num = re.findall(r'\d', con[1].text) if len(con) > 1 else [1]
+                except:
                     try:
-                        date = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, '//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{}]/android.widget.LinearLayout/android.widget.LinearLayout[1]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView'.format(i))))
-                        if len(date) > 1:
-                            self.release = date[1].text + date[0].text
-                        else:
-                            self.release = date[0].text
+                        content = self.driver.find_elements_by_xpath(f'//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{i}]/android.widget.LinearLayout[2]/android.widget.LinearLayout[2]/android.widget.TextView')
+                        content = content[0].text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
+                        image_num = None
                     except:
-                        pass
-                    print(self.release)
-                    # 获取不到月份 默认当前月份 这种情况只会在今天 昨天 数据量多时出现
-                    if self.release == '今天':
-                        # release = datetime.datetime.now().strftime('%m,%d').replace(',', '月')
-                        # 跳过今天数据
-                        continue
-                    elif self.release == '昨天':
-                        release = datetime.datetime.now() + datetime.timedelta(days=-1)
-                        release = release.strftime('%m,%d').replace(',', '月')
+                        break
+
+                # 发布时间 date 日期 time 月份
+                try:
+                    date = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, f'//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{i}]/android.widget.LinearLayout/android.widget.LinearLayout[1]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView')))
+                    if len(date) > 1:
+                        release = date[1].text + date[0].text
                     else:
-                        release = self.release
+                        release = date[0].text
+                except:
+                    release = self.release
+
+                # 获取不到月份 默认当前月份 这种情况只会在今天 昨天 数据量多时出现
+                if release == '今天':
+                    # release = datetime.datetime.now().strftime('%m,%d').replace(',', '月')
+                    # 跳过今天数据
+                    continue
+                elif release == '昨天':
+                    release = datetime.datetime.now() + datetime.timedelta(days=-1)
+                    release = release.strftime('%m,%d').replace(',', '月')
+                self.release = release
+
+                print(f'时间：{self.release} 文本：{content} 图片：{image_num}')
+                try:
                     # 判断时间
                     old_time = datetime.datetime.strptime('2019年' + release, '%Y年%m月%d')
                     new_time = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y,%m,%d'), '%Y,%m,%d')
-                    if (new_time-old_time).days >= self.day:
-                        print('大于{}天不获取'.format(self.day))
-                        flag = True
-                        break
-                    # 判断内容是否包含监控关键词
-                    key_word = [i for i in self.key_wo if i in content]
-                    if not key_word:
-                        print('未检测到关键词,跳过!')
-                        continue
-
-                    # 效验信息是否获取
-                    make = self.make_file_id(content)
-                    if co == 1:
-                        if self.make_file_csv(make):
-                            print('好友没有发布新消息')
-                            flag = True
-                            break
-                    co += 1
-                    if self.content_validation(make):
-                        print('已处理跳过')
-                        flag = True
-                        break
-                except Exception as e:
-                    # self.log.info(e)
+                except:
                     continue
-                # 获取图片数量
-                image_num = re.findall(r'\d', con[1].text) if len(con) > 1 else [1]
-                # print('图片数量：{}'.format(image_num))
-                print(release, content)
+                if (new_time-old_time).days >= self.day:
+                    print('大于{}天不获取'.format(self.day))
+                    flag = True
+                    break
+                # 判断内容是否包含监控关键词
+                key_word = [i for i in self.key_wo if i in content]
+                if not key_word:
+                    print('未检测到关键词,跳过!')
+                    continue
+
+                # 效验信息是否获取
+                make = self.make_file_id(content)
+                if co == 1:
+                    if self.make_file_csv(make):
+                        print('好友没有发布新消息')
+                        flag = True
+                        break
+                co += 1
+                if self.content_validation(make):
+                    print('已处理跳过')
+                    continue
 
                 # 图片保存
                 if image_num:
@@ -386,15 +392,15 @@ class WeChatSpider:
                         for n in range(int(image_num[0])):
                             # 保存图片
                             # 长按屏幕
-                            self.long_press()
-                            rand = random.randint(10000, 99999)
-                            name = str(round(time.time() * 1000)) + str(rand) + str(n+1) + '.png'
-                            path = os.getcwd() + r'\ExportFile\image\{}'.format(name)
-                            image_path.append(path)
-                            self.driver.get_screenshot_as_file('ExportFile/config/{}'.format(name))
+                            image_name = self.long_press()
+                            # 格式 mmexport1572159236223.jpg
+                            # path = os.getcwd() + r'\ExportFile\image\{}'.format(image_name)
+                            image_path.append(image_name)
+                            # 根据文件名保存图片至指定位置
+                            # self.driver.get_screenshot_as_file('ExportFile/config/{}'.format(image_name))
                             # self.process_image('ExportFile/config/{}'.format(name))
-                            print('第：[{}] 张图片下载成功,保存至：{}'.format(n + 1, path))
-                            self.driver.keyevent(4)
+                            print('第：[{}] 张图片下载成功,文件名：{}'.format(n + 1, image_name))
+                            # self.driver.keyevent(4)
                             time.sleep(1)
                             # 切换下一张图片
                             if n == int(image_num[0])-1:
@@ -409,14 +415,17 @@ class WeChatSpider:
                     t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     # ID, '昵称', '个性签名', '发布日期', '内容', '图片', 校验码, '获取日期'
                     data = [self.wx_num, self.name, self.content, release, content, image_path, make, t]
+                    # 已处理信息写入效验文件
+                    self.content_validation(make, vali=False)
+                    self.data_save([data])
+                    self.driver.keyevent(4)
+                    time.sleep(1)
                 else:
                     t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     data = [self.wx_num, self.name, self.content, release, content, '无图片', make, t]
-                # 已处理信息写入效验文件
-                self.content_validation(make, vali=False)
-                self.data_save([data])
-                self.driver.keyevent(4)
-                time.sleep(1)
+                    # 已处理信息写入效验文件
+                    self.content_validation(make, vali=False)
+                    self.data_save([data])
 
             if flag:
                 break
@@ -455,13 +464,15 @@ class WeChatSpider:
 
         # 编辑
         edits = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/cw')))
-        edit = [i for i in edits if i.text == '编辑']
+        edit = [i for i in edits if i.text == '保存图片']
         edit[0].click()
+        image_name = 'mmexport' + str(round(time.time() * 1000)) + '.jpg'
         time.sleep(1)
         # 点击一下屏幕
-        tap = self.driver.find_elements_by_class_name('android.widget.FrameLayout')
-        if tap:
-            action1.tap(tap[0], 100, 100).perform()
+        # tap = self.driver.find_elements_by_class_name('android.widget.FrameLayout')
+        # if tap:
+        #     action1.tap(tap[0], 100, 100).perform()
+        return image_name
 
     def if_bottom(self):
         """
@@ -499,10 +510,11 @@ class WeChatSpider:
         """
         # 加载数据
         path = os.getcwd()
-        files = os.listdir(path + '\ExportFile')
-        if self.filename.split('/')[1] not in files:
-            print('没有此文件')
+        files = os.listdir(path)
+        if self.filename not in files:
+            print(f'创建文件:{self.filename}')
             self.data_save([])
+            time.sleep(3)
         df_read = pd.read_csv(self.filename)
         df = pd.DataFrame(df_read)
         # 获取指定表头的列数
@@ -562,7 +574,6 @@ class WeChatSpider:
 
         # 数据实时备份
         shutil.copy(self.filename, '备份.csv')
-
 
     def run(self):
         time.sleep(2)
@@ -635,35 +646,35 @@ class Monitor:
 
 
 if __name__ == '__main__':
-    # wechat = WeChatSpider()
-    # wechat.run()
+    wechat = WeChatSpider()
+    wechat.run()
     # with open('ExportFile/ContentValidation.txt', 'w') as f:
     #     f.seek(0)
     #     f.truncate()
     #     print('获取记录清空成功')
     # 监测程序是否在运行中
-    monitor = Monitor()
-    if monitor.run():
-        os._exit(0)
-    start_time = datetime.datetime.now()
-    print("程序开始时间：{}".format(start_time))
-    count = 0
-    while True:
-        try:
-            wechat = WeChatSpider()
-            wechat.run()
-            with open('ExportFile/FriendValidation.txt', 'w') as f:
-                f.seek(0)
-                f.truncate()
-                print('获取记录清空成功')
-            if wechat.bottom:
-                continue
-
-        except Exception as e:
-            log = log_init()
-            log.info(e)
-            count += 1
-            continue
+    # monitor = Monitor()
+    # if monitor.run():
+    #     os._exit(0)
+    # start_time = datetime.datetime.now()
+    # print("程序开始时间：{}".format(start_time))
+    # count = 0
+    # while True:
+    #     try:
+    #         wechat = WeChatSpider()
+    #         wechat.run()
+    #         with open('ExportFile/FriendValidation.txt', 'w') as f:
+    #             f.seek(0)
+    #             f.truncate()
+    #             print('获取记录清空成功')
+    #         if wechat.bottom:
+    #             continue
+    #
+    #     except Exception as e:
+    #         log = log_init()
+    #         log.info(e)
+    #         count += 1
+    #         continue
     #
     # end_time = datetime.datetime.now()
     # print('程序异常次数：{}'.format(count))
