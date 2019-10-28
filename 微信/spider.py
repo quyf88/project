@@ -72,7 +72,7 @@ class WeChatSpider:
         self.name = None
         self.content = None
         # self.day = int(input('输入获取天数：'))
-        self.day = 10
+        self.day = 2
         # 好友微信号
         self.wx_num = None
         # 是否到达底部
@@ -144,7 +144,7 @@ class WeChatSpider:
         while True:
             usernames = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/ng')))
             for i in range(len(usernames)-2):
-                print('总 {}  第 {}'.format(len(usernames), i))
+                # print('总 {}  第 {}'.format(len(usernames), i))
                 try:
                     self.name = usernames[i].text
                 except:
@@ -262,8 +262,8 @@ class WeChatSpider:
             return False
         except:
             # 写入效验文件
-            make = self.make_file_id(self.name)
-            self.friend_validation(make, vali=False)
+            # make = self.make_file_id(self.name)
+            # self.friend_validation(make, vali=False)
             return True
 
     def process_image(self, image_name):
@@ -299,6 +299,7 @@ class WeChatSpider:
         """
         co = 1
         count = 1
+        self.release = None
         while True:
             flag = False
             # 判断有没有数据
@@ -312,10 +313,10 @@ class WeChatSpider:
             # 朋友圈数据列表
             cons = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/lk')))
             for i in range(len(cons)-2):
-                if count == 1:
-                    i = i + 2
+                if count > 2:
+                    i = i + 1
                 else:
-                    i = i + 3
+                    i = i + 2
                 # 内容
                 try:
                     # 获取信息内容和图片数量
@@ -332,7 +333,14 @@ class WeChatSpider:
                         content = content[0].text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
                         image_num = None
                     except:
-                        break
+                        try:
+                            content = self.driver.find_elements_by_xpath(
+                                f'//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{i}]/android.widget.LinearLayout[3]/android.widget.LinearLayout[2]/android.widget.TextView')
+                            content = content[0].text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ',
+                                                                                                                    '')
+                            image_num = None
+                        except:
+                            break
 
                 # 发布时间 date 日期 time 月份
                 try:
@@ -342,17 +350,22 @@ class WeChatSpider:
                     else:
                         release = date[0].text
                 except:
-                    release = self.release
+                    # 获取不到时间 主动抛出异常
+                    if not self.release:
+                        print('获取时间失败')
+                        raise
+                    else:
+                        release = self.release
+                print(release, self.release)
 
                 # 获取不到月份 默认当前月份 这种情况只会在今天 昨天 数据量多时出现
                 if release == '今天':
                     # release = datetime.datetime.now().strftime('%m,%d').replace(',', '月')
-                    # 跳过今天数据
+                    print('跳过今天数据')
                     continue
                 elif release == '昨天':
                     release = datetime.datetime.now() + datetime.timedelta(days=-1)
                     release = release.strftime('%m,%d').replace(',', '月')
-                self.release = release
 
                 print(f'时间：{self.release} 文本：{content} 图片：{image_num}')
                 try:
@@ -365,6 +378,7 @@ class WeChatSpider:
                     print('大于{}天不获取'.format(self.day))
                     flag = True
                     break
+                self.release = release
                 # 判断内容是否包含监控关键词
                 key_word = [i for i in self.key_wo if i in content]
                 if not key_word:
@@ -437,7 +451,9 @@ class WeChatSpider:
                 break
             except:
                 pass
-
+            # 好友朋友圈设置权限
+            if self.driver.find_elements_by_id('com.tencent.mm:id/egv'):
+                break
             # 向上滑动一屏
             count += 1
             self.driver.swipe(200, 1200, 200, 500, 800)
@@ -467,7 +483,7 @@ class WeChatSpider:
         edit = [i for i in edits if i.text == '保存图片']
         edit[0].click()
         image_name = 'mmexport' + str(round(time.time() * 1000)) + '.jpg'
-        time.sleep(1)
+        # time.sleep(1)
         # 点击一下屏幕
         # tap = self.driver.find_elements_by_class_name('android.widget.FrameLayout')
         # if tap:
@@ -514,7 +530,8 @@ class WeChatSpider:
         if self.filename not in files:
             print(f'创建文件:{self.filename}')
             self.data_save([])
-            time.sleep(3)
+            time.sleep(2)
+        print(self.filename)
         df_read = pd.read_csv(self.filename)
         df = pd.DataFrame(df_read)
         # 获取指定表头的列数
@@ -646,35 +663,35 @@ class Monitor:
 
 
 if __name__ == '__main__':
-    wechat = WeChatSpider()
-    wechat.run()
+    # wechat = WeChatSpider()
+    # wechat.run()
     # with open('ExportFile/ContentValidation.txt', 'w') as f:
     #     f.seek(0)
     #     f.truncate()
     #     print('获取记录清空成功')
     # 监测程序是否在运行中
-    # monitor = Monitor()
-    # if monitor.run():
-    #     os._exit(0)
-    # start_time = datetime.datetime.now()
-    # print("程序开始时间：{}".format(start_time))
-    # count = 0
-    # while True:
-    #     try:
-    #         wechat = WeChatSpider()
-    #         wechat.run()
-    #         with open('ExportFile/FriendValidation.txt', 'w') as f:
-    #             f.seek(0)
-    #             f.truncate()
-    #             print('获取记录清空成功')
-    #         if wechat.bottom:
-    #             continue
-    #
-    #     except Exception as e:
-    #         log = log_init()
-    #         log.info(e)
-    #         count += 1
-    #         continue
+    monitor = Monitor()
+    if monitor.run():
+        os._exit(0)
+    start_time = datetime.datetime.now()
+    print("程序开始时间：{}".format(start_time))
+    count = 0
+    while True:
+        try:
+            wechat = WeChatSpider()
+            wechat.run()
+            with open('ExportFile/FriendValidation.txt', 'w') as f:
+                f.seek(0)
+                f.truncate()
+                print('获取记录清空成功')
+            if wechat.bottom:
+                continue
+
+        except Exception as e:
+            # log = log_init()
+            # log.info(e)
+            count += 1
+            continue
     #
     # end_time = datetime.datetime.now()
     # print('程序异常次数：{}'.format(count))
