@@ -1,16 +1,17 @@
-# coding=utf-8
-# 作者    ： Administrator
-# 文件    ：exchange_image_name.py
-# IED    ：PyCharm
-# 创建时间 ：2019/10/27 11:00
+# -*- coding:utf-8 -*-
+# 文件 ：exchange_image_name.py
+# IED ：PyCharm
+# 时间 ：2019/10/28 0028 11:07
+# 版本 ：V1.0
 import os
 import re
 import time
 import shutil
 import pandas as pd
 
-FILE_NAME = None
-IMAGE_NAME = None
+
+FILE_NAME = None  # 文件名
+IMAGE_NAME = None  # 临时图片名列表
 
 
 def read_image_name():
@@ -32,18 +33,24 @@ def read_image_name():
         df = pd.DataFrame(df_read)
         # 获取指定表头的列数
         image_name = 0  # 图片
+        MD5 = 0  # 校验码
         for i in range(len(df.keys())):
             if df.keys()[i] == '图片':
                 image_name = i
+            if df.keys()[i] == '校验码':
+                MD5 = i
         # 循环每一行
         for indexs in df.index:
             # 读取指定行列数据 df.ix[行,列]
-            data1 = df.ix[indexs, image_name]
+            image_num = df.ix[indexs, image_name]
+            check_code = df.ix[indexs, MD5]
             # 修改指定单元格数据df.iloc[行, 列]
-            if data1 == '无图片':
+            if image_num == '无图片':
                 continue
 
-            yield data1
+            # 图片数量 校验码
+            yield image_num, check_code
+
             # 修改文件名
             global IMAGE_NAME
             print(IMAGE_NAME)
@@ -56,23 +63,8 @@ def read_image_name():
             count += 1
             # 清空记录列表
             IMAGE_NAME = []
-
-
-def get_record_time():
-    """
-    记录文件时间戳转换日期
-    :return:
-    """
-    for image_names in read_image_name():
-        # eval 剔除字符串 前后标点
-        # image_names = eval(image_names)
-        image_names = re.findall(r'mmexport(.*?).jpg', image_names)
-        for image_name in image_names:
-            timeStamp = int(image_name) / 1000
-            timeArray = time.localtime(timeStamp)
-            otherStyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
-
-            yield otherStyleTime
+            # 移动文件
+        shutil.move(filename, f'ExportFile/image/{FILE_NAME}/')
 
 
 def get_image_name():
@@ -82,18 +74,35 @@ def get_image_name():
     """
     global IMAGE_NAME
     IMAGE_NAME = []
-    for i in get_record_time():
-        files = os.listdir(f'ExportFile/image/{FILE_NAME}/')
-        # print(files)
-        for image_name in files:
-            image_name_time = re.findall(r'mmexport(.*?).jpg', image_name)[0]
-            timeStamp = int(image_name_time) / 1000
-            timeArray = time.localtime(timeStamp)
-            otherStyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
-            if i == otherStyleTime:
-                IMAGE_NAME.append(image_name)
-                break
+    # 提取图片数量
+    for image_num, check_code in read_image_name():
+        image_num = len(eval(image_num))
 
+        global FILE_NAME
+        files = os.listdir(f'ExportFile/image/{FILE_NAME}/')
+        files = [i for i in files if 'jpg' in i]
+        # print(files)
+        for i in range(image_num):
+            # print(files[i], check_code)
+            save_image(files[i], check_code)
+            IMAGE_NAME.append(files[i])
+
+
+def save_image(image_name, check_code):
+    """
+    保存图片
+    :return:
+    """
+    # 判断目录是否存在 没有则创建
+    global FILE_NAME
+    image_file = os.path.exists(f'ExportFile/image/{FILE_NAME}/{check_code}')
+    if not image_file:
+        os.makedirs(f'ExportFile/image/{FILE_NAME}/{check_code}')
+        print('文件创建成功')
+    # 移动图片至新目录
+    old_directory = f'ExportFile/image/{FILE_NAME}/{image_name}'
+    new_directory = f'ExportFile/image/{FILE_NAME}/{check_code}/{image_name}'
+    shutil.move(old_directory, new_directory)
 
 
 if __name__ == '__main__':
