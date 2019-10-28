@@ -147,14 +147,14 @@ class Spider:
     def run(self):
         # 隐藏卡号url
         # cardID 隐藏卡号 获取方法  https://zhuanlan.zhihu.com/p/65495172
-        content = ['622202***7068', 'ICBC', '毕洪波', '中国工商银行', '1910281494418964693']
-        _url = f'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={content[0]}&' \
-               f'bankAccount={content[2]}&money=&amount=&bankMark={content[1]}&bankName={content[3]}&cardIndex={content[4]}&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
-        print(_url)
+        # content = ['622202***7068', 'ICBC', '毕洪波', '中国工商银行', '1910281494418964693']
+        # _url = f'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={content[0]}&' \
+        #        f'bankAccount={content[2]}&money=&amount=&bankMark={content[1]}&bankName={content[3]}&cardIndex={content[4]}&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
+        # print(_url)
         # 普通转账url
-        # content = self.read_txt()
-        # _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
-        #        'money=&amount=&bankMark={}&bankName={}'.format(content[1], content[0], content[3], content[4])
+        content = self.read_txt()
+        _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
+               'money=&amount=&bankMark={}&bankName={}'.format(content[1], content[0], content[3], content[4])
 
         # 长链接转换短链接
         short_link = self.get_url(_url)
