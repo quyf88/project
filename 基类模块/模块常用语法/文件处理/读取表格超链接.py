@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-# 文件 ：123.py
+# 文件 ：exchange_image_name.py
 # IED ：PyCharm
 # 时间 ：2019/10/24 0024 9:03
 # 版本 ：V1.0
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     print()
 
     files = [
-        r'config/用户id列表.xlsx'
+        r'config/用户id列表1.xlsx'
     ]
 
     for file in files:
