@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>在线抖音无水印视频解析</title>
+	    <meta name="keywords" content="抖音去水印,抖音怎么去除水印,抖音解析,在线抖音无水印下载,抖音在线解析">
+	    <meta name="description" content="在线去除抖音短视频中的水印，完美还原视频的最初模样~">
+  <link href="https://lib.baomitu.com/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+  <script src="https://lib.baomitu.com/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://lib.baomitu.com/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+   <script src="https://lib.baomitu.com/layer/3.1.1/layer.js"></script> 
+   <script>$(document).ready(function() {
+    $("#magic").click(function() {
+        layer.load(1, {
+            shade: [.1, "#fff"]
+        });
+        $("#inputvalue").val();
+        $.ajax({
+            type: "GET",
+            url: "https://api.bokeorg.com/douyin/?url=" + $.trim($("#url").val()) + "&way=json",
+            dataType: "json",
+            success: function(a) {
+                layer.closeAll("loading");
+                document.getElementById("str").innerHTML = '<div class="alert alert-danger" role="alert"><b>视频标题：</b>' + a.title + ' <br><b>视频封面：</b><center><img width="25%" src="' + a.cover + '"><br><br><a class="btn btn-danger btn-block" target="_blank" rel="noreferrer" href="' + a.videourl + '">点击下载无水印视频</a></div></center>'
+            },
+            error: function(a) {
+                layer.closeAll("loading");
+                layer.msg("出错了，请再试一下！")
+            }
+        })
+    })
+});
+var clipboard = new ClipboardJS(".btn");</script>
+  <!--[if lt IE 9]>
+    <script src="//lib.baomitu.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="//lib.baomitu.com/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+	<style>
+	.container {
+	  max-width: 580px;
+	  padding: 15px;
+	  margin: 0 auto;
+	}
+	
+	.alert-dd
+	{color:#000000;background-color:#BDD4DE;border-color:#BDD4DE}
+	.alert-danger
+	{color:#000000;background-color:#A3C8BF;border-color:#A3C8BF}
+	
+	</style>
+</head>
+<body>
+<div class="container">    <div class="header">
+        <ul class="nav nav-pills pull-right" role="tablist">
+          <li role="presentation" class="active"><a href="api.php">在线解析</a></li>
+          <li role="presentation"><a href="https://www.dcqzz.cn" id="weburl">技术支持</a></li>
+        </ul>
+        <h3 class="text-muted" align="left">抖音去水印</h3>
+     </div><hr><div style="text-align:center;">
+	 <h3 class="form-signin-heading">输入作品链接</h3>
+	 (不要带文字)
+	 <input type="text" class="form-control" id="url" value=""><br>
+	 <input type="submit" class="btn btn-primary btn-block" value="解析" id="magic"><br/></div>
+	 <div id="str"></div> 
+	 <hr>
+	  <div style="text-align: left;">
+	              
+	            
+	                     <p>1.Android手机上可以用吗？</p>
+	                     <p class="alert alert-dd">可以的，Android手机在常用的Chrome、UC、360、QQ等浏览器上都可以很方便的使用本站。</p>
+	                     <p>2.iOS设备（iPhone、iPad、iPod）上点击下载视频按钮后，跳转到视频页面，并没有直接下载，怎么办？</p>
+	                     <p class="alert alert-dd">因Safari及微信内置浏览器均不支持下载文件，所以保存视频需要借助第三方App来完成下载，建议iOS用户在App Store下载免费的Documents 6，然后在Documents的内置浏览器中使用本站，可以完美下载视频，并且Documents支持将下载的视频移到手机相册。 </p>
+	                     <p>3.我在电脑上用的是IE浏览器，点下载视频按钮后，出现跟上面那用iPad的哥们一样的情况，跳转到视频页面，如何下载到本地呢？</p>
+	                     <p class="alert alert-dd">电脑上少数浏览器不支持直接下载，但可以在下载视频按钮上点击右键，然后选择"目标另存为"或"链接存储为"来下载视频；或者到跳转后的视频页面，在视频画面上点击右键，然后选择"视频另存为"来下载视频。当然，我们更推荐在电脑上使用如谷歌Chrome浏览器、360浏览器极速模式、QQ浏览器极速模式等现代浏览器来获得最佳上网体验。</p>
+	                 
+	             </div>
+	       
+	 
+	 
+
+<p id="foot" style="text-align:center"><br>&copy; Powered by <a href="https://www.dcqzz.cn/">SiYuan</a>!</p></div>
+</body>
+</html>

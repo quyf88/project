@@ -1,0 +1,5 @@
+1.提取抖音视频短链接
+2.输入作品链接(短链接) 解析
+    https://api.bokeorg.com/douyin/?url=短链接地址&way=json
+    请求该接口 返回无水印下载地址 videourl
+3.下载无水印视频
