@@ -222,6 +222,8 @@ class Spider:
                 elif error_con == '验证码失效！':
                     count += 1
                     continue
+                elif '指定服务不存在' in error_con:
+                    continue
                 elif '草稿数校验代码异常' in error_con:
                     self.driver.close()
                     monitor = Monitor()
