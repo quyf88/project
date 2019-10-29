@@ -25,7 +25,7 @@ from PIL import Image
 
 """PIL 灰值化 二值化 处理"""
 # 打开一张图片
-img = Image.open('test.png')
+img = Image.open('testn.json.png')
 # 1.转为灰度图 模式L为灰色图像，它的每个像素用8个bit表示，0表示黑，255表示白，其他数字表示不同的灰度
 img_gray = img.convert('L')
 # img_gray.save('b.png')
