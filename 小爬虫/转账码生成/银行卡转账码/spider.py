@@ -79,6 +79,7 @@ class Spider:
         """
         # url 中文转码  string.printable 跳过ascii码
         lang_url = quote(lang_url, string.printable)
+        print(lang_url)
 
         host = 'https://dwz.cn'
         path = '/admin/v2/create'
@@ -146,10 +147,10 @@ class Spider:
     def run(self):
         # 隐藏卡号url
         # cardID 隐藏卡号 获取方法  https://zhuanlan.zhihu.com/p/65495172
-        # content = ['621468***9469', 'BJBANK', '陈丽丽', '北京银行', '1603271394329096300']
+        # content = ['622202***7068', 'ICBC', '毕洪波', '中国工商银行', '1910281494418964693']
         # _url = f'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={content[0]}&' \
         #        f'bankAccount={content[2]}&money=&amount=&bankMark={content[1]}&bankName={content[3]}&cardIndex={content[4]}&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
-
+        # print(_url)
         # 普通转账url
         content = self.read_txt()
         _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \

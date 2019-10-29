@@ -299,7 +299,6 @@ class WeChatSpider:
         """
         co = 1
         count = 1
-        self.release = None
         while True:
             flag = False
             # 判断有没有数据
@@ -317,6 +316,43 @@ class WeChatSpider:
                     i = i + 1
                 else:
                     i = i + 2
+                    # 发布时间 date 日期 time 月份
+                try:
+                    date = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(
+                        EC.presence_of_all_elements_located((By.XPATH,
+                                                             f'//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{i}]/android.widget.LinearLayout/android.widget.LinearLayout[1]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView')))
+                    if len(date) > 1:
+                        release = date[1].text + date[0].text
+                    else:
+                        release = date[0].text
+                except:
+                    # 获取不到时间 主动抛出异常
+                    if not self.release:
+                        print('获取时间失败')
+                    else:
+                        release = self.release
+                self.release = release
+                print(release, self.release)
+
+                # 获取不到月份 默认当前月份 这种情况只会在今天 昨天 数据量多时出现
+                if release == '今天':
+                    # release = datetime.datetime.now().strftime('%m,%d').replace(',', '月')
+                    print('跳过今天数据')
+                    continue
+                elif release == '昨天':
+                    release = datetime.datetime.now() + datetime.timedelta(days=-1)
+                    release = release.strftime('%m,%d').replace(',', '月')
+                try:
+                    # 判断时间
+                    old_time = datetime.datetime.strptime('2019年' + release, '%Y年%m月%d')
+                    new_time = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y,%m,%d'), '%Y,%m,%d')
+                except:
+                    continue
+                if (new_time - old_time).days >= self.day:
+                    print('大于{}天不获取'.format(self.day))
+                    flag = True
+                    break
+
                 # 内容
                 try:
                     # 获取信息内容和图片数量
@@ -341,44 +377,8 @@ class WeChatSpider:
                             image_num = None
                         except:
                             break
-
-                # 发布时间 date 日期 time 月份
-                try:
-                    date = WebDriverWait(self.driver, 1, 0.1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH, f'//android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.view.ViewGroup/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.LinearLayout[{i}]/android.widget.LinearLayout/android.widget.LinearLayout[1]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.TextView')))
-                    if len(date) > 1:
-                        release = date[1].text + date[0].text
-                    else:
-                        release = date[0].text
-                except:
-                    # 获取不到时间 主动抛出异常
-                    if not self.release:
-                        print('获取时间失败')
-                        raise
-                    else:
-                        release = self.release
-                print(release, self.release)
-
-                # 获取不到月份 默认当前月份 这种情况只会在今天 昨天 数据量多时出现
-                if release == '今天':
-                    # release = datetime.datetime.now().strftime('%m,%d').replace(',', '月')
-                    print('跳过今天数据')
-                    continue
-                elif release == '昨天':
-                    release = datetime.datetime.now() + datetime.timedelta(days=-1)
-                    release = release.strftime('%m,%d').replace(',', '月')
-
                 print(f'时间：{self.release} 文本：{content} 图片：{image_num}')
-                try:
-                    # 判断时间
-                    old_time = datetime.datetime.strptime('2019年' + release, '%Y年%m月%d')
-                    new_time = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y,%m,%d'), '%Y,%m,%d')
-                except:
-                    continue
-                if (new_time-old_time).days >= self.day:
-                    print('大于{}天不获取'.format(self.day))
-                    flag = True
-                    break
-                self.release = release
+
                 # 判断内容是否包含监控关键词
                 key_word = [i for i in self.key_wo if i in content]
                 if not key_word:
@@ -421,8 +421,8 @@ class WeChatSpider:
                                 break
                             self.driver.swipe(self.x*3/4, self.y/4, self.x/4, self.y/4, 200)
                     except Exception as e:
-                        print(e)
-                        self.log.info(e)
+                        # print(e)
+                        # self.log.info(e)
                         continue
 
                     # 数据写入文件
