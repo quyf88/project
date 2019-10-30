@@ -146,8 +146,16 @@ class Spider:
         # _url = f'https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=&userId={2088632465859457}&memo='
 
         # 跳转到支付宝账户页面
-        alipay = '18566036663'
-        _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{alipay}%26amount%3D%26memo%3D'
+        # alipay = 'ai5ouu@163.com'
+        # _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{alipay}%26amount%3D%26memo%3D'
+
+        # 付款接口
+        fukuan = 'fkx08454npzfffdxvvhjs30'
+        _url = f'https://mobilecodec.alipay.com/client_download.htm?qrcode={fukuan}'
+
+        # 添加好友
+        # user = 'a7x07333ftcwbpf5ixyfg7b'
+        # _url = f'https://mobilecodec.alipay.com/client_download.htm?qrcode={user}'
 
         # 长链接生成短链
         short_link = self.get_url(_url)
