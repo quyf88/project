@@ -95,7 +95,7 @@ class Spider:
         count = 1
         while True:
             # 发起请求
-            response = requests.post(url=url, data=json.dumps(bodys), headers=headers)
+            response = requests.post(url=url, data=json.dumps(bodys), headers=headers, verify=False)
             # 读取响应
             response = json.loads(response.text)
             if count > 3:
@@ -118,7 +118,7 @@ class Spider:
         # 转码
         short_link = quote(short_link, string.digits)
         url = 'http://apis.juhe.cn/qrcode/api?text={}&el=&bgcolor=&fgcolor=&logo=&w=&m=&lw=&type=2&key=b142a4a659dfa5237bf54a78baf8382f'.format(short_link)
-        response = requests.get(url, headers=self.headers)
+        response = requests.get(url, headers=self.headers, verify=False)
         with open('image/code.png', 'wb') as f:
             f.write(response.content)
             print('支付宝转账码生成成功!')
@@ -154,7 +154,7 @@ class Spider:
         # 普通转账url
         content = self.read_txt()
         _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
-               'money=&amount=&bankMark={}&bankName={}'.format(content[1], content[0], content[3], content[4])
+               'money=&amount=&bankMark={}&bankName={}&orderSource='.format(content[1], content[0], content[3], content[4])
 
         # 长链接转换短链接
         short_link = self.get_url(_url)
