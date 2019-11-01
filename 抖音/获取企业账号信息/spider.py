@@ -5,7 +5,7 @@
 # 版本 ：V1.0
 """
 切换至脚本目录下运行脚本
-mitmdump -s douyin_t.py
+mitmdump -s spider.py
 """
 
 
