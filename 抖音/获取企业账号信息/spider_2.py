@@ -60,8 +60,7 @@ class Spider:
             comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/yc')))
             comment_num = comment.text
             print(f'评论数量：{comment_num}')
-            comment_num = int(float(comment_num.replace('w', ''))) * 1000 if 'w' in comment_num else int(
-                int(comment_num) / 10)
+            comment_num = int(float(comment_num.replace('w', ''))) * 1000 if 'w' in comment_num else int(int(comment_num) / 10)
             if int(comment_num) < 100:
                 self.driver.swipe(200, 1500, 200, 500, 500)
                 continue
@@ -117,9 +116,9 @@ def adb_devices():
 
 @run_time
 def main():
-    driver_server = 4723
+    driver_server = 4725
     devices = adb_devices()
-    spider = Spider(devices[0], driver_server)
+    spider = Spider(devices[1], driver_server)
     spider.slide()
 
 

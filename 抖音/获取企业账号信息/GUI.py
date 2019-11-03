@@ -67,7 +67,6 @@ class CrawlWindow(QWidget):
         self.device_3 = None
         self.device_4 = None
         self.adb_devices()
-        self.datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     def start_btn_init(self):
         """ 启动按钮按钮 配置"""
@@ -100,35 +99,39 @@ class CrawlWindow(QWidget):
     def table_init(self):
         """表格控件 配置"""
         # self.table.setFixedSize(500, 250)
-        self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(['设备', '状态', '运行时间'])
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(['设备', '连接状态', '运行状态', '运行时间'])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 设置为文本不可编辑
 
         # 配置默认文本
         row = self.table.rowCount()
         self.table.insertRow(row)
-        self.table.setItem(row, 0, QTableWidgetItem('127.0.0.1'))
-        self.table.setItem(row, 1, QTableWidgetItem('未启动'))
-        self.table.setItem(row, 2, QTableWidgetItem('0'))
+        self.table.setItem(row, 0, QTableWidgetItem('设备一'))
+        self.table.setItem(row, 1, QTableWidgetItem('未连接'))
+        self.table.setItem(row, 2, QTableWidgetItem('未启动'))
+        self.table.setItem(row, 3, QTableWidgetItem('-'))
 
         row = self.table.rowCount()
         self.table.insertRow(row)
-        self.table.setItem(row, 0, QTableWidgetItem('127.0.0.2'))
-        self.table.setItem(row, 1, QTableWidgetItem('未启动'))
-        self.table.setItem(row, 2, QTableWidgetItem('0'))
+        self.table.setItem(row, 0, QTableWidgetItem('设备二'))
+        self.table.setItem(row, 1, QTableWidgetItem('未连接'))
+        self.table.setItem(row, 2, QTableWidgetItem('未启动'))
+        self.table.setItem(row, 3, QTableWidgetItem('-'))
 
         row = self.table.rowCount()
         self.table.insertRow(row)
-        self.table.setItem(row, 0, QTableWidgetItem('127.0.0.3'))
-        self.table.setItem(row, 1, QTableWidgetItem('未启动'))
-        self.table.setItem(row, 2, QTableWidgetItem('0'))
+        self.table.setItem(row, 0, QTableWidgetItem('设备三'))
+        self.table.setItem(row, 1, QTableWidgetItem('未连接'))
+        self.table.setItem(row, 2, QTableWidgetItem('未启动'))
+        self.table.setItem(row, 3, QTableWidgetItem('-'))
 
         row = self.table.rowCount()
         self.table.insertRow(row)
-        self.table.setItem(row, 0, QTableWidgetItem('127.0.0.4'))
-        self.table.setItem(row, 1, QTableWidgetItem('未启动'))
-        self.table.setItem(row, 2, QTableWidgetItem('0'))
+        self.table.setItem(row, 0, QTableWidgetItem('设备四'))
+        self.table.setItem(row, 1, QTableWidgetItem('未连接'))
+        self.table.setItem(row, 2, QTableWidgetItem('未启动'))
+        self.table.setItem(row, 3, QTableWidgetItem('-'))
 
     def set_log_init(self):
         """输出控件 配置"""
@@ -167,8 +170,9 @@ class CrawlWindow(QWidget):
 
         # 改变表格窗口文本
         self.table.setItem(0, 0, QTableWidgetItem(self.device))
-        self.table.setItem(0, 1, QTableWidgetItem('已启动'))
-        self.table.setItem(0, 2, QTableWidgetItem(self.datetime))
+        self.table.setItem(0, 1, QTableWidgetItem('已连接'))
+        self.table.setItem(0, 2, QTableWidgetItem('已启动'))
+        self.table.setItem(0, 3, QTableWidgetItem(datetime.now().strftime('%m-%d %H:%M:%S')))
 
     def start_2_btn_slot(self):
         """程序启动"""
@@ -179,6 +183,11 @@ class CrawlWindow(QWidget):
         self.finish_sound.play()
         # 改变设置按钮状态为不可点击
         self.start_btn_2.setEnabled(False)
+        # 改变表格窗口文本
+        self.table.setItem(1, 0, QTableWidgetItem(self.device_2))
+        self.table.setItem(1, 1, QTableWidgetItem('已连接'))
+        self.table.setItem(1, 2, QTableWidgetItem('已启动'))
+        self.table.setItem(1, 3, QTableWidgetItem(datetime.now().strftime('%m-%d %H:%M:%S')))
 
     def start_3_btn_slot(self):
         """程序启动"""
@@ -189,6 +198,11 @@ class CrawlWindow(QWidget):
         self.finish_sound.play()
         # 改变设置按钮状态为不可点击
         self.start_btn_3.setEnabled(False)
+        # 改变表格窗口文本
+        self.table.setItem(2, 0, QTableWidgetItem(self.device_3))
+        self.table.setItem(2, 1, QTableWidgetItem('已连接'))
+        self.table.setItem(2, 2, QTableWidgetItem('已启动'))
+        self.table.setItem(2, 3, QTableWidgetItem(datetime.now().strftime('%m-%d %H:%M:%S')))
 
     def start_4_btn_slot(self):
         """程序启动"""
@@ -199,6 +213,12 @@ class CrawlWindow(QWidget):
         self.finish_sound.play()
         # 改变设置按钮状态为不可点击
         self.start_btn_4.setEnabled(False)
+
+        # 改变表格窗口文本
+        self.table.setItem(3, 0, QTableWidgetItem(self.device_4))
+        self.table.setItem(3, 1, QTableWidgetItem('已连接'))
+        self.table.setItem(3, 2, QTableWidgetItem('已启动'))
+        self.table.setItem(3, 3, QTableWidgetItem(datetime.now().strftime('%m-%d %H:%M:%S')))
 
     def set_log_slot(self, log):
         self.log_browser.append(log)
@@ -236,6 +256,49 @@ class CrawlWindow(QWidget):
                 for i in success:
                     print("设备连接成功：[{}]".format(i))
                     self.log_browser.append("设备连接成功：[{}]".format(i))
+                if len(success) == 1:
+                    self.device = success[0]
+                    self.start_btn_2.setEnabled(False)
+                    self.start_btn_3.setEnabled(False)
+                    self.start_btn_4.setEnabled(False)
+                    # 改变表格窗口文本
+                    self.table.setItem(0, 0, QTableWidgetItem(self.device))
+                    self.table.setItem(0, 1, QTableWidgetItem('已连接'))
+                elif len(success) == 2:
+                    self.device = success[0]
+                    self.device_2 = success[1]
+                    self.start_btn_3.setEnabled(False)
+                    self.start_btn_4.setEnabled(False)
+                    # 改变表格窗口文本
+                    self.table.setItem(0, 0, QTableWidgetItem(self.device))
+                    self.table.setItem(0, 1, QTableWidgetItem('已连接'))
+                    self.table.setItem(1, 0, QTableWidgetItem(self.device_2))
+                    self.table.setItem(1, 1, QTableWidgetItem('已连接'))
+                elif len(success) == 3:
+                    self.device = success[0]
+                    self.device_2 = success[1]
+                    self.device_3 = success[2]
+                    self.start_btn_4.setEnabled(False)
+                    # 改变表格窗口文本
+                    self.table.setItem(0, 0, QTableWidgetItem(self.device))
+                    self.table.setItem(0, 1, QTableWidgetItem('已连接'))
+                    self.table.setItem(1, 0, QTableWidgetItem(self.device_2))
+                    self.table.setItem(1, 1, QTableWidgetItem('已连接'))
+                    self.table.setItem(2, 0, QTableWidgetItem(self.device_3))
+                    self.table.setItem(2, 1, QTableWidgetItem('已连接'))
+                else:
+                    self.device = success[0]
+                    self.device_2 = success[1]
+                    self.device_3 = success[2]
+                    self.device_4 = success[3]
+                    self.table.setItem(0, 0, QTableWidgetItem(self.device))
+                    self.table.setItem(0, 1, QTableWidgetItem('已连接'))
+                    self.table.setItem(1, 0, QTableWidgetItem(self.device_2))
+                    self.table.setItem(1, 1, QTableWidgetItem('已连接'))
+                    self.table.setItem(2, 0, QTableWidgetItem(self.device_3))
+                    self.table.setItem(2, 1, QTableWidgetItem('已连接'))
+                    self.table.setItem(3, 0, QTableWidgetItem(self.device_4))
+                    self.table.setItem(3, 1, QTableWidgetItem('已连接'))
                 break
                 # return success
         except:
@@ -243,26 +306,6 @@ class CrawlWindow(QWidget):
             self.log_browser.append('读取设备信息失败,请检查设备是否成功启动!')
             os._exit(0)
 
-        if len(success) == 1:
-            self.device = success[0]
-            self.start_btn_2.setEnabled(False)
-            self.start_btn_3.setEnabled(False)
-            self.start_btn_4.setEnabled(False)
-        elif len(success) == 2:
-            self.device = success[0]
-            self.device_2 = success[1]
-            self.start_btn_3.setEnabled(False)
-            self.start_btn_4.setEnabled(False)
-        elif len(success) == 3:
-            self.device = success[0]
-            self.device_2 = success[1]
-            self.device_3 = success[2]
-            self.start_btn_4.setEnabled(False)
-        else:
-            self.device = success[0]
-            self.device_2 = success[1]
-            self.device_3 = success[2]
-            self.device_4 = success[3]
 
 class MyThread(QThread):
     result_signal = pyqtSignal(str, str, str, str, str, str)
@@ -285,7 +328,7 @@ class MyThread(QThread):
 
         while True:
             try:
-                r = subprocess.Popen(['python', r'automation.py'],  # 需要执行的文件路径
+                r = subprocess.Popen(['python', r'spider.py'],  # 需要执行的文件路径
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT,
                                      bufsize=0)
@@ -299,7 +342,6 @@ class MyThread(QThread):
                 # 判断子进程状态
                 if r.returncode == 0:
                     self.log_signal.emit('<font color="green">Subprogram success</font>')
-
                 else:
                     self.log_signal.emit('<font color="red">Subprogram failed</font>')
             except Exception as e:
@@ -327,7 +369,7 @@ class MyThread_2(QThread):
 
         while True:
             try:
-                r = subprocess.Popen(['python', r'automation.py'],  # 需要执行的文件路径
+                r = subprocess.Popen(['python', r'spider_2.py'],  # 需要执行的文件路径
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT,
                                      bufsize=0)
@@ -369,7 +411,7 @@ class MyThread_3(QThread):
 
         while True:
             try:
-                r = subprocess.Popen(['python', r'automation.py'],  # 需要执行的文件路径
+                r = subprocess.Popen(['python', r'spider_3.py'],  # 需要执行的文件路径
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT,
                                      bufsize=0)
@@ -411,7 +453,7 @@ class MyThread_4(QThread):
 
         while True:
             try:
-                r = subprocess.Popen(['python', r'automation.py'],  # 需要执行的文件路径
+                r = subprocess.Popen(['python', r'spider_4.py'],  # 需要执行的文件路径
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT,
                                      bufsize=0)
