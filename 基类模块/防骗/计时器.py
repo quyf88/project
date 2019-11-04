@@ -6,7 +6,7 @@
 import time
 
 
-def jishu():
+def proxy():
     # 字符类型的时间
     tss1 = '2019-11-20 00:00:00'
     # 转为时间数组
