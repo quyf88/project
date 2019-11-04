@@ -1,0 +1,51 @@
+一.安装appium
+    环境变量配置：https://www.jianshu.com/p/a445750dd016
+    1.JDK安装
+        1.1变量：JAVA_HOME
+            值：jdk安装目录，如D:\Program Files\Java\jdk1.8.0_181
+        1.2变量：classpath
+            值：%JAVA_HOME%\lib;%JAVA_HOME%\lib\tools.jar;%JAVA_HOME%\lib\dt.jar
+        1.3变量：Path
+            值：%JAVA_HOME%\bin
+
+    2.SDK安装
+        2.1变量：ANDROID_HOME
+            值：sdk安装目录，如D:\Program Files\Android\android-sdk
+        2.2变量：Path
+            值：%ANDROID_HOME%\tools
+        2.3依赖adb
+            选择platform-tools，解压到sdk安装目录下
+            变量：Path
+            值：%ANDROID_HOME%\platform-tools
+
+    npm命令行安装appium:https://www.cnblogs.com/jiyanjiao-702521/p/9981588.html
+    3.命令行安装appium
+        3.1安装node
+            变量：Path
+            值：node安装目录
+            node -v 查看版本
+        3.2npm安装appium
+            指定国内源安装(淘宝)
+            npm config set registry https://registry.npm.taobao.org
+            npm install appium -g --chromedriver_cdnurl=http://cdn.npm.taobao.org/dist/chromedriver
+        3.3配置appium环境变量
+            如:我的安装目录是C:\Users\lenovo\AppData\Roaming\npm\node_modules\appium\node_modules\.bin
+        3.4安装appium-doctor
+            npm install appium-doctor -g
+            appium-doctor 检查环境
+
+二.安装mitmproxy
+    https://cuiqingcai.com/5391.html
+    https://zhuanlan.zhihu.com/p/41492085
+    切换至脚本目录下运行脚本
+    mitmdump -s mitmdump_server.py
+
+三.PIP使用国内源
+    清华：https://pypi.tuna.tsinghua.edu.cn/simple
+    阿里云：http://mirrors.aliyun.com/pypi/simple/
+    中国科技大学 https://pypi.mirrors.ustc.edu.cn/simple/
+    华中理工大学：http://pypi.hustunique.com/
+    山东理工大学：http://pypi.sdutlinux.org/
+    豆瓣：http://pypi.douban.com/simple/
+
+    pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pyspider -r 环境配置文件
