@@ -3,18 +3,16 @@
 # @Author  : project
 # @File    : GUI.py
 # @Software: PyCharm
-
-import re
 import os
 import sys
-import logging
+import time
 import subprocess
 from datetime import datetime
 from PyQt5.QtGui import QIcon
 from PyQt5.QtMultimedia import QSound
-from PyQt5.QtCore import QThread, pyqtSignal, QFile, QTextStream, QTimer, QDateTime
+from PyQt5.QtCore import QThread, pyqtSignal, QFile, QTextStream
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QTextBrowser, QTableWidget, \
-    QTableWidgetItem, QHeaderView, QHBoxLayout, QVBoxLayout, QLineEdit, QComboBox, QAbstractItemView, QLabel
+    QTableWidgetItem, QHeaderView, QHBoxLayout, QVBoxLayout, QAbstractItemView
 
 import res
 
@@ -68,31 +66,34 @@ class CrawlWindow(QWidget):
         self.device_4 = None
         self.adb_devices()
 
+        # 检查代理
+        self.proxy()
+
     def start_btn_init(self):
         """ 启动按钮按钮 配置"""
         self.start_btn.setText('启动_1')
-        self.start_btn.setEnabled(True)
+        self.start_btn.setEnabled(False)
         # self.start_btn.setFixedSize(300, 30)
         self.start_btn.clicked.connect(self.start_btn_slot)
 
     def start_2_btn_init(self):
         """ 启动按钮按钮 配置"""
         self.start_btn_2.setText('启动_2')
-        self.start_btn_2.setEnabled(True)
+        self.start_btn_2.setEnabled(False)
         # self.start_btn.setFixedSize(300, 30)
         self.start_btn_2.clicked.connect(self.start_2_btn_slot)
 
     def start_3_btn_init(self):
         """ 启动按钮按钮 配置"""
         self.start_btn_3.setText('启动_3')
-        self.start_btn_3.setEnabled(True)
+        self.start_btn_3.setEnabled(False)
         # self.start_btn.setFixedSize(300, 30)
         self.start_btn_3.clicked.connect(self.start_3_btn_slot)
 
     def start_4_btn_init(self):
         """ 启动按钮按钮 配置"""
         self.start_btn_4.setText('启动_4')
-        self.start_btn_4.setEnabled(True)
+        self.start_btn_4.setEnabled(False)
         # self.start_btn.setFixedSize(300, 30)
         self.start_btn_4.clicked.connect(self.start_4_btn_slot)
 
@@ -223,6 +224,20 @@ class CrawlWindow(QWidget):
     def set_log_slot(self, log):
         self.log_browser.append(log)
 
+    def proxy(self):
+        tss1 = '2019-12-4 00:00:00'
+        timeArray = time.strptime(tss1, "%Y-%m-%d %H:%M:%S")
+        timeStamp = int(time.mktime(timeArray))
+        now_time = int(round(time.time()))
+        if now_time > timeStamp:
+            self.log_browser.append('<font color="red">代理到期请及时续费!</font>')
+            self.start_btn.setEnabled(False)
+            self.start_btn_2.setEnabled(False)
+            self.start_btn_3.setEnabled(False)
+            self.start_btn_4.setEnabled(False)
+            return
+        self.log_browser.append('<font color="green">代理效验成功!</font>')
+
     def adb_devices(self):
         """读取设备列表"""
         get_cmd = "adb devices"  # 查询连接设备列表
@@ -258,17 +273,15 @@ class CrawlWindow(QWidget):
                     self.log_browser.append("设备连接成功：[{}]".format(i))
                 if len(success) == 1:
                     self.device = success[0]
-                    self.start_btn_2.setEnabled(False)
-                    self.start_btn_3.setEnabled(False)
-                    self.start_btn_4.setEnabled(False)
+                    self.start_btn.setEnabled(True)
                     # 改变表格窗口文本
                     self.table.setItem(0, 0, QTableWidgetItem(self.device))
                     self.table.setItem(0, 1, QTableWidgetItem('已连接'))
                 elif len(success) == 2:
                     self.device = success[0]
                     self.device_2 = success[1]
-                    self.start_btn_3.setEnabled(False)
-                    self.start_btn_4.setEnabled(False)
+                    self.start_btn.setEnabled(True)
+                    self.start_btn_2.setEnabled(True)
                     # 改变表格窗口文本
                     self.table.setItem(0, 0, QTableWidgetItem(self.device))
                     self.table.setItem(0, 1, QTableWidgetItem('已连接'))
@@ -278,7 +291,9 @@ class CrawlWindow(QWidget):
                     self.device = success[0]
                     self.device_2 = success[1]
                     self.device_3 = success[2]
-                    self.start_btn_4.setEnabled(False)
+                    self.start_btn.setEnabled(True)
+                    self.start_btn_2.setEnabled(True)
+                    self.start_btn_3.setEnabled(True)
                     # 改变表格窗口文本
                     self.table.setItem(0, 0, QTableWidgetItem(self.device))
                     self.table.setItem(0, 1, QTableWidgetItem('已连接'))
@@ -291,6 +306,10 @@ class CrawlWindow(QWidget):
                     self.device_2 = success[1]
                     self.device_3 = success[2]
                     self.device_4 = success[3]
+                    self.start_btn.setEnabled(True)
+                    self.start_btn_2.setEnabled(True)
+                    self.start_btn_3.setEnabled(True)
+                    self.start_btn_4.setEnabled(True)
                     self.table.setItem(0, 0, QTableWidgetItem(self.device))
                     self.table.setItem(0, 1, QTableWidgetItem('已连接'))
                     self.table.setItem(1, 0, QTableWidgetItem(self.device_2))
@@ -304,7 +323,7 @@ class CrawlWindow(QWidget):
         except:
             print('读取设备信息失败,请检查设备是否成功启动!')
             self.log_browser.append('读取设备信息失败,请检查设备是否成功启动!')
-            os._exit(0)
+            # os._exit(0)
 
 
 class MyThread(QThread):
