@@ -34,7 +34,7 @@
             npm install appium-doctor -g
             appium-doctor 检查环境
 
-二.安装mitmproxy
+二.安装mitmdump
     https://cuiqingcai.com/5391.html
     https://zhuanlan.zhihu.com/p/41492085
     切换至脚本目录下运行脚本
@@ -48,4 +48,4 @@
     山东理工大学：http://pypi.sdutlinux.org/
     豆瓣：http://pypi.douban.com/simple/
 
-    pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pyspider -r 环境配置文件
+    pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r 环境配置文件
