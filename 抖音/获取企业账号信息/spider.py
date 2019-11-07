@@ -5,7 +5,7 @@
 # 版本 ：V1.0
 import time
 import subprocess
-from datetime import datetime
+import datetime
 from appium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -19,10 +19,10 @@ https://blog.csdn.net/qq_38154948/article/details/90408056
 
 def run_time(func):
     def new_func(*args, **kwargs):
-        start_time = datetime.now()
+        start_time = datetime.datetime.now()
         print("程序开始时间：{}".format(start_time))
         func(*args, **kwargs)
-        end_time = datetime.now()
+        end_time = datetime.datetime.now()
         print("程序结束时间：{}".format(end_time))
         print("程序执行用时：{}s".format((end_time - start_time)))
 
@@ -30,15 +30,15 @@ def run_time(func):
 
 
 class Spider:
-    def __init__(self, device_Name, driver_server):
+    def __init__(self):
         self.desired_caps = {
-            "platformName": "Android",
-            "deviceName": f"{device_Name}",
-            "appPackage": "com.ss.android.ugc.aweme",
-            "appActivity": ".splash.SplashActivity",
-            'noReset': True  # 获取登录状态
-        }
-        self.driver_server = f'http://127.0.0.1:{driver_server}/wd/hub'
+              "platformName": "Android",
+              "deviceName": "127.0.0.1:62001",
+              "appPackage": "com.ss.android.ugc.aweme",
+              "appActivity": ".splash.SplashActivity",
+              "noReset": "True"
+            }
+        self.driver_server = 'http://127.0.0.1:4723/wd/hub'
         print('**********程序启动中**********')
         # 启动微信
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
@@ -71,8 +71,14 @@ class Spider:
             if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a1v'))):
                 self.driver.keyevent(4)
                 continue
-
+            new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
+            # print(new_time)
             for i in range(comment_num):
+                start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                # print(start_time)
+                if new_time < start_time:
+                    print('超时退出')
+                    break
                 self.driver.swipe(200, 1800, 200, 800, 100)
             # 下一个视频
             self.driver.keyevent(4)
@@ -117,9 +123,8 @@ def adb_devices():
 
 @run_time
 def main():
-    driver_server = 4723
-    devices = adb_devices()
-    spider = Spider(devices[0], driver_server)
+    adb_devices()
+    spider = Spider()
     spider.slide()
 
 

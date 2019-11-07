@@ -6,7 +6,8 @@
 import os
 import datetime
 
-filename = '微信号/' + datetime.datetime.now().strftime('%Y-%m-%d') + '.txt'
+filename = '微信号/' + (datetime.datetime.now()+datetime.timedelta(days=-1)).strftime('%Y-%m-%d') + '.txt'
+
 # 获取当前目录
 path = os.getcwd()
 print(path)
