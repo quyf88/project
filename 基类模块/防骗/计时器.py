@@ -4,6 +4,13 @@
 # 时间 ：2019/10/29 0029 10:40
 # 版本 ：V1.0
 import time
+import datetime
+
+# 当前时间多加一天days=1 、一小时hours=1、一分钟minutes=1
+new_time = (datetime.datetime.now() + datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
+start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+if new_time < start_time:
+    print('超时退出')
 
 
 def proxy():
@@ -26,4 +33,4 @@ def proxy():
 
 
 
-jishu()
+proxy()
