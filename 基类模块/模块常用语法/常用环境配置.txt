@@ -49,3 +49,6 @@
     豆瓣：http://pypi.douban.com/simple/
 
     pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r 环境配置文件
+
+    # windows下pip安装包权限的问题 --user
+    pip install --user -i https://pypi.tuna.tsinghua.edu.cn/simple -r 环境配置文件
