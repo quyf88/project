@@ -3,6 +3,7 @@
 # IED ：PyCharm
 # 时间 ：2019/10/31 0031 13:25
 # 版本 ：V1.0
+# 抖音版本 ：8.6
 import os
 import time
 import subprocess
