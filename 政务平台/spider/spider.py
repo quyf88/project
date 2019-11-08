@@ -74,6 +74,14 @@ class Spider:
             if alert:
                 alert[0].click()
 
+            # 选择登陆方式
+            labels = self.driver.find_elements_by_xpath('//div[@class="login_tabs"]/a')
+            for label in labels:
+                if '账号密码' in label.text:
+                    print('点击账号密码登陆')
+                    label.click()
+                    time.sleep(2)
+
             username = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.gd-form-item-required:nth-child(1) input')))
             username.clear()
             username.send_keys('wyn16888')
