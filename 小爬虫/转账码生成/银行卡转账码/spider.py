@@ -87,7 +87,7 @@ class Spider:
         method = 'POST'
         content_type = 'application/json'
         # 设置Token
-        token = '91c45aee866ccc02ce041ec45329fda5'
+        token = '9a3dc2e0010d0168da6b82565f756d16'
         # 设置待创建的长网址
         bodys = {'Url': lang_url, 'TermOfValidity': '1-year'}
         # 配置headers

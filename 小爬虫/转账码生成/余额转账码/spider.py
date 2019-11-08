@@ -83,7 +83,7 @@ class Spider:
         method = 'POST'
         content_type = 'application/json'
         # 设置Token
-        token = '5e5dae6521ca463a43aa1063335e3792'
+        token = '9a3dc2e0010d0168da6b82565f756d16'
         # 设置待创建的长网址
         bodys = {'Url': lang_url, 'TermOfValidity': '1-year'}
         # 配置headers
@@ -137,21 +137,20 @@ class Spider:
         with open(files[0], 'r', encoding='UTF-8') as f:
             content = f.read().split(',')
             content = [i for i in content if i]
-            content = content + ['ABC', '中国农业银行'] if len(content) < 5 else content
             return content
 
     def run(self):
         content = self.read_txt()
+        print(content)
         # 跳转到转账页面
-        # _url = f'https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=&userId={2088632465859457}&memo='
-
+        # _url = f'https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=&userId={content[1]}&memo='
         # 跳转到支付宝账户页面
         # alipay = 'ai5ouu@163.com'
-        # _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{alipay}%26amount%3D%26memo%3D'
+        _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{content[1]}%26amount%3D%26memo%3D'
 
         # 付款接口
-        fukuan = 'fkx08454npzfffdxvvhjs30'
-        _url = f'https://mobilecodec.alipay.com/client_download.htm?qrcode={fukuan}'
+        # fukuan = 'fkx08454npzfffdxvvhjs30'
+        # _url = f'https://mobilecodec.alipay.com/client_download.htm?qrcode={fukuan}'
 
         # 添加好友
         # user = 'a7x07333ftcwbpf5ixyfg7b'
@@ -163,7 +162,7 @@ class Spider:
         self.code_generate(short_link)
         # 图片处理
         image_process = Picture()
-        image_process.text = content[2]
+        image_process.text = content[0]
         image_process.run()
 
 
