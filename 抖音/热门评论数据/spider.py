@@ -11,7 +11,6 @@ import datetime
 from appium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from appium.webdriver.common.touch_action import TouchAction
 from selenium.webdriver.support import expected_conditions as EC
 """
 Appium adb 获取真实appActivity
@@ -45,7 +44,7 @@ class Spider:
         # 启动微信
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
         # 设置隐形等待时间
-        self.wait = WebDriverWait(self.driver, 100, 1, AttributeError)
+        self.wait = WebDriverWait(self.driver, 20, 1, AttributeError)
         # 获取手机尺寸
         self.driver.get_window_size()
         self.x = self.driver.get_window_size()['width']  # 宽
@@ -58,77 +57,35 @@ class Spider:
         :return:
         """
         while True:
-            print('获取主播信息')
-            try:
-                # 判断是否有数据 定位评论数据
-                WebDriverWait(self.driver, 10, 0.1, AttributeError).until(
-                    EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/yj')))
-            except:
-                self.driver.keyevent(4)
-                time.sleep(1)
-                self.driver.swipe(200, 1800, 200, 500, 200)
+            print('定位评论按钮')
+            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/yj')))
+            comment_num = comment.text
+            print(f'评论数量：{comment_num}')
+            comment_num = int(float(comment_num.replace('w', ''))) * 1000 if 'w' in comment_num else int(
+                int(comment_num) / 10)
+            if int(comment_num) < 100:
+                self.driver.swipe(200, 1500, 200, 500, 500)
                 continue
-
-            self.driver.save_screenshot('1.png')
-            print('进入主播主页')
-            # 点击主播头像 进入主播主页
-            self.driver.tap([(1000, 1030)], 100)
-
-            # 获取粉丝数
-            try:
-                fan = WebDriverWait(self.driver, 5, 0.1, AttributeError).until(
-                                EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/aot')))
-            except:
-                self.driver.keyevent(4)
-                time.sleep(1)
-                self.driver.swipe(200, 1800, 200, 500, 200)
-                continue
-            fan_num = fan.text
-            print(f'粉丝数：{fan_num}')
-
-            # 判断页面是否刷新成功
-            if '-' in fan_num:
-                print('主页信息获取失败,刷新')
-                self.driver.swipe(200, 1800, 200, 500, 200)
-                time.sleep(1)
-                continue
-            # 计算翻页数量 抖音只能查看5000条粉丝数据
-            comment_num = int(float(fan_num.replace('w', ''))) * 1000 if 'w' in fan_num else int(int(fan_num) / 10)
-            comment_num = comment_num if comment_num < 500 else 350
-            print(f'翻页数：{comment_num}')
-            fan.click()
-
+            comment.click()
+            print('刷新评论数据')
             # 判断数据是否刷新出来
-            try:
-                WebDriverWait(self.driver, 10, 0.1, AttributeError).until(
-                                EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/efa')))
-            except:
+            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a22'))):
                 self.driver.keyevent(4)
-                time.sleep(2)
-                self.driver.keyevent(4)
-                time.sleep(1)
-                self.driver.swipe(200, 1800, 200, 500, 200)
                 continue
-            new_time = (datetime.datetime.now()+datetime.timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
+            new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
             # print(new_time)
-
-            # 循环上划刷新数据
             for i in range(comment_num):
                 start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 # print(start_time)
                 if new_time < start_time:
                     print('超时退出')
                     break
-                self.driver.swipe(200, 1800, 200, 500, 300)
-                time.sleep(0.5)
-
+                self.driver.swipe(200, 1800, 200, 800, 100)
             # 下一个视频
             self.driver.keyevent(4)
             time.sleep(2)
-            self.driver.keyevent(4)
-            time.sleep(1)
-            self.driver.swipe(200, 1800, 200, 500, 200)
-            print('*' * 20)
+            self.driver.swipe(200, 1700, 200, 500, 500)
+            print('*' * 25)
 
 
 def adb_devices():
@@ -175,8 +132,7 @@ def main():
             adb_devices()
             spider = Spider()
             spider.slide()
-        except Exception as e:
-            print(e)
+        except:
             continue
 
 
