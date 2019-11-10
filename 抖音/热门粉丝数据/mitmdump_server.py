@@ -29,24 +29,23 @@ def response(flow):
             # 个性签名
             signature = comment['signature']
             signature = signature.replace('\n', '').replace(' ', '')
-            # if '微信' in signature or 'VX' in signature or 'vx' in signature or 'V' in signature or 'v' in signature:
-            #     print(f'用户名：{nickname} 个性签名：{signature} 评论内容：{text}')
-            #     # data = f'用户名：{nickname} 个性签名：{signature} 评论内容：{text}'
-            #     data = signature
-            print(f'用户名：{nickname} 个性签名：{signature}')
-            result = re.findall('([a-zA-Z0-9_\-]{8,})', signature)
-            if result:
-                print(f'用户名：{nickname} 个性签名：{signature}')
-                for itme in result:
-                    if len(itme) <= 20 and 'QQ' not in itme and '_' not in itme:
-                        pattern = re.compile('[0-9]+')
-                        match = pattern.findall(itme)
-                        if match:
-                            tt = itme.lstrip('V')
-                            tt = tt.lstrip('v')
-                            tt = tt.lstrip('X')
-                            tt = tt.lstrip('__')
-                            save_txt(tt)
+            if 'V' in signature or 'wx' in signature or 'vx' in signature or '微信' in signature or '➕' in signature \
+                    or '合作' in signature or '薇' in signature or '威' in signature or 'w' in signature or 'W' in signature\
+                    or '私信' in signature or '微' in signature or '胃心' in signature or '+' in signature:
+
+                # data = f'个性签名：{signature}'
+                # save_txt(data)
+                result = re.findall(r'([a-zA-Z0-9_\-]{6,})', signature)
+                if result:
+                    if len(result[0]) < 18:
+                        print(f'用户名：{nickname} 个性签名：{signature}')
+                        tt = result[0].lstrip('V')
+                        tt = tt.lstrip('vx')
+                        tt = tt.lstrip('x')
+                        tt = tt.lstrip('v')
+                        tt = tt.lstrip('X')
+                        tt = tt.lstrip('VX')
+                        save_txt(tt)
 
 
 def save_txt(data):
