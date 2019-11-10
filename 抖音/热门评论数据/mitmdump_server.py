@@ -36,16 +36,16 @@ def response(flow):
                     or '私信' in signature or '微' in signature or '胃心' in signature or '+' in signature:
 
                 result = re.findall(r'([a-zA-Z0-9_\-]{6,})', signature)
-                if result:
-                    if len(result[0]) < 18:
-                        print(f'用户名：{nickname} 个性签名：{signature}')
-                        tt = result[0].lstrip('V')
-                        tt = tt.lstrip('vx')
-                        tt = tt.lstrip('x')
-                        tt = tt.lstrip('v')
-                        tt = tt.lstrip('X')
-                        tt = tt.lstrip('VX')
-                        save_txt(tt)
+                if not result or len(result) > 1:
+                    continue
+                if len(result[0]) < 18:
+                    tt = result[0].lstrip('V')
+                    tt = tt.lstrip('vx').rstrip('vx')
+                    tt = tt.lstrip('x').rstrip('x')
+                    tt = tt.lstrip('v').rstrip('v')
+                    tt = tt.lstrip('X').rstrip('X')
+                    tt = tt.lstrip('VX').rstrip('VX')
+                    print(tt)
 
 
 def save_txt(data):
