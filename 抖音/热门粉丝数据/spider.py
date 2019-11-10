@@ -68,36 +68,48 @@ class Spider:
                 time.sleep(1)
                 self.driver.swipe(200, 1800, 200, 500, 200)
                 continue
-
-            self.driver.save_screenshot('1.png')
+            
+            # self.driver.save_screenshot('1.png')
             print('进入主播主页')
             # 点击主播头像 进入主播主页
             self.driver.tap([(1000, 1030)], 100)
 
             # 获取粉丝数
-            try:
-                fan = WebDriverWait(self.driver, 5, 0.1, AttributeError).until(
-                                EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/aot')))
-            except:
+            fan_con = 0
+            while True:
+                if fan_con > 2:
+                    self.driver.swipe(200, 1800, 200, 500, 200)
+                    time.sleep(1)
+                    fan_num = '-'
+                    break
+                try:
+                    fan = WebDriverWait(self.driver, 10, 0.1, AttributeError).until(
+                                    EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/aot')))
+                    fan_num = fan.text
+                    print(f'粉丝数：{fan_num}')
+                    # 判断页面是否刷新成功
+                    if '-' in fan_num:
+                        print('主页信息获取失败,刷新')
+                        fan_con += 1
+                        continue
+                    break
+                except:
+                    fan_con += 1
+                    continue                          
+
+            if '-' in fan_num:
+                print('主页信息获取失败,跳过下一个')
                 self.driver.keyevent(4)
                 time.sleep(1)
                 self.driver.swipe(200, 1800, 200, 500, 200)
                 continue
-            fan_num = fan.text
-            print(f'粉丝数：{fan_num}')
 
-            # 判断页面是否刷新成功
-            if '-' in fan_num:
-                print('主页信息获取失败,刷新')
-                self.driver.swipe(200, 1800, 200, 500, 200)
-                time.sleep(1)
-                continue
             # 计算翻页数量 抖音只能查看5000条粉丝数据
             comment_num = int(float(fan_num.replace('w', ''))) * 1000 if 'w' in fan_num else int(int(fan_num) / 10)
-            comment_num = comment_num if comment_num < 500 else 350
+            comment_num = comment_num if comment_num < 500 else 400
             print(f'翻页数：{comment_num}')
             fan.click()
-
+            
             # 判断数据是否刷新出来
             try:
                 WebDriverWait(self.driver, 10, 0.1, AttributeError).until(
@@ -114,6 +126,10 @@ class Spider:
 
             # 循环上划刷新数据
             for i in range(comment_num):
+                if i % 10 == 0:
+                    self.driver.swipe(200, 800, 200, 1500, 200)
+                    time.sleep(0.5)
+                    continue
                 start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 # print(start_time)
                 if new_time < start_time:
@@ -154,7 +170,7 @@ def adb_devices():
             if not len(output) > 1:
                 print("读取设备信息失败,自动重启中...")
                 count += 1
-                os.popen('adb connect d750dac5')
+                os.popen('adb connect 127.0.0.1:62001')
                 continue
             # 连接设备列表
             devices = [i.split('\t') for i in output[1:]]
@@ -165,7 +181,7 @@ def adb_devices():
             return success
     except:
         print('读取设备信息失败,请检查设备是否成功启动!')
-        os.popen('adb connect d750dac5')
+        os.popen('adb connect 127.0.0.1:62001')
 
 
 @run_time
