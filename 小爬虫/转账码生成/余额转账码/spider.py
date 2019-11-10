@@ -44,6 +44,18 @@ bankName=%E4%B8%AD%E5%9B%BD%E5%BB%BA%E8%AE%BE%E9%93%B6%E8%A1%8C  // 银行名称
         # auth_base 无需用户授权获取userID
         userId：获取方法 https://www.dedemao.com/alipay/authorize_demo.php?scope=auth_base
         https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=1.00&userId=2088902532716171&memo=QQ_1033383881
+
+https://www.alipay.com/?appId=20000254  # 通讯录
+https://www.alipay.com/?appId=20000150  # 超优汇率
+https://www.alipay.com/?appId=20000160  # 支付宝会员
+https://www.alipay.com/?appId=20000165  # 理财
+https://www.alipay.com/?appId=20000168  # 记账本
+https://www.alipay.com/?appId=20000176  # 红包
+https://www.alipay.com/?appId=20000178  # 城市服务
+https://www.alipay.com/?appId=60000154  # AA转款
+https://www.alipay.com/?appId=20000180  # 借呗
+
+
 """
 import os
 import json
@@ -151,6 +163,9 @@ class Spider:
         # 付款接口
         # fukuan = 'fkx08454npzfffdxvvhjs30'
         # _url = f'https://mobilecodec.alipay.com/client_download.htm?qrcode={fukuan}'
+
+        # AA收款
+        url = 'https://www.alipay.com/?appId=60000154'
 
         # 添加好友
         # user = 'a7x07333ftcwbpf5ixyfg7b'
