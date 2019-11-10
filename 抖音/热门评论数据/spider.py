@@ -73,8 +73,13 @@ class Spider:
                 self.driver.keyevent(4)
                 continue
             new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
-            # print(new_time)
+
+            # 防止刷新不出数据 下拉刷新十次后上划一次
             for i in range(comment_num):
+                if (i + 1) % 10 == 0:
+                    self.driver.swipe(200, 1000, 200, 1200, 200)
+                    time.sleep(0.5)
+                    continue
                 start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 # print(start_time)
                 if new_time < start_time:
