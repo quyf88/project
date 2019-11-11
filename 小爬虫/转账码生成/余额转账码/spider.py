@@ -45,15 +45,26 @@ bankName=%E4%B8%AD%E5%9B%BD%E5%BB%BA%E8%AE%BE%E9%93%B6%E8%A1%8C  // 银行名称
         userId：获取方法 https://www.dedemao.com/alipay/authorize_demo.php?scope=auth_base
         https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=1.00&userId=2088902532716171&memo=QQ_1033383881
 
+https://www.alipay.com/?appId=20000019  # 余额
+https://www.alipay.com/?appId=20000032  # 余额宝
+https://www.alipay.com/?appId=20000033  # 提现
+https://www.alipay.com/?appId=20000056  # 付款
+https://www.alipay.com/?appId=20000176  # 红包
+https://www.alipay.com/?appId=20000123  # 收款码
+https://www.alipay.com/?appId=60000154  # AA转款
+https://www.alipay.com/?appId=20000255  # 账户充值
+
+https://www.alipay.com/?appId=20000252  # 朋友页面
+https://www.alipay.com/?appId=20000307  # 暗号
+https://www.alipay.com/?appId=20000081  # 应用管理
+https://www.alipay.com/?appId=20000180  # 借呗
 https://www.alipay.com/?appId=20000254  # 通讯录
 https://www.alipay.com/?appId=20000150  # 超优汇率
 https://www.alipay.com/?appId=20000160  # 支付宝会员
 https://www.alipay.com/?appId=20000165  # 理财
 https://www.alipay.com/?appId=20000168  # 记账本
-https://www.alipay.com/?appId=20000176  # 红包
 https://www.alipay.com/?appId=20000178  # 城市服务
-https://www.alipay.com/?appId=60000154  # AA转款
-https://www.alipay.com/?appId=20000180  # 借呗
+https://www.alipay.com/?appId=200011235 # 乘车码
 
 
 """
