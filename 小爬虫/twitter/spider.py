@@ -111,43 +111,46 @@ class Spider:
         """
         self.driver.get(url)
         while True:
-            # try:
-            time.sleep(3)
-            # 发布文章数量
-            Twitter_num = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[1]/div/div/div/div/div/div[2]/div/div'))).text
-            # print(Twitter_num)
-            # 关注人数 关注列表页url
-            # attention_num = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[5]/div[1]/a/span[1]'))).text
-            attention_num = '无'
-            # print(attention_num)
-            # attention_url = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[5]/div[1]/a/@href')))
-            attention_url = 'https://twitter.com/ashrafghani/following'
-            # print(attention_url)
-            # 粉丝
-            # fan = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[5]/div[2]/a/span[1]/span'))).text
-            fan = '104.1万'
-            # print(fan)
-            print(f'账号：{acc_id}, 发布推特数量：{Twitter_num}, 关注人数：{attention_num}, 粉丝：{fan}')
-            #
-            # # 获取关注ID列表
-            # self.driver.get(attention_url)
-            # time.sleep(3)
-            # # 获取body的高度，滑到底部
-            # scroll = "window.scrollTo(0,document.body.scrollHeight)"
-            # self.driver.execute_script(scroll)
-            #
-            # attentions_id = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/section/div/div/div/div')))
-            # attentions_id = [i.text for i in attentions_id if i.text]
-            #
-            # attention_id = []
-            # for i in attentions_id:
-            #     i = i.split('\n')
-            #     attention_id.append(i[0])
-            # print(f'关注列表：{attention_id}')
-            content = [acc_id, Twitter_num, attention_num, fan, '无']
-            return content
-            # except:
-            #     continue
+            try:
+                time.sleep(3)
+                # 发布文章数量
+                Twitter_num = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[1]/div/div/div/div/div/div[2]/div/div'))).text
+                # print(Twitter_num)
+                # 关注人数 关注列表页url
+                attention_num = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[5]/div[1]/a/span[1]'))).text
+                # attention_num = '无'
+                # print(attention_num)
+                # attention_url = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[5]/div[1]/a/@href')))
+                attention_url = f'https://twitter.com/{acc_id}/following'
+                # print(attention_url)
+                # 粉丝
+                fan = self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/div/div/div[1]/div/div[5]/div[2]/a/span[1]/span'))).text
+                # fan = '104.1万'
+                # print(fan)
+                print(f'账号：{acc_id}, 发布推特数量：{Twitter_num}, 关注人数：{attention_num}, 粉丝：{fan}')
+                #
+                # 获取关注ID列表
+                attention_url = f'https://twitter.com/{acc_id}/following'
+                self.driver.get(attention_url)
+                time.sleep(3)
+                # 获取body的高度，滑到底部
+                scroll = "window.scrollTo(0,document.body.scrollHeight)"
+                self.driver.execute_script(scroll)
+
+                attentions_id = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/section/div/div/div/div')))
+                attentions_id = [i.text for i in attentions_id if i.text]
+
+                attention_id = []
+                for i in attentions_id:
+                    i = i.split('\n')
+                    attention_id.append(i[0])
+                print(f'关注列表：{attention_id}')
+                # content = [acc_id, Twitter_num, attention_num, fan, attention_id]
+                content = [[acc_id, attention_id]]
+                self.save_data_1(content)
+                # return content
+            except:
+                continue
 
     def get_teitter_content(self, url):
         """
@@ -222,6 +225,19 @@ class Spider:
                     k.writerows(data)
             print(f'第：{self.count}条数据插入成功!')
 
+    def save_data_1(self, data):
+        """保存为csv"""
+        with open("twitter.csv", "a+", encoding='utf-8', newline="") as f:
+            k = csv.writer(f, delimiter=',')
+            with open("twitter.csv", "r", encoding='utf-8', newline="") as f1:
+                reader = csv.reader(f1)
+                if not [row for row in reader]:
+                    k.writerow(['ID', '关注列表'])
+                    k.writerows(data)
+                else:
+                    k.writerows(data)
+            print(f'第：{self.count}条数据插入成功!')
+
     def quit(self):
         """
         关闭浏览器
@@ -257,6 +273,35 @@ class Spider:
                 print(f'ID:{acc_id} 效验文件清空成功')
         self.quit()
 
+    def run_1(self):
+        for accunt in self.loop_xlsx():
+            # try:
+            acc_id, url = accunt
+            print(f'当前获取id：{acc_id} {url}')
+
+            attention_url = f'https://twitter.com/{acc_id}/following'
+            self.driver.get(attention_url)
+            time.sleep(3)
+            # 获取body的高度，滑到底部
+            scroll = "window.scrollTo(0,document.body.scrollHeight)"
+            self.driver.execute_script(scroll)
+
+            attentions_id = self.wait.until(EC.presence_of_all_elements_located((By.XPATH,
+                                                                                 '//*[@id="react-root"]/div/div/div/main/div/div/div/div[1]/div/div[2]/section/div/div/div/div')))
+            print(len(attentions_id))
+            attentions_id = [i.text for i in attentions_id if i.text]
+
+            attention_id = []
+            for i in attentions_id:
+                i = i.split('\n')
+                attention_id.append(i[0])
+            print(f'关注列表：{attention_id}')
+            # content = [acc_id, Twitter_num, attention_num, fan, attention_id]
+            content = [[acc_id, attention_id]]
+            self.save_data_1(content)
+            # except:
+            #     continue
+
 
 def version():
     # 版本号
@@ -270,4 +315,4 @@ def version():
 if __name__ == '__main__':
     version()
     spider = Spider()
-    spider.run()
+    spider.run_1()
