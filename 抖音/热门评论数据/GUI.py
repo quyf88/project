@@ -235,7 +235,7 @@ class CrawlWindow(QWidget):
             self.start_btn_2.setEnabled(False)
             self.start_btn_3.setEnabled(False)
             self.start_btn_4.setEnabled(False)
-            return
+            os._exit(0)
         self.log_browser.append('<font color="green">代理效验成功!</font>')
 
     def adb_devices(self):

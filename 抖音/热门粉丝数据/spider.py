@@ -69,7 +69,7 @@ class Spider:
                 self.driver.swipe(200, 1800, 200, 500, 200)
                 continue
             
-            # self.driver.save_screenshot('1.png')
+            # self.driver.save_screenshot('流程图模板.png')
             print('进入主播主页')
             # 点击主播头像 进入主播主页
             self.driver.tap([(1000, 1030)], 100)

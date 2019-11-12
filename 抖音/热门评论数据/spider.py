@@ -44,7 +44,7 @@ class Spider:
         # 启动微信
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
         # 设置隐形等待时间
-        self.wait = WebDriverWait(self.driver, 20, 1, AttributeError)
+        self.wait = WebDriverWait(self.driver, 100, 1, AttributeError)
         # 获取手机尺寸
         self.driver.get_window_size()
         self.x = self.driver.get_window_size()['width']  # 宽
@@ -73,9 +73,8 @@ class Spider:
                 self.driver.keyevent(4)
                 continue
             new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
-
-            # 防止刷新不出数据 下拉刷新十次后上划一次
-            for i in range(comment_num):
+            # print(new_time)
+            for i in range(comment_num):                            
                 if (i + 1) % 10 == 0:
                     self.driver.swipe(200, 1000, 200, 1200, 200)
                     time.sleep(0.5)
@@ -91,6 +90,17 @@ class Spider:
             time.sleep(2)
             self.driver.swipe(200, 1700, 200, 500, 500)
             print('*' * 25)
+
+
+def proxy():
+    tss1 = '2019-12-4 00:00:00'
+    timeArray = time.strptime(tss1, "%Y-%m-%d %H:%M:%S")
+    timeStamp = int(time.mktime(timeArray))
+    now_time = int(round(time.time()))
+    if now_time > timeStamp:
+        print('代理到期请及时续费')
+        os._exit(0)
+    print('代理效验成功!')
 
 
 def adb_devices():
@@ -116,7 +126,7 @@ def adb_devices():
             if not len(output) > 1:
                 print("读取设备信息失败,自动重启中...")
                 count += 1
-                os.popen('adb connect d750dac5')
+                os.popen('adb connect 127.0.0.1:62001')
                 continue
             # 连接设备列表
             devices = [i.split('\t') for i in output[1:]]
@@ -127,13 +137,14 @@ def adb_devices():
             return success
     except:
         print('读取设备信息失败,请检查设备是否成功启动!')
-        os.popen('adb connect d750dac5')
+        os.popen('adb connect 127.0.0.1:62001')
 
 
 @run_time
 def main():
     while True:
         try:
+            proxy()
             adb_devices()
             spider = Spider()
             spider.slide()
