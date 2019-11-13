@@ -54,6 +54,7 @@ https://www.alipay.com/?appId=20000123  # 收款码
 https://www.alipay.com/?appId=60000154  # AA转款
 https://www.alipay.com/?appId=20000255  # 账户充值
 
+https://www.alipay.com/?appId=20000014  # 我的银行卡
 https://www.alipay.com/?appId=20000252  # 朋友页面
 https://www.alipay.com/?appId=20000307  # 暗号
 https://www.alipay.com/?appId=20000081  # 应用管理
