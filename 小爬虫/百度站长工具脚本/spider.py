@@ -4,6 +4,7 @@
 # IED    ：PyCharm
 # 创建时间 ：2019/9/28 17:22
 import os
+import re
 import time
 from datetime import datetime
 from selenium import webdriver
@@ -43,7 +44,9 @@ class Spider:
 
     def login_by_scan(self):
         print("开始登录,请等待页面加载完成后,输入账号登录...")
-        self.driver.get('https://ziyuan.baidu.com/login/index?u=/site/batchadd')
+        # self.driver.get('https://ziyuan.baidu.com/login/index?u=/site/batchadd')
+        input('登录账号：')
+        self.code()
         while True:
             if 'login' not in self.driver.current_url:
                 print(self.driver.current_url)
@@ -61,6 +64,7 @@ class Spider:
         :return:
         """
         while True:
+            self.code()
             try:
                 # 进入添加子站页面
                 self.driver.get("https://ziyuan.baidu.com/site/batchadd")
@@ -92,6 +96,23 @@ class Spider:
                 print("子域名添加成功!")
                 print('*' * 30)
                 return
+
+    def code(self):
+        """验证码"""
+        # 判断是否有弹窗验证
+        print(1)
+        code = self.driver.find_elements_by_xpath('//*[@class="vcode-spin-faceboder"]/div/@style')
+        print(1111111)
+        image_url = re.findall(r'url\("(.*?)"\);', code.text)
+        print(image_url)
+        if not code:
+            print(3)
+            return True
+        print(2)
+        # 验证图片下载
+        # image_url = self.driver.find_element_by_xpath('//*[@class="vcode-spin-faceboder"]/div/@style')
+        # image_url = re.findall(r'url\("(.*?)"\);', image_url.text)
+        # print(image_url)
 
     def validation(self):
         """
