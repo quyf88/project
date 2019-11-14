@@ -1,0 +1,4 @@
+2019.11.14 更新
+    抖音版本 8.0.7
+    定位评论数量 com.ss.android.ugc.aweme:id/yj --> com.ss.android.ugc.aweme:id/zb
+    判断数据是否刷新 com.ss.android.ugc.aweme:id/a22 --> com.ss.android.ugc.aweme:id/a2v
