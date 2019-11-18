@@ -3,7 +3,7 @@
 # IED ：PyCharm
 # 时间 ：2019/10/31 0031 13:25
 # 版本 ：V1.0
-# 抖音版本 ：8.6
+# 抖音版本 ：8.7
 import os
 import time
 import subprocess
@@ -62,7 +62,7 @@ class Spider:
             try:
                 # 判断是否有数据 定位评论数据
                 WebDriverWait(self.driver, 10, 0.1, AttributeError).until(
-                    EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/yj')))
+                    EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zb')))
             except:
                 self.driver.keyevent(4)
                 time.sleep(1)
@@ -72,7 +72,8 @@ class Spider:
             # self.driver.save_screenshot('流程图模板.png')
             print('进入主播主页')
             # 点击主播头像 进入主播主页
-            self.driver.tap([(1000, 1030)], 100)
+            # self.driver.tap([(1000, 1030)], 100)
+            self.driver.tap([(980, 650)], 100)  # 红米4X
 
             # 获取粉丝数
             fan_con = 0
@@ -84,7 +85,7 @@ class Spider:
                     break
                 try:
                     fan = WebDriverWait(self.driver, 10, 0.1, AttributeError).until(
-                                    EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/aot')))
+                                    EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/aq1')))
                     fan_num = fan.text
                     print(f'粉丝数：{fan_num}')
                     # 判断页面是否刷新成功
@@ -113,7 +114,7 @@ class Spider:
             # 判断数据是否刷新出来
             try:
                 WebDriverWait(self.driver, 10, 0.1, AttributeError).until(
-                                EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/efa')))
+                                EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/eio')))
             except:
                 self.driver.keyevent(4)
                 time.sleep(2)

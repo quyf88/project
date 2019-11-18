@@ -14,7 +14,7 @@ import datetime
 
 def response(flow):
     url = 'https://aweme-hl.snssdk.com/aweme/v2/comment/list/'
-
+    print(url)
     # 筛选出以上面url为开头的url
     if flow.request.url.startswith(url):
         # 获取评论json数据
@@ -31,6 +31,7 @@ def response(flow):
             # 个性签名
             signature = comment['user']['signature']
             signature = signature.replace('\n', '').replace(' ', '')
+            print(f'评论内容：{_text} 用户名：{nickname} 个性签名:{signature}')
             if 'V' in signature or 'wx' in signature or 'vx' in signature or '微信' in signature or '➕' in signature \
                     or '合作' in signature or '薇' in signature or '威' in signature or 'w' in signature or 'W' in signature\
                     or '私信' in signature or '微' in signature or '胃心' in signature or '+' in signature:
@@ -45,11 +46,12 @@ def response(flow):
                     tt = tt.lstrip('v').rstrip('v')
                     tt = tt.lstrip('X').rstrip('X')
                     tt = tt.lstrip('VX').rstrip('VX')
-                    print(tt)
+                    save_txt(tt)
 
 
 def save_txt(data):
     filename = '微信号/' + datetime.datetime.now().strftime('%Y-%m-%d') + '.txt'
+    print(filename)
     with open(filename, 'a+', encoding='utf-8') as f:
         f.write(data)
         f.write('\n')

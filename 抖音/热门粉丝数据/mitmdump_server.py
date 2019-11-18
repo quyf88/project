@@ -29,6 +29,7 @@ def response(flow):
             # 个性签名
             signature = comment['signature']
             signature = signature.replace('\n', '').replace(' ', '')
+            print(f'用户名：{nickname} 个性签名：{signature}')
             if 'V' in signature or 'wx' in signature or 'vx' in signature or '微信' in signature or '➕' in signature \
                     or '合作' in signature or '薇' in signature or '威' in signature or 'w' in signature or 'W' in signature\
                     or '私信' in signature or '微' in signature or '胃心' in signature or '+' in signature:

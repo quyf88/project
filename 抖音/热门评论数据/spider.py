@@ -3,7 +3,7 @@
 # IED ：PyCharm
 # 时间 ：2019/10/31 0031 13:25
 # 版本 ：V1.0
-# 抖音版本 ：8.6
+# 抖音版本 ：8.7
 import os
 import time
 import subprocess
@@ -80,9 +80,9 @@ class Spider:
                 continue
             new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
             # print(new_time)
-            for i in range(comment_num):                            
+            for i in range(comment_num):
                 if (i + 1) % 10 == 0:
-                    self.driver.swipe(200, 1000, 200, 1200, 200)
+                    self.driver.swipe(200, 1200, 200, 1400, 200)
                     time.sleep(0.5)
                     continue
                 start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -90,7 +90,7 @@ class Spider:
                 if new_time < start_time:
                     print('超时退出')
                     break
-                self.driver.swipe(200, 1800, 200, 800, 100)
+                self.driver.swipe(200, 1700, 200, 500, 100)
             # 下一个视频
             self.driver.keyevent(4)
             time.sleep(2)
