@@ -58,7 +58,10 @@ class Spider:
         """
         while True:
             print('定位评论按钮')
-            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/yj')))
+            # 8.0.6
+            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/yj')))
+            # 8.0.7
+            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zb')))
             comment_num = comment.text
             print(f'评论数量：{comment_num}')
             comment_num = int(float(comment_num.replace('w', ''))) * 1000 if 'w' in comment_num else int(
@@ -69,7 +72,10 @@ class Spider:
             comment.click()
             print('刷新评论数据')
             # 判断数据是否刷新出来
-            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a22'))):
+            # 8.0.6
+            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a22'))):
+            # 8.0.7
+            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a2v'))):
                 self.driver.keyevent(4)
                 continue
             new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
