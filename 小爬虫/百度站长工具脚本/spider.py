@@ -99,6 +99,8 @@ class Spider:
 
     def code(self):
         """验证码"""
+        # API接口 https://www.jianshu.com/p/df38cf257b1c
+        
         # 判断是否有弹窗验证
         print(1)
         code = self.driver.find_elements_by_xpath('//*[@class="vcode-spin-faceboder"]/div/@style')
