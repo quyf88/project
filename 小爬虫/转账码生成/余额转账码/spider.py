@@ -128,6 +128,14 @@ class Spider:
 
             return response['ShortUrl']
 
+    def _get_url(self, lang_url):
+        lang_url = quote(lang_url)
+        print(lang_url)
+        response = requests.get(f'http://mrw.so/api.php?format=json&url={lang_url}&key=5d6dfeb6d3c38135d0e2b157@6284f3680b4f4c41f1de39fbe26f7635')
+        response = json.loads(response.text)
+        print(response['url'])
+        return response['url']
+
     def code_generate(self, short_link):
         """
         聚合数据 短链接生成二维码
@@ -177,14 +185,18 @@ class Spider:
         # _url = f'https://mobilecodec.alipay.com/client_download.htm?qrcode={fukuan}'
 
         # AA收款
-        url = 'https://www.alipay.com/?appId=60000154'
+        # _url = 'https://www.alipay.com/?appId=60000154'
 
         # 添加好友
         # user = 'a7x07333ftcwbpf5ixyfg7b'
         # _url = f'https://mobilecodec.alipay.com/client_download.htm?qrcode={user}'
 
         # 长链接生成短链
-        short_link = self.get_url(_url)
+        # short_link = self.get_url(_url)
+
+        # 缩短网址 http://mrw.so/api.html
+        short_link = self._get_url(_url)
+
         # 短链生成二维码
         self.code_generate(short_link)
         # 图片处理
