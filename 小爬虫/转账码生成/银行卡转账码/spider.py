@@ -108,6 +108,14 @@ class Spider:
 
             return response['ShortUrl']
 
+    def _get_url(self, lang_url):
+        lang_url = quote(lang_url)
+        print(lang_url)
+        response = requests.get(f'http://mrw.so/api.php?format=json&url={lang_url}&key=5d6dfeb6d3c38135d0e2b157@6284f3680b4f4c41f1de39fbe26f7635')
+        response = json.loads(response.text)
+        print(response['url'])
+        return response['url']
+
     def code_generate(self, short_link):
         """
         聚合数据 短链接生成二维码
@@ -156,8 +164,13 @@ class Spider:
         _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
                'money=&amount=&bankMark={}&bankName={}&orderSource='.format(content[1], content[0], content[3], content[4])
         # print(_url)
-        # 长链接转换短链接
-        short_link = self.get_url(_url)
+
+        # 百度长链接转换短链接
+        # short_link = self.get_url(_url)
+
+        # 缩短网址 http://mrw.so/api.html
+        short_link = self._get_url(_url)
+
         # 短链接生成二维码
         self.code_generate(short_link)
 
