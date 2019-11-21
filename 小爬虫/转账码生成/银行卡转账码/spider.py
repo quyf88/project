@@ -19,7 +19,7 @@
 
 短链接 转换 ：百度短链接
 查询银行代码
-https://ccdcapi.alipay.com/validateAndCacheCardInfo.json?cardNo=6230580000244202425&cardBinCheck=true
+https://ccdcapi.alipay.com/validateAndCacheCardInfo.json?cardNo=6216610800000656273&cardBinCheck=true
 
 alipays://platformapi/startapp?appId=09999988&actionType=toCard&sourceId=bill&cardNo=6217000030001234567&bankAccount=%E9%A9%AC%E4%BA%91&money=0.01&amount=0.01&bankMark=CCB&bankName=%E4%B8%AD%E5%9B%BD%E5%BB%BA%E8%AE%BE%E9%93%B6%E8%A1%8C
 参数：
@@ -155,21 +155,21 @@ class Spider:
     def run(self):
         # 隐藏卡号url
         # cardID 隐藏卡号 获取方法  https://zhuanlan.zhihu.com/p/65495172
-        # content = ['623058***2425', 'SPABANK', '张万年', '中国平安银行', '1911141548378124597']
+        # content = ['621661***6273', 'BOC', '陈俊', '中国银行', '1509231188534078338']
         # _url = f'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={content[0]}&' \
         #        f'bankAccount={content[2]}&money=&amount=&bankMark={content[1]}&bankName={content[3]}&cardIndex={content[4]}&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
-        # print(_url)
+        # # print(_url)
         # 普通转账url
         content = self.read_txt()
         _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
                'money=&amount=&bankMark={}&bankName={}&orderSource='.format(content[1], content[0], content[3], content[4])
-        # print(_url)
+        print(_url)
 
         # 百度长链接转换短链接
-        # short_link = self.get_url(_url)
+        short_link = self.get_url(_url)
 
         # 缩短网址 http://mrw.so/api.html
-        short_link = self._get_url(_url)
+        # short_link = self._get_url(_url)
 
         # 短链接生成二维码
         self.code_generate(short_link)
