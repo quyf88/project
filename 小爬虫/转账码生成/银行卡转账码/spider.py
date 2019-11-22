@@ -19,7 +19,7 @@
 
 短链接 转换 ：百度短链接
 查询银行代码
-https://ccdcapi.alipay.com/validateAndCacheCardInfo.json?cardNo=6216610800000656273&cardBinCheck=true
+https://ccdcapi.alipay.com/validateAndCacheCardInfo.json?cardNo=6216693600003271694&cardBinCheck=true
 
 alipays://platformapi/startapp?appId=09999988&actionType=toCard&sourceId=bill&cardNo=6217000030001234567&bankAccount=%E9%A9%AC%E4%BA%91&money=0.01&amount=0.01&bankMark=CCB&bankName=%E4%B8%AD%E5%9B%BD%E5%BB%BA%E8%AE%BE%E9%93%B6%E8%A1%8C
 参数：
