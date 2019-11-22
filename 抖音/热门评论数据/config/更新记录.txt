@@ -1,4 +1,9 @@
 2019.11.14 更新
-    抖音版本 8.0.7
+    抖音版本 8.7.0
     定位评论数量 com.ss.android.ugc.aweme:id/yj --> com.ss.android.ugc.aweme:id/zb
     判断数据是否刷新 com.ss.android.ugc.aweme:id/a22 --> com.ss.android.ugc.aweme:id/a2v
+2019.11.22 更新
+    抖音版本 8.8.0
+    定位评论数量 com.ss.android.ugc.aweme:id/zb --> com.ss.android.ugc.aweme:id/zf
+    粉丝数 com.ss.android.ugc.aweme:id/aq1 --> com.ss.android.ugc.aweme:id/aq9
+    判断数据是否刷新 com.ss.android.ugc.aweme:id/eio --> com.ss.android.ugc.aweme:id/b_o

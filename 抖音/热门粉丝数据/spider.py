@@ -2,8 +2,8 @@
 # 文件 ：spider.py
 # IED ：PyCharm
 # 时间 ：2019/10/31 0031 13:25
-# 版本 ：V1.0
-# 抖音版本 ：8.7
+# 版本 ：V1.3
+# 抖音版本 ：8.8.0
 import os
 import time
 import subprocess
@@ -62,7 +62,7 @@ class Spider:
             try:
                 # 判断是否有数据 定位评论数据
                 WebDriverWait(self.driver, 10, 0.1, AttributeError).until(
-                    EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zb')))
+                    EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zf')))
             except:
                 self.driver.keyevent(4)
                 time.sleep(1)
@@ -79,13 +79,14 @@ class Spider:
             fan_con = 0
             while True:
                 if fan_con > 2:
-                    self.driver.swipe(200, 1800, 200, 500, 200)
-                    time.sleep(1)
+                    # self.driver.swipe(200, 1800, 200, 500, 200)
+                    # time.sleep(1)
                     fan_num = '-'
                     break
+                time.sleep(1)
                 try:
-                    fan = WebDriverWait(self.driver, 10, 0.1, AttributeError).until(
-                                    EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/aq1')))
+                    fan = WebDriverWait(self.driver, 5, 0.1, AttributeError).until(
+                                    EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/aq9')))
                     fan_num = fan.text
                     print(f'粉丝数：{fan_num}')
                     # 判断页面是否刷新成功
@@ -103,6 +104,7 @@ class Spider:
                 self.driver.keyevent(4)
                 time.sleep(1)
                 self.driver.swipe(200, 1800, 200, 500, 200)
+                time.sleep(1)
                 continue
 
             # 计算翻页数量 抖音只能查看5000条粉丝数据
@@ -114,7 +116,7 @@ class Spider:
             # 判断数据是否刷新出来
             try:
                 WebDriverWait(self.driver, 10, 0.1, AttributeError).until(
-                                EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/eio')))
+                                EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/b_o')))
             except:
                 self.driver.keyevent(4)
                 time.sleep(2)

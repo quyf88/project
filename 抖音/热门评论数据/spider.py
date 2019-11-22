@@ -2,8 +2,8 @@
 # 文件 ：spider.py
 # IED ：PyCharm
 # 时间 ：2019/10/31 0031 13:25
-# 版本 ：V1.0
-# 抖音版本 ：8.7
+# 版本 ：V1.3
+# 抖音版本 ：8.8.0
 import os
 import time
 import subprocess
@@ -58,10 +58,12 @@ class Spider:
         """
         while True:
             print('定位评论按钮')
-            # 8.0.6
+            # 8.6.0
             # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/yj')))
-            # 8.0.7
-            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zb')))
+            # 8.7.0
+            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zb')))
+            # 8.8.0
+            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zf')))
             comment_num = comment.text
             print(f'评论数量：{comment_num}')
             comment_num = int(float(comment_num.replace('w', ''))) * 1000 if 'w' in comment_num else int(
@@ -72,10 +74,12 @@ class Spider:
             comment.click()
             print('刷新评论数据')
             # 判断数据是否刷新出来
-            # 8.0.6
+            # 8.6.0
             # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a22'))):
-            # 8.0.7
-            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a2v'))):
+            # 8.7.0
+            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a2v'))):
+            # 8.8.0
+            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a32'))):
                 self.driver.keyevent(4)
                 continue
             new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
