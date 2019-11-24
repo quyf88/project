@@ -14,9 +14,10 @@ import datetime
 
 def response(flow):
     url = 'https://aweme-hl.snssdk.com/aweme/v2/comment/list/'
+    _url = 'https://aweme.snssdk.com/aweme/v2/comment/list/'
     print(url)
     # 筛选出以上面url为开头的url
-    if flow.request.url.startswith(url):
+    if flow.request.url.startswith(url) or flow.request.url.startswith(_url):
         # 获取评论json数据
         text = flow.response.text
         # 将已编码的json字符串解码为python对象
