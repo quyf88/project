@@ -6,6 +6,7 @@
 """
 切换至脚本目录下运行脚本
 mitmdump -s mitmdump_server.py
+OSError: [WinError 87] 参数错误 : 把print注释掉
 """
 import re
 import json
@@ -15,7 +16,7 @@ import datetime
 def response(flow):
     url = 'https://aweme-hl.snssdk.com/aweme/v2/comment/list/'
     _url = 'https://aweme.snssdk.com/aweme/v2/comment/list/'
-    print(url)
+    # print(url)
     # 筛选出以上面url为开头的url
     if flow.request.url.startswith(url) or flow.request.url.startswith(_url):
         # 获取评论json数据
