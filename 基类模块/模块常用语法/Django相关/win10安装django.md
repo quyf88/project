@@ -25,3 +25,8 @@
 - ### **查看项目**
   python manage.py runserver 8001
   打开网站查看是否正确，8001是端口号，可以自己设，重复的话换一个就好了。
+  
+- ### **反向生成Model**
+  python manage.py inspectdb
+  python manage.py inspectdb命令行执行的功能是把数据库中的所有表反向生成实体类，
+  一张表对应一个实体类，你只需要将生成的实体类信息粘贴到对应App目录下的models.py即可
