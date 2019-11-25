@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'Django_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # mysql驱动
-        'NAME': 'access',  # 数据库名称
+        'NAME': 'proxy',  # 数据库名称
         'USER': 'root',  # 登录帐号
         'PASSWORD': 'chenxiaoli2013',  # 登录密码
         'HOST': '127.0.0.1',  # 主机地址
