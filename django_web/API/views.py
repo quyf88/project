@@ -4,7 +4,7 @@ import json
 from django.http import HttpResponse
 
 
-def get_user(request):
+def get_user(request, course):
     """读取数据库返回数据到HTML"""
     # user_list = Area.objects.all()  # 读取Area表中所有数据
     # for user in user_list:
@@ -13,11 +13,11 @@ def get_user(request):
     # return render(request, 'index.html', {'user_list': user_list})
 
     # antis = AntiFraud.objects.all()
-    ants = AntiFraud.objects.filter(id='460a23180f3411ea9aec28d2447ab52e')
+    # ants = AntiFraud.objects.filter(id='460a23180f3411ea9aec28d2447ab52e')
+    ants = AntiFraud.objects.filter(id=course)
+    print(f'时间：{ants[0].datatime}')
     ant = ants[0].status
-    print(ant)
     article = json.dumps({'status': ant, 'errorcode': 100}, ensure_ascii=False)
-    print(article)
     return HttpResponse(article, content_type='application/json')
 
 

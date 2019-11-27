@@ -19,5 +19,6 @@ from API import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('get_user/', views.get_user)
+    # 路由地址 get_user:视图函数 course:URL传递过来的参数
+    path('get_user/<str:course>', views.get_user)
 ]
