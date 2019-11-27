@@ -16,10 +16,9 @@ if new_time < start_time:
 def proxy():
     # 字符类型的时间
     a = '2019-11-25 11:22:59+00:00'  # 数据库中时间数据
-    a = a.split('+')[0]  # 数据分割
+    a = a.split('+')[0]  # 数据分割分割分割
     a = datetime.datetime.strptime(a, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(days=30)
     a = a.strftime('%Y-%m-%d %H:%M:%S')
-    print(a)
     tss1 = '2019-11-20 00:00:00'
     # 转为时间数组
     timeArray = time.strptime(a, "%Y-%m-%d %H:%M:%S")
