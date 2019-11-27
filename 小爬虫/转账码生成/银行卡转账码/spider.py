@@ -19,7 +19,7 @@
 
 短链接 转换 ：百度短链接
 查询银行代码
-https://ccdcapi.alipay.com/validateAndCacheCardInfo.json?cardNo=6212261402043568820&cardBinCheck=true
+https://ccdcapi.alipay.com/validateAndCacheCardInfo.json?cardNo=6230580000234671571&cardBinCheck=true
 
 alipays://platformapi/startapp?appId=09999988&actionType=toCard&sourceId=bill&cardNo=6217000030001234567&bankAccount=%E9%A9%AC%E4%BA%91&money=0.01&amount=0.01&bankMark=CCB&bankName=%E4%B8%AD%E5%9B%BD%E5%BB%BA%E8%AE%BE%E9%93%B6%E8%A1%8C
 参数：
@@ -155,17 +155,17 @@ class Spider:
     def run(self):
         # 隐藏卡号url
         # cardID 隐藏卡号 获取方法  https://zhuanlan.zhihu.com/p/65495172
-        # content = ['621226***8820', 'ICBC', '陈成康', '中国工商银行', '1911241660100785726']
-        # _url = f'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={content[0]}&' \
-        #        f'bankAccount={content[2]}&money=&amount=&bankMark={content[1]}&bankName={content[3]}&cardIndex={content[4]}&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
+        content = ['623058***1571', 'SPABANK', '郑永强', '平安银行', '1911271570981390960']
+        _url = f'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={content[0]}&' \
+               f'bankAccount={content[2]}&money=&amount=&bankMark={content[1]}&bankName={content[3]}&cardIndex={content[4]}&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
         # print(_url)
 
         # 普通转账url
-        content = self.read_txt()
-        # 新接口
-        _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200' \
-               f'%26actionType%3DtoCard%26sourceId=bill%26cardNo={content[1]}%26bankAccount={content[0]}%0A%26money=' \
-               f'%26amount=%26bankMark={content[3]}%26bankName={content[4]}%26cardNoHidden=true%26cardChannel=HISTORY_CARD%26orderSource=from'
+        # content = self.read_txt()
+        # # 新接口
+        # _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200' \
+        #        f'%26actionType%3DtoCard%26sourceId=bill%26cardNo={content[1]}%26bankAccount={content[0]}%0A%26money=' \
+        #        f'%26amount=%26bankMark={content[3]}%26bankName={content[4]}%26cardNoHidden=true%26cardChannel=HISTORY_CARD%26orderSource=from'
 
         # _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
         #        'money=&amount=&bankMark={}&bankName={}&orderSource='.format(content[1], content[0], content[3], content[4])
