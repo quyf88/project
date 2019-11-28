@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>首页</title>
+	<meta name="keywords" content="">
+	<meta name="description" content="">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+	<meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport">
+	<meta name="renderer" content="webkit">
+	<meta content="yes" name="apple-mobile-web-app-capable">
+	<meta content="black" name="apple-mobile-web-app-status-bar-style">
+	<meta content="telephone=no" name="format-detection">
+	<meta content="email=no" name="format-detection">
+	<meta content="QQ:1224913241" name="author" />
+	<link href="style/font-awesome/css/font-awesome.min.css" type="text/css" rel="stylesheet">
+	<link href="style/base.css" type="text/css" rel="stylesheet">
+	<link href="style/rsfeng.css" type="text/css" rel="stylesheet">
+	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+			  <script src="js/ie/3.7.3/html5shiv.min.js"></script>
+			  <script src="js/ie/1.4.2/respond.min.js"></script>
+		<![endif]-->
+	<script type="text/javascript">
+		!function (e, t) { function n() { var n = l.getBoundingClientRect().width; t = t || 540, n > t && (n = t); var i = 100 * n / e; r.innerHTML = "html{font-size:" + i + "px;}" } var i, d = document, o = window, l = d.documentElement, r = document.createElement("style"); if (l.firstElementChild) l.firstElementChild.appendChild(r); else { var a = d.createElement("div"); a.appendChild(r), d.write(a.innerHTML), a = null } n(), o.addEventListener("resize", function () { clearTimeout(i), i = setTimeout(n, 300) }, !1), o.addEventListener("pageshow", function (e) { e.persisted && (clearTimeout(i), i = setTimeout(n, 300)) }, !1), "complete" === d.readyState ? d.body.style.fontSize = "16px" : d.addEventListener("DOMContentLoaded", function (e) { d.body.style.fontSize = "16px" }, !1) }(750, 750);
+	</script>
+	<script>
+		var time = 10;
+		var gourl="https://www.baidu.com";
+		var atxt="按钮测试文字";
+		$(function () {
+			
+			setInterval(function () {
+				getTimes();
+			}, 1000);
+
+			$('.daojishi').click(function(){
+				window.location.href = gourl;
+			});
+
+		});
+		//倒计时
+		function getTimes() {
+			if (time === 0) {
+				$('.daojishi').removeAttr("disabled");
+				$('.daojishi').text(atxt);
+				return;
+			} else {
+				time--;
+				$('.daojishi').text('倒计时：（'+time+'s）');
+			}			
+		}
+	</script>
+
+</head>
+
+<body>
+	<div id="header_kuang" class="">
+		<div id="header" class="">
+			<div class="wen_1">第一行文字</div>
+			<div class="wen_2">第二行文字</div>
+			<div class="wen_3">第三行文字</div>
+			<button class="daojishi" style="color:#fff;" disabled="disabled">按秒倒计时</button>
+		</div>
+	</div>
+
+
+	<div id="banner_kuang">
+		<div id="banner">
+			<div class="wen_4 ">
+				<p>温馨提示</p>
+			</div>
+			<div class="wen_5 ">温馨提示第1行文字内容</div>
+			<div class="wen_6 ">温馨提示第2行文字内容，温馨提示第1行文字内容，温馨提示第1行文字内容</div>
+		</div>
+	</div>
+
+</body>
+<html>
