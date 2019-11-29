@@ -29,6 +29,18 @@ print(res.text)
 
 
 """
+requests post用法
+"""
+# 下面替换成您的数据
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:65.0) Gecko/20100101 Firefox/65.0'}
+postdata = {'name': 'xiaochong'}
+r = requests.post('http://xxxxxx（替换成您的网址）', headers=headers, data=postdata)
+print(r.text)
+
+
+
+
+"""
 requests post请求 提交图片
 """
 import requests
