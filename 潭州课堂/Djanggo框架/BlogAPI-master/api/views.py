@@ -18,7 +18,7 @@ def index(request):
         'comment_num',
         'category'
     ).order_by('-pub_date')[0:20]
-    return render(request, 'index.html', {
+    return render(request, 'index_2.html', {
         'articles': articles
     })
 
