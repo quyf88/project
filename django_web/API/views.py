@@ -1,54 +1,69 @@
-from django.shortcuts import render
 import time
 import json
 import datetime
 from .models import AntiFraud
+from .models import Alipay
+from django.shortcuts import render
 from django.http import HttpResponse
 
 
-def get_user(request, course):
+def alipay(request, course):
     """读取数据库返回数据到HTML"""
-    # user_list = Area.objects.all()  # 读取Area表中所有数据
+    user_list = Alipay.objects.filter(id=course)
+    data = [1, 2, 3]
     # for user in user_list:
-    #     print(user.area)  # 打印Area表中area字段
-    # # render方法可接收三个参数，一是request参数，二是待渲染的html模板文件,三是保存具体数据的字典参数(选填)。
+    #     id = user.id
+    #     longurl = user.longurl
+    #     shortlink = user.shortlink
+    #     udeta = user.udeta
+    #     datatime = user.datatime
+    #     data.append(id)
+    #     data.append(longurl)
+    #     data.append(shortlink)
+    #     data.append(udeta)
+    #     data.append(datatime)
+    # print(user_list[0].id)  # 打印Area表中area字段
+    # print(user_list[0].shortlink)  # 打印Area表中area字段
+    # render方法可接收三个参数，一是request参数，二是待渲染的html模板文件,三是保存具体数据的字典参数(选填) 向js传递数据需要转换为json格式。
+    return render(request, 'alipay.html', {'List': json.dumps(data)})
     # return render(request, 'alipay.html', {'user_list': user_list})
-    return render(request, 'alipay.html', {'course': course})
 
-    """读取数据库返回json数据"""
+
+def validity_period(request, course):
+    """效验账号有效期 读取数据库返回json数据"""
     # antis = AntiFraud.objects.all()
     # ants = AntiFraud.objects.filter(id='460a23180f3411ea9aec28d2447ab52e')
     # 根据数据库id字段查询数据返回数据列表
-    # ants = AntiFraud.objects.filter(id=course)[0]
-    # ant = ants.status  # 账号状态
-    #
-    # # 账号状态为False：已过期直接返回数据
-    # if not eval(ant):
-    #     article = json.dumps({
-    #         'status': ant,
-    #         'context': '代理到期请及时续费!',
-    #         'errorcode': 10002},
-    #         ensure_ascii=False)
-    #     print('代理到期请及时续费!')
-    #     return HttpResponse(article, content_type='application/json')
-    #
-    # # 账号已过有效期更改数据库账号状态
-    # lasting = ants.udeta  # 更新时间字段数据
-    # print(lasting)
-    # if not proxy(lasting):
-    #     # 根据id条件 修改数据库status字段
-    #     AntiFraud.objects.filter(id=course).update(status=False)
-    #     print('账号状态修改成功!')
-    #
-    # # 构造返回json数据
-    # ants = AntiFraud.objects.filter(id=course)[0]
-    # ant = ants.status  # 账号状态
-    # article = json.dumps({
-    #     'status': ant,
-    #     'context': '账号状态正常!',
-    #     'errorcode': 10001},
-    #     ensure_ascii=False)
-    # return HttpResponse(article, content_type='application/json')
+    ants = AntiFraud.objects.filter(id=course)[0]
+    ant = ants.status  # 账号状态
+
+    # 账号状态为False：已过期直接返回数据
+    if not eval(ant):
+        article = json.dumps({
+            'status': ant,
+            'context': '代理到期请及时续费!',
+            'errorcode': 10002},
+            ensure_ascii=False)
+        print('代理到期请及时续费!')
+        return HttpResponse(article, content_type='application/json')
+
+    # 账号已过有效期更改数据库账号状态
+    lasting = ants.udeta  # 更新时间字段数据
+    print(lasting)
+    if not proxy(lasting):
+        # 根据id条件 修改数据库status字段
+        AntiFraud.objects.filter(id=course).update(status=False)
+        print('账号状态修改成功!')
+
+    # 构造返回json数据
+    ants = AntiFraud.objects.filter(id=course)[0]
+    ant = ants.status  # 账号状态
+    article = json.dumps({
+        'status': ant,
+        'context': '账号状态正常!',
+        'errorcode': 10001},
+        ensure_ascii=False)
+    return HttpResponse(article, content_type='application/json')
 
 
 def proxy(lasting):

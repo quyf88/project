@@ -31,16 +31,18 @@
 	</script>
 	<script>
 		var time = 3;
-		var gourl="https://www.baidu.com";
+		//接收views传递数据
+		var aaa = JSON.parse('{{ List|safe }}');
+  		alert(aaa);  //页面弹窗
+		var gourl= 'www.baidu.com';
 		var atxt="风控解锁完成确认支付";
 		$(function () {
-			
 			setInterval(function () {
 				getTimes();
 			}, 1000);
 
 			$('#daojishi').click(function(){
-				window.location.href = gourl;
+				window.location.href = aaa[0];
 			});
 
 		});
@@ -58,7 +60,7 @@
 				time--;
 				document.getElementById("daojishi").style.fontWeight='bold';
 				$('#daojishi').text('正在解除风控:('+time+'s)');
-			}			
+			}
 		}
 	</script>
 
@@ -74,7 +76,10 @@
 				<span>倒计时结束后,请点击下方按钮进行付款</span>
 			</div>
 			<div class="wen_3">
-				<span><b>收款人:{{ course }}</b></span>
+				<!--读取views模板传递过来的数据-->
+				{% for i in user_list %}
+					<span><b>收款人:{{ i.id }}</b></span>
+				{% endfor %}
 			</div>
 			<button id="daojishi" style="color:#f91a0c;" disabled="disabled">
 				<b>风控检测中...</b>
