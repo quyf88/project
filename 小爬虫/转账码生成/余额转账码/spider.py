@@ -177,7 +177,7 @@ class Spider:
         # 跳转到转账页面
         # _url = f'https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=&userId={content[1]}&memo='
         # 跳转到支付宝账户页面
-        # alipay = 'ai5ouu@163.com'
+        # alipay = 'gta4qb@163.com'
         _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{content[1]}%26amount%3D%26memo%3D'
 
         # 付款接口
@@ -192,10 +192,10 @@ class Spider:
         # _url = f'https://mobilecodec.alipay.com/client_download.htm?qrcode={user}'
 
         # 长链接生成短链
-        # short_link = self.get_url(_url)
+        short_link = self.get_url(_url)
 
         # 缩短网址 http://mrw.so/api.html
-        short_link = self._get_url(_url)
+        # short_link = self._get_url(_url)
 
         # 短链生成二维码
         self.code_generate(short_link)
