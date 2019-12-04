@@ -7,3 +7,7 @@
     定位评论数量 com.ss.android.ugc.aweme:id/zb --> com.ss.android.ugc.aweme:id/zf
     粉丝数 com.ss.android.ugc.aweme:id/aq1 --> com.ss.android.ugc.aweme:id/aq9
     判断数据是否刷新 com.ss.android.ugc.aweme:id/eio --> com.ss.android.ugc.aweme:id/b_o
+2019.12.4 更新
+    抖音版本 9.0.0
+    定位评论数量 com.ss.android.ugc.aweme:id/zf --> com.ss.android.ugc.aweme:id/zt
+    判断数据是否刷新 com.ss.android.ugc.aweme:id/b_o --> com.ss.android.ugc.aweme:id/a3k

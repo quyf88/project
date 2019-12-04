@@ -63,7 +63,9 @@ class Spider:
             # 8.7.0
             # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zb')))
             # 8.8.0
-            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zf')))
+            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zf')))
+            # 9.0.0
+            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zt')))
             comment_num = comment.text
             print(f'评论数量：{comment_num}')
             comment_num = int(float(comment_num.replace('w', ''))) * 1000 if 'w' in comment_num else int(
@@ -79,7 +81,9 @@ class Spider:
             # 8.7.0
             # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a2v'))):
             # 8.8.0
-            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a32'))):
+            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a32'))):
+            # 9.0.0
+            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a3k'))):
                 self.driver.keyevent(4)
                 continue
             new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
@@ -107,47 +111,47 @@ def proxy():
     timeArray = time.strptime(tss1, "%Y-%m-%d %H:%M:%S")
     timeStamp = int(time.mktime(timeArray))
     now_time = int(round(time.time()))
-    if now_time > timeStamp:
+    if now_time < timeStamp:
         print('代理到期请及时续费')
         os._exit(0)
     print('代理效验成功!')
 
 
-def adb_devices():
-    """读取设备列表"""
-    get_cmd = "adb devices"  # 查询连接设备列表
-    count = 0
-    try:
-        while True:
-            # 连接设备
-            if count > 2:
-                print("读取设备信息失败,请检查设备是否成功启动")
-                break
-            # 读取连接设备信息
-            p = subprocess.Popen(get_cmd, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 stdin=subprocess.PIPE, shell=True)
-
-            (output, err) = p.communicate()
-            # 分割多条信息为列表
-            output = output.decode().replace('\r', '').split('\n')
-            # 剔除列表中空字符串
-            output = list(filter(None, output))
-            if not len(output) > 1:
-                print("读取设备信息失败,自动重启中...")
-                count += 1
-                os.popen('adb connect 127.0.0.1:62001')
-                continue
-            # 连接设备列表
-            devices = [i.split('\t') for i in output[1:]]
-            # 读取成功列表
-            success = [i[0] for i in devices if i[1] == 'device']
-            for i in success:
-                print("设备连接成功：[{}]".format(i))
-            return success
-    except:
-        print('读取设备信息失败,请检查设备是否成功启动!')
-        os.popen('adb connect 127.0.0.1:62001')
+# def adb_devices():
+#     """读取设备列表"""
+#     get_cmd = "adb devices"  # 查询连接设备列表
+#     count = 0
+#     try:
+#         while True:
+#             # 连接设备
+#             if count > 2:
+#                 print("读取设备信息失败,请检查设备是否成功启动")
+#                 break
+#             # 读取连接设备信息
+#             p = subprocess.Popen(get_cmd, stdout=subprocess.PIPE,
+#                                  stderr=subprocess.PIPE,
+#                                  stdin=subprocess.PIPE, shell=True)
+#
+#             (output, err) = p.communicate()
+#             # 分割多条信息为列表
+#             output = output.decode().replace('\r', '').split('\n')
+#             # 剔除列表中空字符串
+#             output = list(filter(None, output))
+#             if not len(output) > 1:
+#                 print("读取设备信息失败,自动重启中...")
+#                 count += 1
+#                 os.popen('adb connect 127.0.0.1:62001')
+#                 continue
+#             # 连接设备列表
+#             devices = [i.split('\t') for i in output[1:]]
+#             # 读取成功列表
+#             success = [i[0] for i in devices if i[1] == 'device']
+#             for i in success:
+#                 print("设备连接成功：[{}]".format(i))
+#             return success
+#     except:
+#         print('读取设备信息失败,请检查设备是否成功启动!')
+#         os.popen('adb connect 127.0.0.1:62001')
 
 
 @run_time
@@ -155,7 +159,7 @@ def main():
     while True:
         try:
             proxy()
-            adb_devices()
+            # adb_devices()
             spider = Spider()
             spider.slide()
         except:
