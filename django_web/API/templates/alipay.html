@@ -42,7 +42,8 @@
 			}, 1000);
 
 			$('#daojishi').click(function(){
-				window.location.href = aaa[0];
+                //读取views数据绑定url
+				window.location.href = aaa[1];
 			});
 
 		});
@@ -78,7 +79,7 @@
 			<div class="wen_3">
 				<!--读取views模板传递过来的数据-->
 				{% for i in user_list %}
-					<span><b>收款人:{{ i.id }}</b></span>
+					<span><b>收款人:{{ i.name }}</b></span>
 				{% endfor %}
 			</div>
 			<button id="daojishi" style="color:#f91a0c;" disabled="disabled">

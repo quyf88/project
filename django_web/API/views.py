@@ -10,22 +10,19 @@ from django.http import HttpResponse
 def alipay(request, course):
     """读取数据库返回数据到HTML"""
     user_list = Alipay.objects.filter(id=course)
-    data = [1, 2, 3]
-    # for user in user_list:
-    #     id = user.id
-    #     longurl = user.longurl
-    #     shortlink = user.shortlink
-    #     udeta = user.udeta
-    #     datatime = user.datatime
-    #     data.append(id)
-    #     data.append(longurl)
-    #     data.append(shortlink)
-    #     data.append(udeta)
-    #     data.append(datatime)
-    # print(user_list[0].id)  # 打印Area表中area字段
-    # print(user_list[0].shortlink)  # 打印Area表中area字段
+    data = []
+    for user in user_list:
+        id = user.id
+        longurl = user.longurl
+        shortlink = user.shortlink
+        udeta = user.udeta
+        datatime = user.datatime
+        data.append(id)
+        data.append(shortlink)
+
+    print(data)
     # render方法可接收三个参数，一是request参数，二是待渲染的html模板文件,三是保存具体数据的字典参数(选填) 向js传递数据需要转换为json格式。
-    return render(request, 'alipay.html', {'List': json.dumps(data)})
+    return render(request, 'alipay.html', {'List': json.dumps(data), 'user_list': user_list})
     # return render(request, 'alipay.html', {'user_list': user_list})
 
 

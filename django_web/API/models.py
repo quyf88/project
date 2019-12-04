@@ -23,6 +23,8 @@ class AntiFraud(models.Model):
 class Alipay(models.Model):
     # 账号ID UUID
     id = models.CharField(db_column='ID', primary_key=True, max_length=255)  # Field name made lowercase.
+    # 名称
+    name = models.CharField(db_column='Name', max_length=255, blank=True, null=True)  # Field name made lowercase.
     # 长链接
     longurl = models.CharField(db_column='LongUrl', max_length=10000, blank=True, null=True)  # Field name made lowercase.
     # 短链接
