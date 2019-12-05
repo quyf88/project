@@ -19,7 +19,7 @@
 
 短链接 转换 ：百度短链接
 查询银行代码
-https://ccdcapi.alipay.com/validateAndCacheCardInfo.json?cardNo=6222620510027282419&cardBinCheck=true
+https://ccdcapi.alipay.com/validateAndCacheCardInfo.json?cardNo=6214921202210478&cardBinCheck=true
 
 alipays://platformapi/startapp?appId=09999988&actionType=toCard&sourceId=bill&cardNo=6217000030001234567&bankAccount=%E9%A9%AC%E4%BA%91&money=0.01&amount=0.01&bankMark=CCB&bankName=%E4%B8%AD%E5%9B%BD%E5%BB%BA%E8%AE%BE%E9%93%B6%E8%A1%8C
 参数：
@@ -155,10 +155,10 @@ class Spider:
     def run(self):
         # 隐藏卡号url
         # cardID 隐藏卡号 获取方法  https://zhuanlan.zhihu.com/p/65495172
-        # content = ['621792***9050', 'SPDB', '王俊连', '浦发银行', '1912041650091559704']
-        # _url = f'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={content[0]}&' \
-        #        f'bankAccount={content[2]}&money=&amount=&bankMark={content[1]}&bankName={content[3]}&cardIndex={content[4]}&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
-        # print(_url)
+        content = ['621492***0478', 'CEB', '何振华', '浦发银行', '1912051695611910620']
+        _url = f'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={content[0]}&' \
+               f'bankAccount={content[2]}&money=&amount=&bankMark={content[1]}&bankName={content[3]}&cardIndex={content[4]}&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
+        print(_url)
 
         # 普通转账url
         content = self.read_txt()
@@ -167,9 +167,9 @@ class Spider:
         #        f'%26actionType%3DtoCard%26sourceId=bill%26cardNo={content[1]}%26bankAccount={content[0]}%0A%26money=' \
         #        f'%26amount=%26bankMark={content[3]}%26bankName={content[4]}%26cardNoHidden=true%26cardChannel=HISTORY_CARD%26orderSource=from'
 
-        _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
-               'money=&amount=&bankMark={}&bankName={}&orderSource='.format(content[1], content[0], content[3], content[4])
-        print(_url)
+        # _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
+        #        'money=&amount=&bankMark={}&bankName={}&orderSource='.format(content[1], content[0], content[3], content[4])
+        # print(_url)
 
         # 百度长链接转换短链接
         short_link = self.get_url(_url)
