@@ -26,6 +26,10 @@ def alipay(request, course):
     # return render(request, 'alipay.html', {'user_list': user_list})
 
 
+def ceshi(request):
+    return HttpResponse('测试页面')
+
+
 def validity_period(request, course):
     """效验账号有效期 读取数据库返回json数据"""
     # antis = AntiFraud.objects.all()

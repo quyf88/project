@@ -85,8 +85,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',  # mysql驱动
         'NAME': 'proxy',  # 数据库名称
         'USER': 'root',  # 登录帐号
-        'PASSWORD': 'chenxiaoli2013',  # 登录密码
-        'HOST': '127.0.0.1',  # 主机地址
+        'PASSWORD': 'Chenxiaoli2013!@#',  # 登录密码
+        'HOST': '39.100.241.186',  # 主机地址
         'PORT': '3306'  # 端口
     }
 }
