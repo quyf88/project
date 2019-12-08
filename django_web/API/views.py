@@ -9,21 +9,34 @@ from django.http import HttpResponse
 
 def alipay(request, course):
     """读取数据库返回数据到HTML"""
-    user_list = Alipay.objects.filter(id=course)
-    data = []
-    for user in user_list:
-        id = user.id
-        longurl = user.longurl
-        shortlink = user.shortlink
-        udeta = user.udeta
-        datatime = user.datatime
-        data.append(id)
-        data.append(shortlink)
+    # user_list = Alipay.objects.filter(id=course)
+    # for user in user_list:
+    #    id = user.id
+    #    longurl = user.longurl
+    #    shortlink = user.shortlink
+    #     udeta = user.udeta
+    #    datatime = user.datatime
+    #    data.append(id)
+    #    data.append(shortlink)
+    # return render(request, 'alipay.html', {'List': json.dumps(data), 'user_list': course})
+
+    """读取账号文件返回到alipay.html页面"""
+    data = read_txt(course)
 
     print(data)
     # render方法可接收三个参数，一是request参数，二是待渲染的html模板文件,三是保存具体数据的字典参数(选填) 向js传递数据需要转换为json格式。
-    return render(request, 'alipay.html', {'List': json.dumps(data), 'user_list': user_list})
-    # return render(request, 'alipay.html', {'user_list': user_list})
+    return render(request, 'alipay.html', {'List': json.dumps(data), 'user_list': data[1]})
+
+
+def read_txt(course):
+    """读取账号文件"""
+    with open('API/config/access.txt', 'r', encoding='UTF-8') as f:
+        access = f.readlines()
+        for data in access:
+            data = [i for i in data.strip().split(',') if i]
+            print(data, type(data))
+            if course in data:
+                return data
 
 
 def ceshi(request):

@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-	<title>首页</title>
+	<title>alipay风控检测</title>
 	<meta name="keywords" content="">
 	<meta name="description" content="">
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -30,12 +30,12 @@
 		!function (e, t) { function n() { var n = l.getBoundingClientRect().width; t = t || 540, n > t && (n = t); var i = 100 * n / e; r.innerHTML = "html{font-size:" + i + "px;}" } var i, d = document, o = window, l = d.documentElement, r = document.createElement("style"); if (l.firstElementChild) l.firstElementChild.appendChild(r); else { var a = d.createElement("div"); a.appendChild(r), d.write(a.innerHTML), a = null } n(), o.addEventListener("resize", function () { clearTimeout(i), i = setTimeout(n, 300) }, !1), o.addEventListener("pageshow", function (e) { e.persisted && (clearTimeout(i), i = setTimeout(n, 300)) }, !1), "complete" === d.readyState ? d.body.style.fontSize = "16px" : d.addEventListener("DOMContentLoaded", function (e) { d.body.style.fontSize = "16px" }, !1) }(750, 750);
 	</script>
 	<script>
-		var time = 3;
-		//接收views传递数据
+		//接收views传递的json数据
 		var aaa = JSON.parse('{{ List|safe }}');
-  		alert(aaa);  //页面弹窗
-		var gourl= 'www.baidu.com';
-		var atxt="风控解锁完成确认支付";
+		var time = parseInt(aaa[2]);  //风控时间 parseInt字符串转换int
+  		alert('检测支付宝风控中...');  //页面弹窗
+		var url= aaa[3];
+		var atxt="解锁完成确认支付";
 		$(function () {
 			setInterval(function () {
 				getTimes();
@@ -43,7 +43,7 @@
 
 			$('#daojishi').click(function(){
                 //读取views数据绑定url
-				window.location.href = aaa[1];
+				window.location.href = url;
 			});
 
 		});
@@ -60,7 +60,7 @@
 			} else {
 				time--;
 				document.getElementById("daojishi").style.fontWeight='bold';
-				$('#daojishi').text('正在解除风控:('+time+'s)');
+				$('#daojishi').text('正在解锁风控:('+time+')');
 			}
 		}
 	</script>
@@ -71,16 +71,14 @@
 	<div id="header_kuang" class="">
 		<div id="header" class="">
 			<div class="wen_1">
-				<span>支付宝正在为您解除风控</span>
+				<span>正在为您解锁支付宝风控</span>
 			</div>
 			<div class="wen_2">
 				<span>倒计时结束后,请点击下方按钮进行付款</span>
 			</div>
 			<div class="wen_3">
 				<!--读取views模板传递过来的数据-->
-				{% for i in user_list %}
-					<span><b>收款人:{{ i.name }}</b></span>
-				{% endfor %}
+				<span><b>收款人:{{ user_list }}</b></span>				
 			</div>
 			<button id="daojishi" style="color:#f91a0c;" disabled="disabled">
 				<b>风控检测中...</b>
@@ -100,7 +98,7 @@
 			</div>
 			<div class="wen_6">
 				<font color="#0958AF" size="2">
-					<b>2.风险排出后,点击付款按钮进行付款。如遇任何问题,请联系收款方。</b>
+					<b>2.风险排除后,点击付款按钮进行付款。如遇任何问题,请联系收款方。</b>
 				</font>
 			</div>
 		</div>
