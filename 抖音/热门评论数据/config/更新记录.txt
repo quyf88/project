@@ -11,3 +11,11 @@
     抖音版本 9.0.0
     定位评论数量 com.ss.android.ugc.aweme:id/zf --> com.ss.android.ugc.aweme:id/zt
     判断数据是否刷新 com.ss.android.ugc.aweme:id/b_o --> com.ss.android.ugc.aweme:id/a3k
+2019.12.13 更新
+    抖音版本 9.1.0
+    定位评论数量 com.ss.android.ugc.aweme:id/zt --> com.ss.android.ugc.aweme:id/a19
+    判断数据是否刷新 com.ss.android.ugc.aweme:id/a3k --> com.ss.android.ugc.aweme:id/a53
+2019.12.13 更新
+    抖音版本 9.2.0
+    定位评论数量 com.ss.android.ugc.aweme:id/a19 --> com.ss.android.ugc.aweme:id/a3u
+    判断数据是否刷新 com.ss.android.ugc.aweme:id/a53 --> com.ss.android.ugc.aweme:id/a7k

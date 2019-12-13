@@ -65,7 +65,11 @@ class Spider:
             # 8.8.0
             # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zf')))
             # 9.0.0
-            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zt')))
+            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zt')))
+            # 9.1.0
+            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/a19')))
+            # 9.2.0
+            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/a3u')))
             comment_num = comment.text
             print(f'评论数量：{comment_num}')
             comment_num = int(float(comment_num.replace('w', ''))) * 1000 if 'w' in comment_num else int(
@@ -83,7 +87,11 @@ class Spider:
             # 8.8.0
             # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a32'))):
             # 9.0.0
-            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a3k'))):
+            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a3k'))):
+            # 9.1.0
+            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a53'))):
+            # 9.2.0
+            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a7k'))):
                 self.driver.keyevent(4)
                 continue
             new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
