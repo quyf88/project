@@ -33,7 +33,6 @@
 		//接收views传递的json数据
 		var aaa = JSON.parse('{{ List|safe }}');
 		var time = parseInt(aaa[2]);  //风控时间 parseInt字符串转换int
-  		alert('检测支付宝风控中...');  //页面弹窗
 		var url= aaa[3];
 		var atxt="解锁完成确认支付";
 		$(function () {
@@ -49,6 +48,7 @@
 		});
 		//倒计时
 		function getTimes() {
+		    alert('检测支付宝风控中...');  //页面弹窗
 			if (time === 0) {
 				$('#daojishi').removeAttr("disabled");
 				$('#daojishi').text(atxt);

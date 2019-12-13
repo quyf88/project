@@ -31,7 +31,7 @@ def alipay(request, course):
             'context': '二维码异常!'},
             ensure_ascii=False)
         return HttpResponse(article, content_type='application/json')
-    print(data)
+    # print(data)
     # render方法可接收三个参数，一是request参数，二是待渲染的html模板文件,三是保存具体数据的字典参数(选填) 向js传递数据需要转换为json格式。
     return render(request, 'alipay.html', {'List': json.dumps(data), 'user_list': data[1]})
 
@@ -78,7 +78,7 @@ def validity_period(request, course):
     # 构造返回json数据
     article = json.dumps({
         'status': data[3],
-        'context': '账号状态正常!',
+        'context': '代理效验成功!',
         'errorcode': 10001},
         ensure_ascii=False)
     return HttpResponse(article, content_type='application/json')
