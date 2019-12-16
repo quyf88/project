@@ -8,17 +8,72 @@ import re
 import bs4
 import json
 import xlwt
+import shutil
 import requests
+import pandas as pd
 from lxml import etree
+from retrying import retry
 from selenium import webdriver
+from fake_useragent import UserAgent
 
 
 class Spider:
     def __init__(self):
         pass
 
+    @retry(stop_max_attempt_number=30)
+    def _parse_url(self, url):
+        """url请求"""
+        headers = {"User-Agent": UserAgent().random}
+        while True:
+            try:
+                response = requests.get(url, headers=headers, timeout=300)
+            except Exception as e:
+                print(e)
+                continue
+            return response
+
+    def get_model(self):
+        """获取所有车型数据"""
+        # 所有车型js文件
+        url = 'https://car.autohome.com.cn/javascript/NewSpecCompare.js?20131010'
+        response = self._parse_url(url)
+        content = response.content.decode('GBK')  # GBK解码
+        # 剔除开头和结尾处多余字符 转换为json
+        content = content.replace('var listCompare$100= ', '').replace(';', '')
+        content = json.loads(content)
+        for i in content:
+            # 品牌ID,品牌首字母,名称,车系列表
+            che_id, brand_l, brand_n, brand_list, = i['I'], i['L'], i['N'], i['List']
+            for q in brand_list:
+                # 车系名称,车型列表
+                car_l, car_list = q['N'], q['List']
+                for t in car_list:
+                    # 车型ID, 车型名称
+                    model_l = t['I']
+                    model_n = t['N']
+                    # 品牌ID,品牌首字母,名称,车系名称,车型ID, 车型名称
+                    yield che_id, brand_l, brand_n, car_l, model_l, model_n
+
+    def save_model_code(self, model_url):
+        """保存车型参数页面源码"""
+        car_file = re.findall(r'series/(.*?)\.html', model_url)[0]
+        # 存储车系参数页面源码
+        car_resp = self._parse_url(model_url)
+        text = str(car_resp.content, encoding="utf-8")
+        if '抱歉，暂无相关数据' not in text:
+            print(f"model_url:{model_url}")
+            # 效验文件夹是否存在 不存在则创建
+            model_page = '1-车型参数页面源码'
+            if not os.path.exists(model_page):
+                os.makedirs(model_page)
+            with open(model_page + '/' + car_file, 'w', encoding='utf-8') as f:
+                f.write(text)
+        else:
+            print(f"model_url:{model_url} 无数据跳过!")
+
     def get_car_parser(self):
-        """解析汽车之家所有车系数据保存"""
+        """第一步 解析汽车之家所有车系数据保存"""
         # 构造A-Z列表 不加1只到Y
         letters = [chr(i) for i in range(ord('A'), ord('Z')+1)]
         print(letters)
@@ -29,7 +84,7 @@ class Spider:
             Brand_url = f'https://www.autohome.com.cn/grade/carhtml/{letter}.html'
             print(f'{letter} {Brand_url}')
             # 开始获取每个品牌的车型
-            Brand_resp = requests.get(Brand_url, timeout=30)
+            Brand_resp = self._parse_url(Brand_url)
             # 获取品牌车型网页源码
             Brand_html = bs4.BeautifulSoup(str(Brand_resp.content, "gbk"), "html.parser")
             # 提取网页中所有li标签
@@ -55,7 +110,7 @@ class Spider:
                 for model_url in model_urls:
                     car_file = re.findall(r'series/(.*?)\.html', model_url)[0]
                     # 存储车系参数页面源码
-                    car_resp = requests.get(model_url, timeout=30)
+                    car_resp = self._parse_url(model_url, timeout=30)
                     text = str(car_resp.content, encoding="utf-8")
                     if '抱歉，暂无相关数据' in text:
                         print(f"model_url:{model_url} 无数据跳过!")
@@ -67,7 +122,6 @@ class Spider:
                         os.makedirs(model_page)
                     with open(model_page + '/' + car_file, 'w', encoding='utf-8') as f:
                         f.write(text)
-            return
 
     def get_discontinued_models(self, model_id):
         """
@@ -76,8 +130,9 @@ class Spider:
         :return: 车型详细参数url
         """
         model_urls = []
+        model_urls.append(f'https://car.autohome.com.cn/config/series/{model_id}.html')
         url = f'https://www.autohome.com.cn/{model_id}/sale.html'
-        response = requests.get(url, timeout=30)
+        response = self._parse_url(url)
         html = etree.HTML(response.text)
         # 停售车型ID
         years_id = html.xpath('//div[@class="title-subcnt-tab"]/ul/li/a/@data-yearid')
@@ -191,7 +246,7 @@ class Spider:
         lists = os.listdir("2-js拼装的HTML")
         driver = webdriver.Chrome()
         for fil in lists:
-            print(f'提取：{file}class混淆属性对应字体')
+            print(f'提取：{fil}class混淆属性对应字体')
             # 效验文件夹是否存在 不存在则创建
             content_file = '4-抓取HTML结果'
             if not os.path.exists(content_file):
@@ -200,10 +255,9 @@ class Spider:
             if file:
                 print('文件已经解析。。。' + str(file))
                 continue
-            print(fil)
+
             driver.get(os.getcwd() + os.sep + "2-js拼装的HTML/" + fil)
             text = driver.find_element_by_tag_name('body')
-            print(text.text)
 
             with open(content_file + "/" + fil, "w", encoding="utf-8") as f:
                 f.write(text.text)
@@ -214,7 +268,6 @@ class Spider:
         rootPath = "3-车型参数json/"
         listdir = os.listdir(rootPath)
         for json_s in listdir:
-            print(f'{json_s}：混淆字体替换')
             # 读取json数据文件
             model_json = ''
             with open(rootPath + json_s, 'r', encoding="utf-8") as f:
@@ -245,14 +298,41 @@ class Spider:
             new_json = '5-文字替换后json'
             if not os.path.exists(new_json):
                 os.makedirs(new_json)
-            print(model_json)
             with open(new_json + '/' + json_s, 'w', encoding='utf-8') as f2:
                 f2.write(model_json)
-            print('*' * 100)
+            print(f'{json_s}：混淆字体替换成功')
+
+    def del_temporary_file(self):
+        """删除临时文件"""
+        files = ['1-车型参数页面源码', '2-js拼装的HTML', '3-车型参数json', '4-抓取HTML结果']
+        for file in files:
+            if not os.path.exists(file):
+                continue
+            shutil.rmtree(file)
+            print(f'临时文件:[{file}]删除完成!')
+
+    def keep_records(self, model_id, vali=False):
+        """保存获取记录"""
+        file_name = '获取记录.txt'
+        if not os.path.exists(file_name):
+            fi = open(file_name, 'a')
+            fi.close()
+        if vali:
+            with open(file_name, 'r') as f:
+                flight = [i.replace('\n', '') for i in f.readlines()]
+                if model_id in flight:
+                    return True
+                return False
+        else:
+            with open(file_name, 'a+') as f:
+                f.write(model_id)
+                f.write('\n')
 
     def save_xls(self):
         """第六步 保存数据"""
         count = 1
+        startRow = 0  # 开始行数
+        isFlag = True  # 默认记录表头
         Header = {'车型ID': 0, '车型名称': 1, '厂商指导价(元)': 2, '厂商': 3, '级别': 4, '能源类型': 5, '环保标准': 6, '上市时间': 7,
                   '工信部纯电续航里程(km)': 8, '快充时间(小时)': 9, '慢充时间(小时)': 10, '快充电量百分比': 11, '最大功率(kW)': 12, '最大扭矩(N·m)': 13,
                   '发动机': 14, '变速箱': 15, '长*宽*高(mm)': 16, '车身结构': 17, '最高车速(km/h)': 18, '官方0-100km/h加速(s)': 19,
@@ -292,15 +372,22 @@ class Spider:
                   '内后视镜功能': 222, '后风挡遮阳帘': 223, '后排侧窗遮阳帘': 224, '后排侧隐私玻璃': 225, '车内化妆镜': 226, '后雨刷': 227, '感应雨刷功能': 228,
                   '可加热喷水嘴': 229, '空调温度控制方式': 230, '后排独立空调': 231, '后座出风口': 232, '温度分区控制': 233, '车载空气净化器': 234,
                   '车内PM2.5过滤装置': 235, '负离子发生器': 236, '车内香氛装置': 237, '车载冰箱': 238, '面部识别': 239,
-                  'OTA升级': 240, '四驱形式': 241, '外观颜色': 242, '内饰颜色': 243, '中央差速器结构': 244, '实测快充时间(小时)': 245,
+                  'OTA升级': 240, '四驱形式': 241, '后排车门开启方式': 242, '货箱尺寸(mm)': 243, '中央差速器结构': 244, '实测快充时间(小时)': 245,
                   '实测慢充时间(小时)': 246,
-                  '电动机': 247}
+                  '电动机': 247, '最大载重质量(kg)': 248}
         rootPath = "5-文字替换后json/"
+
+        if os.path.exists('Mybook.xls'):
+            df_read = pd.read_excel('Mybook.xls')
+            df = pd.DataFrame(df_read)
+            startRow = df.shape[0] + 2
+            isFlag = False
+        else:
+            print(os.path.exists('Mybook.xls'))
+
         workbook = xlwt.Workbook(encoding='ascii')  # 创建一个文件
         worksheet = workbook.add_sheet('全系车型参数(包含历史车型)')  # 创建一个表
         files = os.listdir(rootPath)
-        startRow = 0  # 开始行数
-        isFlag = True  # 默认记录表头
         for file in files:
             carItem = {}
             with open(rootPath + file, 'r', encoding="utf-8") as f:
@@ -393,25 +480,43 @@ class Spider:
                         context = '-'
                     # 写入数据 row行 colNum列 context内容
                     worksheet.write(row, colNum, context)
-
-                print(f'第:{count}条 [{carItem["车型ID"][0]}] 数据插入成功')
+                print(f'第:{count}条 [{carItem["车型ID"]}] 数据插入成功')
                 count += 1
-
             else:
                 startRow = endRowNum
         workbook.save('Mybook.xls')
 
     def run(self):
         # 第一步 下载出所有车型的网页
-        self.get_car_parser()
-        # 第二步 解析出每个车型参数页面的混淆字体js拼装成一个新html
-        self.js_saved_html()
-        # 第三步 解析出每个车型的参数数据json保存到本地
-        self.model_paremeter()
-        # 第四步 浏览器执行第二步生成的html文件 抓取执行结果(字体混淆) 保存到本地
-        self.extract_text()
-        # 第五步 匹配样式文件与json数据文件 生成正常的数据文件
-        self.replace_text()
+        # self.get_car_parser()
+        count = 0
+        for u in self.get_model():
+            # 品牌ID,品牌首字母,名称,车系名称,车型ID, 车型名称
+            che_id, brand_l, brand_n, car_l, model_l, model_n = u
+            if self.keep_records(str(model_l), vali=True):
+                print(f'{model_l} 已获取跳过!')
+                continue
+            model_urls = self.get_discontinued_models(model_l)
+            for model_url in model_urls:
+                self.save_model_code(model_url)  # 保存车型参数页面源码
+            # 第二步 解析出每个车型参数页面的混淆字体js拼装成一个新html
+            self.js_saved_html()
+            # 第三步 解析出每个车型的参数数据json保存到本地
+            self.model_paremeter()
+            # 第四步 浏览器执行第二步生成的html文件 抓取执行结果(字体混淆) 保存到本地
+            self.extract_text()
+            # 第五步 匹配样式文件与json数据文件 生成正常的数据文件
+            self.replace_text()
+
+            # 保存获取记录
+            self.keep_records(str(model_l))
+            # 删除临时文件
+            self.del_temporary_file()
+
+            print(count)
+            if count > 100:
+                break
+            count += 1
         # 第六步 读取数据文件 生成excel
         self.save_xls()
 
