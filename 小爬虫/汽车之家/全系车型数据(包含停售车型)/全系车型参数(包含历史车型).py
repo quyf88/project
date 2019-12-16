@@ -57,16 +57,16 @@ class Spider:
 
     def save_model_code(self, model_url):
         """保存车型参数页面源码"""
+        # 效验文件夹是否存在 不存在则创建
+        model_page = '1-车型参数页面源码'
+        if not os.path.exists(model_page):
+            os.makedirs(model_page)
         car_file = re.findall(r'series/(.*?)\.html', model_url)[0]
         # 存储车系参数页面源码
         car_resp = self._parse_url(model_url)
         text = str(car_resp.content, encoding="utf-8")
         if '抱歉，暂无相关数据' not in text:
             print(f"model_url:{model_url}")
-            # 效验文件夹是否存在 不存在则创建
-            model_page = '1-车型参数页面源码'
-            if not os.path.exists(model_page):
-                os.makedirs(model_page)
             with open(model_page + '/' + car_file, 'w', encoding='utf-8') as f:
                 f.write(text)
         else:
@@ -152,11 +152,16 @@ class Spider:
     def js_saved_html(self):
         """第二步 解析出每个车型参数页面的混淆字体js拼装成一个新html"""
         print("第二步 混淆字体js拼装成html...")
-        rootPath = "1-车型参数页面源码/"
+        # 效验文件夹是否存在 不存在则创建
+        js_html_name = '2-js拼装的HTML'
+        if not os.path.exists(js_html_name):
+            os.makedirs(js_html_name)
+
+        rootPath = "1-车型参数页面源码"
         files = os.listdir(rootPath)
         for file in files:
             print(f'{file} 提取页面中class混淆字体js')
-            with open(rootPath + file, 'r', encoding="utf-8") as f:
+            with open(rootPath + '/' + file, 'r', encoding="utf-8") as f:
                 text = f.read()
 
             # 解析数据的json
@@ -193,16 +198,18 @@ class Spider:
             # 把混淆字体js拼装成HTML
             newHtml = "<html><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /><head></head><body>    <script type='text/javascript'>"
             alljs = newHtml + alljs + " document.write(rules)</script></body></html>"
-            # 效验文件夹是否存在 不存在则创建
-            js_html_name = '2-js拼装的HTML'
-            if not os.path.exists(js_html_name):
-                os.makedirs(js_html_name)
+
             with open(js_html_name + "/" + file + ".html", "w", encoding="utf-8") as f:
                 f.write(alljs)
 
     def model_paremeter(self):
         """第三步 解析出每个车型的参数数据json保存到本地"""
         print("第三步 解析车型参数数据...")
+        # 效验文件夹是否存在 不存在则创建
+        model_json = '3-车型参数json'
+        if not os.path.exists(model_json):
+            os.makedirs(model_json)
+
         rootPath = "1-车型参数页面源码/"
         files = os.listdir(rootPath)
         for file in files:
@@ -233,24 +240,22 @@ class Spider:
                 # print(innerColor.group(0))
                 jsonData = jsonData + innerColor.group(0)
 
-            # 效验文件夹是否存在 不存在则创建
-            model_json = '3-车型参数json'
-            if not os.path.exists(model_json):
-                os.makedirs(model_json)
             with open(model_json + "/" + file, "w", encoding="utf-8") as f:
                 f.write(jsonData)
 
     def extract_text(self):
         """第四步 浏览器执行第二步生成的html文件 抓取执行结果(字体混淆) 保存到本地"""
         print('第四步 浏览器执行第二步生成的html文件 抓取执行结果(字体混淆) 保存到本地')
+        # 效验文件夹是否存在 不存在则创建
+        content_file = '4-抓取HTML结果'
+        if not os.path.exists(content_file):
+            os.makedirs(content_file)
+
         lists = os.listdir("2-js拼装的HTML")
         driver = webdriver.Chrome()
         for fil in lists:
             print(f'提取：{fil}class混淆属性对应字体')
-            # 效验文件夹是否存在 不存在则创建
-            content_file = '4-抓取HTML结果'
-            if not os.path.exists(content_file):
-                os.makedirs(content_file)
+
             file = os.path.exists(content_file + '/' + fil)
             if file:
                 print('文件已经解析。。。' + str(file))
@@ -265,6 +270,11 @@ class Spider:
     def replace_text(self):
         """第五步 匹配样式文件与json数据文件 生成正常的数据文件"""
         print("第五步 匹配样式文件与json数据文件 生成正常的数据文件")
+        # 效验文件夹是否存在 不存在则创建
+        new_json = '5-文字替换后json'
+        if not os.path.exists(new_json):
+            os.makedirs(new_json)
+
         rootPath = "3-车型参数json/"
         listdir = os.listdir(rootPath)
         for json_s in listdir:
@@ -294,10 +304,6 @@ class Spider:
                         model_json = model_json.replace(str("<span class='" + sea.group(1) + "'></span>"),
                                                         re.search("\"(.*?)\"", spanContentRe.group(1)).group(1))
 
-            # 效验文件夹是否存在 不存在则创建
-            new_json = '5-文字替换后json'
-            if not os.path.exists(new_json):
-                os.makedirs(new_json)
             with open(new_json + '/' + json_s, 'w', encoding='utf-8') as f2:
                 f2.write(model_json)
             print(f'{json_s}：混淆字体替换成功')
@@ -374,16 +380,8 @@ class Spider:
                   '车内PM2.5过滤装置': 235, '负离子发生器': 236, '车内香氛装置': 237, '车载冰箱': 238, '面部识别': 239,
                   'OTA升级': 240, '四驱形式': 241, '后排车门开启方式': 242, '货箱尺寸(mm)': 243, '中央差速器结构': 244, '实测快充时间(小时)': 245,
                   '实测慢充时间(小时)': 246,
-                  '电动机': 247, '最大载重质量(kg)': 248}
+                  '电动机': 247, '最大载重质量(kg)': 248, '工信部续航里程(km)': 249, '电池容量(kWh)': 250}
         rootPath = "5-文字替换后json/"
-
-        if os.path.exists('Mybook.xls'):
-            df_read = pd.read_excel('Mybook.xls')
-            df = pd.DataFrame(df_read)
-            startRow = df.shape[0] + 2
-            isFlag = False
-        else:
-            print(os.path.exists('Mybook.xls'))
 
         workbook = xlwt.Workbook(encoding='ascii')  # 创建一个文件
         worksheet = workbook.add_sheet('全系车型参数(包含历史车型)')  # 创建一个表
@@ -440,7 +438,7 @@ class Spider:
                     carItem[car['name']] = []
                     for ca in car['valueitems']:  # 循环车型名称列表
                         if ca['specid'] not in carItem['车型ID']:
-                            carItem['车型ID'].append(ca['specid'])
+                            carItem['车型ID'].append(str(ca['specid']))
                         carItem[car['name']].append(ca['value'])
 
             # 解析配置参数
@@ -471,16 +469,19 @@ class Spider:
                     isFlag = False
 
             # 计算起止行号
-            endRowNum = startRow + len(carItem['车型名称'])  # 车辆款式记录数
+            endRowNum = startRow + len(carItem['车型ID'])  # 车辆款式记录数
             for row in range(startRow, endRowNum):
                 for col in carItem:
                     context = str(carItem[col][row - startRow])
-                    colNum = Header[col]  # 根据项目名称查询列数
+                    try:
+                        colNum = Header[col]  # 根据项目名称查询列数
+                    except:
+                        continue
                     if not context:
                         context = '-'
                     # 写入数据 row行 colNum列 context内容
                     worksheet.write(row, colNum, context)
-                print(f'第:{count}条 [{carItem["车型ID"]}] 数据插入成功')
+                print(f'第:{count}条数据插入成功')
                 count += 1
             else:
                 startRow = endRowNum
@@ -499,24 +500,28 @@ class Spider:
             model_urls = self.get_discontinued_models(model_l)
             for model_url in model_urls:
                 self.save_model_code(model_url)  # 保存车型参数页面源码
+
             # 第二步 解析出每个车型参数页面的混淆字体js拼装成一个新html
             self.js_saved_html()
             # 第三步 解析出每个车型的参数数据json保存到本地
             self.model_paremeter()
-            # 第四步 浏览器执行第二步生成的html文件 抓取执行结果(字体混淆) 保存到本地
-            self.extract_text()
-            # 第五步 匹配样式文件与json数据文件 生成正常的数据文件
-            self.replace_text()
 
             # 保存获取记录
             self.keep_records(str(model_l))
-            # 删除临时文件
-            self.del_temporary_file()
-
             print(count)
-            if count > 100:
+            if count > 10:
                 break
             count += 1
+
+        # 第四步 浏览器执行第二步生成的html文件 抓取执行结果(字体混淆) 保存到本地
+        self.extract_text()
+        # 第五步 匹配样式文件与json数据文件 生成正常的数据文件
+        self.replace_text()
+
+        # 删除临时文件
+        self.del_temporary_file()
+
+        print('*'*100)
         # 第六步 读取数据文件 生成excel
         self.save_xls()
 
