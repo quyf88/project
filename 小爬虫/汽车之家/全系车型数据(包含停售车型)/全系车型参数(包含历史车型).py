@@ -8,13 +8,26 @@ import re
 import bs4
 import json
 import xlwt
+import time
 import shutil
+import datetime
 import requests
-import pandas as pd
 from lxml import etree
 from retrying import retry
 from selenium import webdriver
 from fake_useragent import UserAgent
+
+
+def run_time(func):
+    def new_func(*args, **kwargs):
+        start_time = datetime.datetime.now()
+        print("程序开始时间：{}".format(start_time))
+        func(*args, **kwargs)
+        end_time = datetime.datetime.now()
+        print("程序结束时间：{}".format(end_time))
+        print("程序执行用时：{}s".format((end_time - start_time)))
+
+    return new_func
 
 
 class Spider:
@@ -266,6 +279,7 @@ class Spider:
 
             with open(content_file + "/" + fil, "w", encoding="utf-8") as f:
                 f.write(text.text)
+        driver.quit()
 
     def replace_text(self):
         """第五步 匹配样式文件与json数据文件 生成正常的数据文件"""
@@ -487,6 +501,7 @@ class Spider:
                 startRow = endRowNum
         workbook.save('Mybook.xls')
 
+    @run_time
     def run(self):
         # 第一步 下载出所有车型的网页
         # self.get_car_parser()
@@ -505,23 +520,18 @@ class Spider:
             self.js_saved_html()
             # 第三步 解析出每个车型的参数数据json保存到本地
             self.model_paremeter()
+            # 第四步 浏览器执行第二步生成的html文件 抓取执行结果(字体混淆) 保存到本地
+            self.extract_text()
+            # 第五步 匹配样式文件与json数据文件 生成正常的数据文件
+            self.replace_text()
 
             # 保存获取记录
             self.keep_records(str(model_l))
-            print(count)
-            if count > 10:
-                break
-            count += 1
+            # 删除临时文件
+            self.del_temporary_file()
+            time.sleep(1)
 
-        # 第四步 浏览器执行第二步生成的html文件 抓取执行结果(字体混淆) 保存到本地
-        self.extract_text()
-        # 第五步 匹配样式文件与json数据文件 生成正常的数据文件
-        self.replace_text()
-
-        # 删除临时文件
-        self.del_temporary_file()
-
-        print('*'*100)
+            print('*'*100)
         # 第六步 读取数据文件 生成excel
         self.save_xls()
 
