@@ -393,8 +393,8 @@ class Spider:
                   '可加热喷水嘴': 229, '空调温度控制方式': 230, '后排独立空调': 231, '后座出风口': 232, '温度分区控制': 233, '车载空气净化器': 234,
                   '车内PM2.5过滤装置': 235, '负离子发生器': 236, '车内香氛装置': 237, '车载冰箱': 238, '面部识别': 239,
                   'OTA升级': 240, '四驱形式': 241, '后排车门开启方式': 242, '货箱尺寸(mm)': 243, '中央差速器结构': 244, '实测快充时间(小时)': 245,
-                  '实测慢充时间(小时)': 246,
-                  '电动机': 247, '最大载重质量(kg)': 248, '工信部续航里程(km)': 249, '电池容量(kWh)': 250}
+                  '实测慢充时间(小时)': 246, '电动机': 247, '最大载重质量(kg)': 248, '工信部续航里程(km)': 249, '车系名称': 250,
+                  }
         rootPath = "5-文字替换后json/"
 
         workbook = xlwt.Workbook(encoding='ascii')  # 创建一个文件
@@ -445,14 +445,22 @@ class Spider:
                 print(e)
                 continue
 
+            carItem['车型ID'] = []  # 车型ID
+            carItem['车系名称'] = []  # 车系名称
             # 解析基本参数
             for param in configItem:
                 for car in param['paramitems']:
-                    carItem['车型ID'] = []  # 车型ID
                     carItem[car['name']] = []
                     for ca in car['valueitems']:  # 循环车型名称列表
+                        # 车型ID 写入字典
                         if ca['specid'] not in carItem['车型ID']:
-                            carItem['车型ID'].append(str(ca['specid']))
+                            carItem['车型ID'].append(ca['specid'])
+                        # 车型名称 分割
+                        if car['name'] == '车型名称':
+                            car_name = ca['value'].rsplit()[0]
+                            carItem['车系名称'].append(car_name)
+                            carItem[car['name']].append(','.join(ca['value'].rsplit()[1:]).replace(',', ' '))
+                            continue
                         carItem[car['name']].append(ca['value'])
 
             # 解析配置参数
@@ -486,8 +494,8 @@ class Spider:
             endRowNum = startRow + len(carItem['车型ID'])  # 车辆款式记录数
             for row in range(startRow, endRowNum):
                 for col in carItem:
-                    context = str(carItem[col][row - startRow])
                     try:
+                        context = str(carItem[col][row - startRow])
                         colNum = Header[col]  # 根据项目名称查询列数
                     except:
                         continue
