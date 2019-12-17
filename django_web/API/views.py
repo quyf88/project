@@ -56,17 +56,17 @@ def validity_period(request, course):
         article = json.dumps({
             'status': 200,
             'errorcode': 10002,
-            'context': '账号错误!'},
+            'context': '账号效验失败!'},
             ensure_ascii=False)
         return HttpResponse(article, content_type='application/json')
     # 账号状态为False：已过期直接返回数据
     if not proxy(data[4]):
         article = json.dumps({
             'status': data[3],
-            'context': '代理到期请及时续费!',
+            'context': '账号到期请及时续费!',
             'errorcode': 10002},
             ensure_ascii=False)
-        print('代理到期请及时续费!')
+        # print('代理到期请及时续费!')
         return HttpResponse(article, content_type='application/json')
 
     # 账号已过有效期更改数据库账号状态
@@ -112,7 +112,7 @@ def proxy(lasting):
     timeStamp = int(time.mktime(timeArray))
     now_time = int(round(time.time()))
     if now_time > timeStamp:
-        print('代理到期请及时续费')
+        # print('账号到期请及时续费')
         return False
 
     return True
@@ -124,6 +124,6 @@ def read_txt(course, file):
         access = f.readlines()
         for data in access:
             data = [i for i in data.strip().split(',') if i]
-            print(data, type(data))
+            # print(data, type(data))
             if course in data:
                 return data
