@@ -8,6 +8,7 @@ import os
 import time
 import subprocess
 import datetime
+from multiprocessing import Pool
 from appium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -32,19 +33,12 @@ def run_time(func):
 
 class Spider:
     def __init__(self):
-        self.desired_caps = {
-              "platformName": "Android",
-              "deviceName": "127.0.0.1:62001",
-              "appPackage": "com.ss.android.ugc.aweme",
-              "appActivity": ".splash.SplashActivity",
-              "noReset": "True"
-            }
-        self.driver_server = 'http://127.0.0.1:4723/wd/hub'
+
         print('**********程序启动中**********')
         # 启动微信
-        self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
+        self.driver = None
         # 设置隐形等待时间
-        self.wait = WebDriverWait(self.driver, 100, 1, AttributeError)
+        self.wait = None
         # 获取手机尺寸
         self.driver.get_window_size()
         self.x = self.driver.get_window_size()['width']  # 宽
@@ -125,41 +119,41 @@ def proxy():
     print('代理效验成功!')
 
 
-# def adb_devices():
-#     """读取设备列表"""
-#     get_cmd = "adb devices"  # 查询连接设备列表
-#     count = 0
-#     try:
-#         while True:
-#             # 连接设备
-#             if count > 2:
-#                 print("读取设备信息失败,请检查设备是否成功启动")
-#                 break
-#             # 读取连接设备信息
-#             p = subprocess.Popen(get_cmd, stdout=subprocess.PIPE,
-#                                  stderr=subprocess.PIPE,
-#                                  stdin=subprocess.PIPE, shell=True)
-#
-#             (output, err) = p.communicate()
-#             # 分割多条信息为列表
-#             output = output.decode().replace('\r', '').split('\n')
-#             # 剔除列表中空字符串
-#             output = list(filter(None, output))
-#             if not len(output) > 1:
-#                 print("读取设备信息失败,自动重启中...")
-#                 count += 1
-#                 os.popen('adb connect 127.0.0.1:62001')
-#                 continue
-#             # 连接设备列表
-#             devices = [i.split('\t') for i in output[1:]]
-#             # 读取成功列表
-#             success = [i[0] for i in devices if i[1] == 'device']
-#             for i in success:
-#                 print("设备连接成功：[{}]".format(i))
-#             return success
-#     except:
-#         print('读取设备信息失败,请检查设备是否成功启动!')
-#         os.popen('adb connect 127.0.0.1:62001')
+def adb_devices():
+    """读取设备列表"""
+    get_cmd = "adb devices"  # 查询连接设备列表
+    count = 0
+    try:
+        while True:
+            # 连接设备
+            if count > 2:
+                print("读取设备信息失败,请检查设备是否成功启动")
+                break
+            # 读取连接设备信息
+            p = subprocess.Popen(get_cmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 stdin=subprocess.PIPE, shell=True)
+
+            (output, err) = p.communicate()
+            # 分割多条信息为列表
+            output = output.decode().replace('\r', '').split('\n')
+            # 剔除列表中空字符串
+            output = list(filter(None, output))
+            if not len(output) > 1:
+                print("读取设备信息失败,自动重启中...")
+                count += 1
+                os.popen('adb connect 127.0.0.1:62001')
+                continue
+            # 连接设备列表
+            devices = [i.split('\t') for i in output[1:]]
+            # 读取成功列表
+            success = [i[0] for i in devices if i[1] == 'device']
+            for i in success:
+                print("设备连接成功：[{}]".format(i))
+            return success
+    except:
+        print('读取设备信息失败,请检查设备是否成功启动!')
+        os.popen('adb connect 127.0.0.1:62001')
 
 
 @run_time
@@ -167,12 +161,28 @@ def main():
     while True:
         try:
             proxy()
-            # adb_devices()
+            # 启动线程
             spider = Spider()
+            desired_caps = {
+                "platformName": "Android",
+                "deviceName": "127.0.0.1:62001",
+                # "deviceName": "d750dac5",
+                "appPackage": "com.ss.android.ugc.aweme",
+                "appActivity": ".splash.SplashActivity",
+                "noReset": True
+            }
+            driver_server = 'http://127.0.0.1:{}/wd/hub'.format(4723)
+            # 启动APP
+            spider.driver = webdriver.Remote(driver_server, desired_caps)
+            # 设置等待
+            spider.wait = WebDriverWait(spider.driver, 30, 0.5)
             spider.slide()
-        except:
+        except Exception as e:
+            print(e)
             continue
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    success = adb_devices()
+    print(success)
