@@ -5,10 +5,22 @@
 # 版本 ：V1.0
 import os
 import requests
+import urllib.request
 
 
 def proxy():
-    url = 'http://www.dongdongmeiche.com/proxy/460a23180f3411ea9aec28d2447ab52e'
+    url = 'http://www.dongdongmeiche.com/proxy/c237a07a57c44169bd20e18f73ab9e6'
+    opener = urllib.request.build_opener()
+    try:
+        opener.open(url)
+        fang = True
+    except urllib.error.HTTPError:
+        fang = False
+    except urllib.error.URLError:
+        fang = False
+    if not fang:
+        print('url validation failed!')
+        os._exit(0)
     response = requests.get(url)
     content = response.json()
     code = content['errorcode']
@@ -20,3 +32,4 @@ def proxy():
 
 if __name__ == '__main__':
     proxy()
+
