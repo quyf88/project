@@ -8,7 +8,7 @@ import os
 import time
 import subprocess
 import datetime
-from multiprocessing import Pool
+import threading
 from appium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -33,17 +33,16 @@ def run_time(func):
 
 class Spider:
     def __init__(self):
-
         print('**********程序启动中**********')
         # 启动微信
         self.driver = None
         # 设置隐形等待时间
         self.wait = None
         # 获取手机尺寸
-        self.driver.get_window_size()
-        self.x = self.driver.get_window_size()['width']  # 宽
-        self.y = self.driver.get_window_size()['height']  # 长
-        print(self.x, self.y)
+        # self.driver.get_window_size()
+        # self.x = self.driver.get_window_size()['width']  # 宽
+        # self.y = self.driver.get_window_size()['height']  # 长
+        # print(self.x, self.y)
 
     def slide(self):
         """
@@ -58,13 +57,13 @@ class Spider:
             # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zb')))
             # 8.8.0
             # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zf')))
-            # 9.0.0
-            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zt')))
-            # 9.1.0
-            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/a19')))
             # 9.2.0
-            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/a3u')))
+            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/a19')))
             comment_num = comment.text
+            if '评论' in comment_num:
+                # 下一个视频
+                self.driver.keyevent(4)
+                time.sleep(2)
             print(f'评论数量：{comment_num}')
             comment_num = int(float(comment_num.replace('w', ''))) * 1000 if 'w' in comment_num else int(
                 int(comment_num) / 10)
@@ -80,12 +79,8 @@ class Spider:
             # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a2v'))):
             # 8.8.0
             # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a32'))):
-            # 9.0.0
-            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a3k'))):
-            # 9.1.0
-            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a53'))):
             # 9.2.0
-            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a7k'))):
+            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a53'))):
                 self.driver.keyevent(4)
                 continue
             new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
@@ -109,11 +104,11 @@ class Spider:
 
 
 def proxy():
-    tss1 = '2019-12-4 00:00:00'
+    tss1 = '2020-1-4 00:00:00'
     timeArray = time.strptime(tss1, "%Y-%m-%d %H:%M:%S")
     timeStamp = int(time.mktime(timeArray))
     now_time = int(round(time.time()))
-    if now_time < timeStamp:
+    if now_time > timeStamp:
         print('代理到期请及时续费')
         os._exit(0)
     print('代理效验成功!')
@@ -143,6 +138,8 @@ def adb_devices():
                 print("读取设备信息失败,自动重启中...")
                 count += 1
                 os.popen('adb connect 127.0.0.1:62001')
+                os.popen('adb connect 127.0.0.1:62025')
+                os.popen('adb connect 127.0.0.1:62026')
                 continue
             # 连接设备列表
             devices = [i.split('\t') for i in output[1:]]
@@ -154,35 +151,53 @@ def adb_devices():
     except:
         print('读取设备信息失败,请检查设备是否成功启动!')
         os.popen('adb connect 127.0.0.1:62001')
+        os.popen('adb connect 127.0.0.1:62025')
+        os.popen('adb connect 127.0.0.1:62026')
 
 
 @run_time
-def main():
+def main(udid, port):
+    spider = Spider()
+    print(f'**********程序[{udid}]启动中**********')
+    desired_caps = {
+        "platformName": "Android",
+        "deviceName": udid,
+        # "deviceName": "d750dac5",
+        "appPackage": "com.ss.android.ugc.aweme",
+        "appActivity": ".splash.SplashActivity",
+        "udid": udid,  # 根据模拟器名称启动
+        "noReset": True
+    }
+    driver_server = 'http://127.0.0.1:{}/wd/hub'.format(port)
+    # 启动APP
+    spider.driver = webdriver.Remote(driver_server, desired_caps)
+    # 设置等待
+    spider.wait = WebDriverWait(spider.driver, 30, 0.5)
+    count = 1
     while True:
         try:
-            proxy()
-            # 启动线程
-            spider = Spider()
-            desired_caps = {
-                "platformName": "Android",
-                "deviceName": "127.0.0.1:62001",
-                # "deviceName": "d750dac5",
-                "appPackage": "com.ss.android.ugc.aweme",
-                "appActivity": ".splash.SplashActivity",
-                "noReset": True
-            }
-            driver_server = 'http://127.0.0.1:{}/wd/hub'.format(4723)
-            # 启动APP
-            spider.driver = webdriver.Remote(driver_server, desired_caps)
-            # 设置等待
-            spider.wait = WebDriverWait(spider.driver, 30, 0.5)
             spider.slide()
         except Exception as e:
+            if count > 3:
+                raise
+            spider.driver.swipe(200, 1700, 200, 500, 500)
+            time.sleep(2)
             print(e)
+            count += 1
             continue
 
 
 if __name__ == '__main__':
-    # main()
+    proxy()
     success = adb_devices()
-    print(success)
+    while True:
+        try:
+            port = 4723
+            for i in success:
+                s = threading.Thread(target=main, args=(i, port))
+                port += 2
+                s.start()
+                time.sleep(10)
+        except:
+            continue
+
