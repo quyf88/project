@@ -58,7 +58,7 @@ class Spider:
             # 8.8.0
             # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zf')))
             # 9.2.0
-            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/a19')))
+            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/a3v')))
             comment_num = comment.text
             if '评论' in comment_num:
                 # 下一个视频
@@ -80,7 +80,7 @@ class Spider:
             # 8.8.0
             # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a32'))):
             # 9.2.0
-            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a53'))):
+            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a7l'))):
                 self.driver.keyevent(4)
                 continue
             new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
