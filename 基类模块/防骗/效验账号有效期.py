@@ -9,7 +9,8 @@ import urllib.request
 
 
 def proxy():
-    url = 'http://www.dongdongmeiche.com/proxy/c237a07a57c44169bd20e18f73ab9e6'
+    # 腾讯云
+    url = 'http://www.dongdongmeiche.cn/proxy/c237a07a57c44169bd20e18f73ab9e6b'
     opener = urllib.request.build_opener()
     try:
         opener.open(url)
