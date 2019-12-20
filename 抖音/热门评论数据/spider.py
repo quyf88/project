@@ -6,9 +6,11 @@
 # 抖音版本 ：8.8.0
 import os
 import time
-import subprocess
 import datetime
+import requests
 import threading
+import subprocess
+import urllib.request
 from appium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -104,14 +106,25 @@ class Spider:
 
 
 def proxy():
-    tss1 = '2020-1-4 00:00:00'
-    timeArray = time.strptime(tss1, "%Y-%m-%d %H:%M:%S")
-    timeStamp = int(time.mktime(timeArray))
-    now_time = int(round(time.time()))
-    if now_time > timeStamp:
-        print('代理到期请及时续费')
+    url = 'http://www.dongdongmeiche.cn/proxy/460a23180f3411ea9aec28d2447ab52e'
+    opener = urllib.request.build_opener()
+    try:
+        opener.open(url)
+        fang = True
+    except urllib.error.HTTPError:
+        fang = False
+    except urllib.error.URLError:
+        fang = False
+    if not fang:
+        print('url validation failed!')
         os._exit(0)
-    print('代理效验成功!')
+    response = requests.get(url)
+    content = response.json()
+    code = content['errorcode']
+    if code != 10001:
+        print(content['context'])
+        os._exit(0)
+    print(content['context'])
 
 
 def adb_devices():
@@ -190,14 +203,11 @@ def main(udid, port):
 if __name__ == '__main__':
     proxy()
     success = adb_devices()
-    while True:
-        try:
-            port = 4723
-            for i in success:
-                s = threading.Thread(target=main, args=(i, port))
-                port += 2
-                s.start()
-                time.sleep(10)
-        except:
-            continue
+    port = 4723
+    for i in success:
+        s = threading.Thread(target=main, args=(i, port))
+        port += 2
+        s.start()
+        time.sleep(10)
+
 
