@@ -23,5 +23,5 @@ urlpatterns = [
     path('alipay/<str:course>', views.alipay),
     path('proxy/<str:course>', views.validity_period),
     path('ceshi', views.ceshi),
-    path('ce', views.ceshi)
+    # path('ce', views.ceshi)
 ]

@@ -33,7 +33,7 @@ def alipay(request, course):
         return HttpResponse(article, content_type='application/json')
     # print(data)
     # render方法可接收三个参数，一是request参数，二是待渲染的html模板文件,三是保存具体数据的字典参数(选填) 向js传递数据需要转换为json格式。
-    return render(request, 'alipay.html', {'List': json.dumps(data), 'user_list': data[1]})
+    return render(request, 'alipay.html', {'List': json.dumps(data), 'user_list': data[1], 'url': data[3]})
 
 
 def ceshi(request):
