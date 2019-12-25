@@ -22,5 +22,6 @@ urlpatterns = [
     # 路由地址 get_user:视图函数 course:URL传递过来的参数
     path('alipay/<str:course>', views.alipay),
     path('proxy/<str:course>', views.validity_period),
-    path('ceshi', views.ceshi)
+    path('ceshi', views.ceshi),
+    path('ce', views.ceshi)
 ]

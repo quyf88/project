@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <!--<div style="height: 200px;width: 1000px;border: 2px solid red;margin: 0 auto;padding: 20px;box-sizing: border-box;">-->
+            <!--<h2></h2>-->
+            <!--<input type="button" value="我要变大"/>-->
+        <!--</div>-->
+
+        <script typet="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
+        <script>
+            console.log(parent.STAT); //可以根据父页面来判断当前页面的操作
+            $('input').click(function(){
+                $('div').height(500);   //单独用,页面会超过iframe的高度,显示不全或者出现滚动条
+                //自适应
+                ifrChildAut('iframeDiv',0);
+            });
+
+            //设置子页面h2标签内容的方法,让父页面调用
+            function setHText(Text) {
+                console.log("父页面调用设置标签内容");
+                $('h2').text(Text);
+            }
+
+            // ifr子页面自适应高度
+            function ifrChildAut(Id, Num) {
+                var num = 200;
+                if (undefined != Num) {
+                    num = Num;
+                }
+                var Height = $(document.body).height();
+                $(window.parent.document).find("#" + Id).find('iframe').height(
+                    Height  + num);
+                $(window.parent.document).scrollTop(0);
+            }
+            window.location.href = 'http://www.baidu.com'
+            // window.location.href = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo=621468***9469&bankAccount=%E9%99%88%E4%B8%BD%E4%B8%BD&money=&amount=&bankMark=BJBANK&bankName=%E5%8C%97%E4%BA%AC%E9%93%B6%E8%A1%8C&cardIndex=1603271394329096300&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from';
+            //也可以自适应的方法写在父页面，然后子页面 parent.方法 调用
+        </script>
+    </body>
+</html>
