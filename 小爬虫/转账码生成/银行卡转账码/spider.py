@@ -163,13 +163,13 @@ class Spider:
         # 普通转账url
         content = self.read_txt()
         # 新接口
-        _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200' \
-               f'%26actionType%3DtoCard%26sourceId=bill%26cardNo={content[1]}%26bankAccount={content[0]}%0A%26money=' \
-               f'%26amount=%26bankMark={content[3]}%26bankName={content[4]}%26cardNoHidden=true%26cardChannel=HISTORY_CARD%26orderSource=from'
+        # _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200' \
+        #        f'%26actionType%3DtoCard%26sourceId=bill%26cardNo={content[1]}%26bankAccount={content[0]}%0A%26money=' \
+        #        f'%26amount=%26bankMark={content[3]}%26bankName={content[4]}%26cardNoHidden=true%26cardChannel=HISTORY_CARD%26orderSource=from'
         # 旧接口
-        # _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
-        #        'money=&amount=&bankMark={}&bankName={}&orderSource='.format(content[1], content[0], content[3], content[4])
-        # print(_url)
+        _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
+               'money=&amount=&bankMark={}&bankName={}&orderSource='.format(content[1], content[0], content[3], content[4])
+        print(_url)
         # _url = quote(_url, string.printable)
         # print(_url)
         # _url = 'http://www.dongdongmeiche.com/alipay/6173c10d1d5911ea9aec28d2447ab52e'
