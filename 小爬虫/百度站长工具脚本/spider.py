@@ -6,6 +6,8 @@
 import os
 import re
 import time
+import requests
+from lxml import etree
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver import ActionChains
@@ -44,9 +46,8 @@ class Spider:
 
     def login_by_scan(self):
         print("开始登录,请等待页面加载完成后,输入账号登录...")
-        # self.driver.get('https://ziyuan.baidu.com/login/index?u=/site/batchadd')
+        self.driver.get('https://ziyuan.baidu.com/login/index?u=/site/batchadd')
         input('登录账号：')
-        self.code()
         while True:
             if 'login' not in self.driver.current_url:
                 print(self.driver.current_url)
@@ -64,57 +65,67 @@ class Spider:
         :return:
         """
         while True:
+            # try:
+            # 进入添加子站页面
+            self.driver.get("https://ziyuan.baidu.com/site/batchadd")
+            # 输入主站url
+            master_url = self.driver.find_elements_by_xpath('//div[@class="select-domain-box clearfix"]/input')
+            master_url[0].send_keys(filename)
+            # 选择主站url
+            select_url = self.driver.find_elements_by_xpath('//div[@id="suggest_row1"]')
+            print(self.driver.current_url)
+            print(select_url[0].text, 123456789)
+            if not select_url:
+                print('没有此主站记录!')
+            select_url[0].click()
+            # 子域名输入框
+            batches_url = self.driver.find_element_by_xpath('//*[@id="batchaddTextarea"]')
+            for bat_url in content:
+                print(bat_url.rstrip())
+                batches_url.send_keys(bat_url)
+            # 确认提交
+            submit = self.driver.find_element_by_xpath('//*[@id="batchaddSiteBtn"]')
+            submit.click()
+            # 弹窗处理
+            pop_ups = self.driver.find_element_by_xpath('//div[@id="dialog-foot"]/button[1]')
+            pop_ups.click()
+            # 图片验证
             self.code()
-            try:
-                # 进入添加子站页面
-                self.driver.get("https://ziyuan.baidu.com/site/batchadd")
-                # 输入主站url
-                master_url = self.driver.find_elements_by_xpath('//div[@class="select-domain-box clearfix"]/input')
-                master_url[0].send_keys(filename)
-                # 选择主站url
-                select_url = self.driver.find_elements_by_xpath('//div[@id="suggest_row1"]')
-                if not select_url:
-                    print('没有此主站记录!')
-                select_url[0].click()
-                # 子域名输入框
-                batches_url = self.driver.find_element_by_xpath('//*[@id="batchaddTextarea"]')
-                for bat_url in content:
-                    print(bat_url.rstrip())
-                    batches_url.send_keys(bat_url)
-                # 确认提交
-                submit = self.driver.find_element_by_xpath('//*[@id="batchaddSiteBtn"]')
-                submit.click()
-                # 弹窗处理
-                pop_ups = self.driver.find_element_by_xpath('//div[@id="dialog-foot"]/button[1]')
-                pop_ups.click()
-                # 效验是否添加成功
-                if self.validation():
-                    return
-                else:
-                    continue
-            except:
-                print("子域名添加成功!")
-                print('*' * 30)
+            # 效验是否添加成功
+            if self.validation():
                 return
+            else:
+                continue
+            # except:
+            #     print("子域名添加成功!")
+            #     print('*' * 30)
+            #     return
 
     def code(self):
         """验证码"""
-        # API接口 https://www.jianshu.com/p/df38cf257b1c
-        
         # 判断是否有弹窗验证
-        print(1)
-        code = self.driver.find_elements_by_xpath('//*[@class="vcode-spin-faceboder"]/div/@style')
-        print(1111111)
-        image_url = re.findall(r'url\("(.*?)"\);', code.text)
-        print(image_url)
+        time.sleep(3)
+        print(111122233)
+        code = self.driver.find_elements_by_xpath('//div[@class="vcode-body"]/div[1]/div/div[2]/div[2]')
         if not code:
-            print(3)
-            return True
-        print(2)
-        # 验证图片下载
-        # image_url = self.driver.find_element_by_xpath('//*[@class="vcode-spin-faceboder"]/div/@style')
-        # image_url = re.findall(r'url\("(.*?)"\);', image_url.text)
-        # print(image_url)
+            print(f'code 退出')
+            return
+        print('提取验证码图片URL')
+        html = self.driver.page_source
+        html = etree.HTML(html)
+        url = html.xpath('//div[@class="vcode-body"]/div[1]/div/div[1]/img/@src')[0]
+        print(url)
+        input('aaaa')
+        print(f'下载验证图片')
+        # 下载验证图片
+        response = requests.get(url)
+        with open('验证码.jpg', 'wb') as f:
+            f.write(response.content)
+
+
+        # 滑动滑块
+        ActionChains(self.driver).drag_and_drop_by_offset(code[0], 180, 0).perform()
+
 
     def validation(self):
         """
@@ -209,3 +220,4 @@ if __name__ == '__main__':
 
 # 邮箱密码quanjie19620814@163.com   najn28158
 # 账号密码quanjie19620814@163.com   qq112211
+# quanjie19620814@163.com  qq112211
