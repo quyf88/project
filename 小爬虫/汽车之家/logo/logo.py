@@ -1,8 +1,13 @@
+import os
 import requests
 from lxml import etree
 
 
 def downLoadImage(fileName, downLoadUrl):
+    new_json = 'img'
+    if not os.path.exists(new_json):
+        os.makedirs(new_json)
+
     r = requests.get(downLoadUrl)
     fileName = fileName + ".png"
     print("正在下载 " + fileName)
