@@ -4,7 +4,7 @@
 # IED    ：PyCharm
 # 创建时间 ：2019/9/28 17:22
 import os
-import re
+import json
 import time
 import requests
 from lxml import etree
@@ -65,67 +65,81 @@ class Spider:
         :return:
         """
         while True:
-            # try:
-            # 进入添加子站页面
-            self.driver.get("https://ziyuan.baidu.com/site/batchadd")
-            # 输入主站url
-            master_url = self.driver.find_elements_by_xpath('//div[@class="select-domain-box clearfix"]/input')
-            master_url[0].send_keys(filename)
-            # 选择主站url
-            select_url = self.driver.find_elements_by_xpath('//div[@id="suggest_row1"]')
-            print(self.driver.current_url)
-            print(select_url[0].text, 123456789)
-            if not select_url:
-                print('没有此主站记录!')
-            select_url[0].click()
-            # 子域名输入框
-            batches_url = self.driver.find_element_by_xpath('//*[@id="batchaddTextarea"]')
-            for bat_url in content:
-                print(bat_url.rstrip())
-                batches_url.send_keys(bat_url)
-            # 确认提交
-            submit = self.driver.find_element_by_xpath('//*[@id="batchaddSiteBtn"]')
-            submit.click()
-            # 弹窗处理
-            pop_ups = self.driver.find_element_by_xpath('//div[@id="dialog-foot"]/button[1]')
-            pop_ups.click()
-            # 图片验证
-            self.code()
-            # 效验是否添加成功
-            if self.validation():
+            try:
+                # 进入添加子站页面
+                self.driver.get("https://ziyuan.baidu.com/site/batchadd")
+                # 输入主站url
+                master_url = self.driver.find_elements_by_xpath('//div[@class="select-domain-box clearfix"]/input')
+                master_url[0].send_keys(filename)
+                # 选择主站url
+                select_url = self.driver.find_elements_by_xpath('//div[@id="suggest_row1"]')
+                if not select_url:
+                    print('没有此主站记录!')
+                select_url[0].click()
+                # 子域名输入框
+                batches_url = self.driver.find_element_by_xpath('//*[@id="batchaddTextarea"]')
+                for bat_url in content:
+                    print(bat_url.rstrip())
+                    batches_url.send_keys(bat_url)
+                # 确认提交
+                submit = self.driver.find_element_by_xpath('//*[@id="batchaddSiteBtn"]')
+                submit.click()
+                # 弹窗处理
+                pop_ups = self.driver.find_element_by_xpath('//div[@id="dialog-foot"]/button[1]')
+                pop_ups.click()
+                # 图片验证
+                if not self.code():
+                    continue
+                # 效验是否添加成功
+                if self.validation():
+                    return
+                else:
+                    continue
+            except:
+                print("子域名添加成功!")
+                print('*' * 30)
                 return
-            else:
-                continue
-            # except:
-            #     print("子域名添加成功!")
-            #     print('*' * 30)
-            #     return
 
     def code(self):
-        """验证码"""
+        """下载验证图片"""
         # 判断是否有弹窗验证
-        time.sleep(3)
-        print(111122233)
+        time.sleep(3)  # 加3秒等待防止访问太快页面加载不出元素
         code = self.driver.find_elements_by_xpath('//div[@class="vcode-body"]/div[1]/div/div[2]/div[2]')
         if not code:
-            print(f'code 退出')
+            print(f'无需验证')
             return
-        print('提取验证码图片URL')
-        html = self.driver.page_source
-        html = etree.HTML(html)
-        url = html.xpath('//div[@class="vcode-body"]/div[1]/div/div[1]/img/@src')[0]
-        print(url)
-        input('aaaa')
-        print(f'下载验证图片')
         # 下载验证图片
+        html = self.driver.page_source  # 获取页面源码
+        html = etree.HTML(html)  # 源码转为etree对象
+        url = html.xpath('//div[@class="vcode-body"]/div[1]/div/div[1]/img/@src')[0]  # 提取验证码图片url
+        print(url)
+        # 判断图片是否存在
+        img_file = '验证码.jpg'
+        if os.path.exists(img_file):
+            os.remove(img_file)
+            print('删除图片成功')
         response = requests.get(url)
         with open('验证码.jpg', 'wb') as f:
             f.write(response.content)
+        rsp = self.code_api()
+        if rsp:
+            point = rsp['point']  # 角度
+            px = rsp['px']  # 距离
+            print(f'角度:{point}, 距离:{px}')
+            # 滑动滑块
+            ActionChains(self.driver).drag_and_drop_by_offset(code[0], px, 0).perform()
+            return True
 
-
-        # 滑动滑块
-        ActionChains(self.driver).drag_and_drop_by_offset(code[0], 180, 0).perform()
-
+    def code_api(self):
+        """调用打码接口获取图片角度"""
+        files = {'file': ('img.jpg', open('验证码.jpg', 'rb'), 'image/jpeg', {})}
+        values = {'token': "5866ef7a9c779d6298dcdedc85c049a4"}
+        r = requests.post('http://106.13.108.81:882/api/Baiduyz', files=files, data=values)
+        rsp = json.loads(r.text)
+        if '成功找到' not in rsp['msg']:
+            print(rsp['msg'])
+            return
+        return rsp
 
     def validation(self):
         """
