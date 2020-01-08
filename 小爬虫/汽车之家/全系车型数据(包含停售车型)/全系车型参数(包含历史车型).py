@@ -68,7 +68,7 @@ class Spider:
                     # 品牌ID,品牌首字母,名称,车系名称,车型ID, 车型名称
                     yield che_id, brand_l, brand_n, car_l, model_l, model_n
 
-    def save_model_code(self, model_url):
+    def save_model_code(self, che_id, brand_l, brand_n, model_url):
         """保存车型参数页面源码"""
         # 效验文件夹是否存在 不存在则创建
         model_page = '1-车型参数页面源码'
@@ -78,9 +78,12 @@ class Spider:
         # 存储车系参数页面源码
         car_resp = self._parse_url(model_url)
         text = str(car_resp.content, encoding="utf-8")
+        # 品牌ID, 品牌首字母, 品牌名称
+        file_name = model_page + '/' + str(brand_l) + '-' + str(brand_n) + '-' + str(che_id) + '-' + car_file
+        print(file_name)
         if '抱歉，暂无相关数据' not in text:
             print(f"model_url:{model_url}")
-            with open(model_page + '/' + car_file, 'w', encoding='utf-8') as f:
+            with open(file_name, 'w', encoding='utf-8') as f:
                 f.write(text)
         else:
             print(f"model_url:{model_url} 无数据跳过!")
@@ -393,7 +396,7 @@ class Spider:
                   '可加热喷水嘴': 229, '空调温度控制方式': 230, '后排独立空调': 231, '后座出风口': 232, '温度分区控制': 233, '车载空气净化器': 234,
                   '车内PM2.5过滤装置': 235, '负离子发生器': 236, '车内香氛装置': 237, '车载冰箱': 238, '面部识别': 239,
                   'OTA升级': 240, '四驱形式': 241, '后排车门开启方式': 242, '货箱尺寸(mm)': 243, '中央差速器结构': 244, '实测快充时间(小时)': 245,
-                  '实测慢充时间(小时)': 246, '电动机': 247, '最大载重质量(kg)': 248, '工信部续航里程(km)': 249, '车系名称': 250,
+                  '实测慢充时间(小时)': 246, '电动机': 247, '最大载重质量(kg)': 248, '工信部续航里程(km)': 249, '车系名称': 250, '品牌ID': 251, '车系ID': 252
                   }
         rootPath = "5-文字替换后json/"
 
@@ -402,6 +405,7 @@ class Spider:
         files = os.listdir(rootPath)
         for file in files:
             carItem = {}
+            print(file)
             with open(rootPath + file, 'r', encoding="utf-8") as f:
                 text = f.read()
             # 解析基本参数配置参数，颜色三种参数，其他参数
@@ -445,12 +449,16 @@ class Spider:
                 print(e)
                 continue
 
+            carItem['品牌ID'] = []  # 品牌ID
+            carItem['车系ID'] = []  # 车系ID
             carItem['车型ID'] = []  # 车型ID
             carItem['车系名称'] = []  # 车系名称
             # 解析基本参数
             for param in configItem:
                 for car in param['paramitems']:
                     carItem[car['name']] = []
+                    carItem['品牌ID'].append(file.split('-')[2])
+                    carItem['车系ID'].append(file.split('-')[3])
                     for ca in car['valueitems']:  # 循环车型名称列表
                         # 车型ID 写入字典
                         if ca['specid'] not in carItem['车型ID']:
@@ -505,6 +513,8 @@ class Spider:
                     worksheet.write(row, colNum, context)
                 print(f'第:{count}条数据插入成功')
                 count += 1
+            # if count > 100:
+            #     break
             else:
                 startRow = endRowNum
         workbook.save('Mybook.xls')
@@ -522,7 +532,7 @@ class Spider:
                 continue
             model_urls = self.get_discontinued_models(model_l)
             for model_url in model_urls:
-                self.save_model_code(model_url)  # 保存车型参数页面源码
+                self.save_model_code(che_id, brand_l, brand_n, model_url)  # 保存车型参数页面源码
 
             # 第二步 解析出每个车型参数页面的混淆字体js拼装成一个新html
             self.js_saved_html()
@@ -541,9 +551,14 @@ class Spider:
 
             print('*'*100)
         # 第六步 读取数据文件 生成excel
-        self.save_xls()
+        # self.save_xls()
 
 
 if __name__ == '__main__':
     spider = Spider()
     spider.run()
+    # spider.js_saved_html()
+    # spider.model_paremeter()
+    # spider.extract_text()
+    # spider.replace_text()
+    # spider.save_xls()
