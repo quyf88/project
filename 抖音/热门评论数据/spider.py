@@ -3,7 +3,7 @@
 # IED ：PyCharm
 # 时间 ：2019/10/31 0031 13:25
 # 版本 ：V1.3
-# 抖音版本 ：8.8.0
+# 抖音版本 ：9.5.0
 import os
 import time
 import datetime
@@ -51,16 +51,10 @@ class Spider:
         滑动
         :return:
         """
-        while True:
+        while True:           
             print('定位评论按钮')
-            # 8.6.0
-            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/yj')))
-            # 8.7.0
-            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zb')))
-            # 8.8.0
-            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zf')))
-            # 9.2.0
-            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/a3v')))
+            # 9.5.0
+            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/a3j')))
             comment_num = comment.text
             if '评论' in comment_num:
                 # 下一个视频
@@ -75,21 +69,14 @@ class Spider:
             comment.click()
             print('刷新评论数据')
             # 判断数据是否刷新出来
-            # 8.6.0
-            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a22'))):
-            # 8.7.0
-            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a2v'))):
-            # 8.8.0
-            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a32'))):
-            # 9.2.0
-            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a7l'))):
+            # 9.5.0
+            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a7b'))):
                 self.driver.keyevent(4)
                 continue
             new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
-            # print(new_time)
             for i in range(comment_num):
                 if (i + 1) % 10 == 0:
-                    self.driver.swipe(200, 1200, 200, 1400, 200)
+                    self.driver.swipe(200, 1400, 200, 1600, 1000)
                     time.sleep(0.5)
                     continue
                 start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -97,7 +84,7 @@ class Spider:
                 if new_time < start_time:
                     print('超时退出')
                     break
-                self.driver.swipe(200, 1700, 200, 500, 100)
+                self.driver.swipe(200, 1700, 200, 800, 500)
             # 下一个视频
             self.driver.keyevent(4)
             time.sleep(2)
@@ -106,7 +93,7 @@ class Spider:
 
 
 def proxy():
-    url = 'http://www.dongdongmeiche.cn/proxy/460a23180f3411ea9aec28d2447ab52e'
+    url = 'http://www.dongdongmeiche.cn/proxy/ba618b3e3adc4e7c93127546d58502a5'
     opener = urllib.request.build_opener()
     try:
         opener.open(url)
@@ -128,7 +115,7 @@ def proxy():
 
 
 def adb_devices():
-    """读取设备列表"""
+    """读取设备列表"""   
     get_cmd = "adb devices"  # 查询连接设备列表
     count = 0
     try:
@@ -146,13 +133,17 @@ def adb_devices():
             # 分割多条信息为列表
             output = output.decode().replace('\r', '').split('\n')
             # 剔除列表中空字符串
-            output = list(filter(None, output))
-            if not len(output) > 1:
+            output = list(filter(None, output))            
+            print(output)            
+            if len(output) < 2:
                 print("读取设备信息失败,自动重启中...")
                 count += 1
-                os.popen('adb connect 127.0.0.1:62001')
-                os.popen('adb connect 127.0.0.1:62025')
-                os.popen('adb connect 127.0.0.1:62026')
+                os.popen('adb connect 127.0.0.1:21503')
+                time.sleep(1)
+                os.popen('adb connect 127.0.0.1:21513')
+                time.sleep(1)
+                os.popen('adb connect 127.0.0.1:21523')
+                time.sleep(1)               
                 continue
             # 连接设备列表
             devices = [i.split('\t') for i in output[1:]]
@@ -163,9 +154,9 @@ def adb_devices():
             return success
     except:
         print('读取设备信息失败,请检查设备是否成功启动!')
-        os.popen('adb connect 127.0.0.1:62001')
-        os.popen('adb connect 127.0.0.1:62025')
-        os.popen('adb connect 127.0.0.1:62026')
+        os.popen('adb connect 127.0.0.1:21503')
+        os.popen('adb connect 127.0.0.1:21513')
+        os.popen('adb connect 127.0.0.1:21523')     
 
 
 @run_time
@@ -185,17 +176,18 @@ def main(udid, port):
     # 启动APP
     spider.driver = webdriver.Remote(driver_server, desired_caps)
     # 设置等待
-    spider.wait = WebDriverWait(spider.driver, 30, 0.5)
+    spider.wait = WebDriverWait(spider.driver, 300, 1)
     count = 1
     while True:
         try:
             spider.slide()
         except Exception as e:
-            if count > 3:
-                raise
+            # if count > 3:
+            spider.driver.keyevent(4)
+            time.sleep(1)
             spider.driver.swipe(200, 1700, 200, 500, 500)
             time.sleep(2)
-            print(e)
+            print(count)
             count += 1
             continue
 
@@ -207,7 +199,7 @@ if __name__ == '__main__':
     for i in success:
         s = threading.Thread(target=main, args=(i, port))
         port += 2
-        s.start()
+        s.start()                
         time.sleep(10)
 
 
