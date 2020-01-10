@@ -399,8 +399,8 @@ class Spider:
                   '可加热喷水嘴': 229, '空调温度控制方式': 230, '后排独立空调': 231, '后座出风口': 232, '温度分区控制': 233, '车载空气净化器': 234,
                   '车内PM2.5过滤装置': 235, '负离子发生器': 236, '车内香氛装置': 237, '车载冰箱': 238, '面部识别': 239,
                   'OTA升级': 240, '四驱形式': 241, '后排车门开启方式': 242, '货箱尺寸(mm)': 243, '中央差速器结构': 244, '实测快充时间(小时)': 245,
-                  '实测慢充时间(小时)': 246, '电动机': 247, '最大载重质量(kg)': 248, '工信部续航里程(km)': 249, '车系名称': 250, '品牌ID': 251, '车系ID': 252,
-                  '车型ID': 253, '品牌名称': 254,
+                  '实测慢充时间(小时)': 246, '电动机': 247, '最大载重质量(kg)': 248, '工信部续航里程(km)': 249, '品牌ID': 250, '品牌名称': 251, '车系ID': 252,
+                  '车系名称': 253, '车型ID': 254,
                   }
         rootPath = "5-文字替换后json/"
 
@@ -437,32 +437,36 @@ class Spider:
                 carItem['车型ID'].append(file.split('-')[5])
                 carItem['车型名称'].append(file.split('-')[6])
             else:
-                with open(rootPath + file, 'r', encoding="utf-8") as f:
-                    text = f.read()
-                # 解析基本参数配置参数，颜色三种参数，其他参数
-                config = "var config = (.*?);"
-                option = "var option = (.*?)};"
-                # bag = "var bag = (.*?);"
-                color = "var color = (.*?);"
-                innerColor = "var innerColor =(.*?);"
-
-                configRe = re.findall(config, text)
-                optionRe = re.findall(option, text)
-                # bagRe = re.findall(bag, text)
-                colorRe = re.findall(color, text)
-                innerColorRe = re.findall(innerColor, text)
-
-                for a in configRe:
-                    config = a
-                for b in optionRe:
-                    option = b
-                # for c in bagRe:
-                #     bag = c
-                for d in colorRe:
-                    color = d
-                for e in innerColorRe:
-                    innerColor = e
                 try:
+                    try:
+                        with open(rootPath + file, 'r', encoding="GBK") as f:
+                            text = f.read()
+                    except:
+                        with open(rootPath + file, 'r', encoding="UTF-8") as f:
+                            text = f.read()
+                    # 解析基本参数配置参数，颜色三种参数，其他参数
+                    config = "var config = (.*?);"
+                    option = "var option = (.*?)};"
+                    # bag = "var bag = (.*?);"
+                    color = "var color = (.*?);"
+                    innerColor = "var innerColor =(.*?);"
+
+                    configRe = re.findall(config, text)
+                    optionRe = re.findall(option, text)
+                    # bagRe = re.findall(bag, text)
+                    colorRe = re.findall(color, text)
+                    innerColorRe = re.findall(innerColor, text)
+
+                    for a in configRe:
+                        config = a
+                    for b in optionRe:
+                        option = b
+                    # for c in bagRe:
+                    #     bag = c
+                    for d in colorRe:
+                        color = d
+                    for e in innerColorRe:
+                        innerColor = e
                     config = json.loads(config)
                     option = json.loads(option + '}')
                     # bag = json.loads(bag)
@@ -483,9 +487,10 @@ class Spider:
                     for car in param['paramitems']:
                         carItem[car['name']] = []
                         carItem['首字母'].append(file.split('-')[0])
-                        carItem['品牌名称'].append(file.split('-')[1])
-                        carItem['品牌ID'].append(file.split('-')[2])
+                        carItem['品牌ID'].append(file.split('-')[1])
+                        carItem['品牌名称'].append(file.split('-')[2])
                         carItem['车系ID'].append(file.split('-')[3])
+                        # carItem['车系名称'].append(file.split('-')[4])
                         for ca in car['valueitems']:  # 循环车型名称列表
                             # 车型ID 写入字典
                             if ca['specid'] not in carItem['车型ID']:
@@ -532,8 +537,6 @@ class Spider:
                     worksheet.write(row, colNum, context)
                 print(f'第:{count}条数据插入成功')
                 count += 1
-            # if count > 200:
-            #     break
             else:
                 startRow = endRowNum
         workbook.save('Mybook.xls')
