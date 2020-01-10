@@ -131,9 +131,9 @@ class Spider:
                     # 存储车系参数页面源码
                     car_resp = self._parse_url(model_url, timeout=30)
                     text = str(car_resp.content, encoding="utf-8")
-                    if '抱歉，暂无相关数据' in text:
-                        print(f"model_url:{model_url} 无数据跳过!")
-                        continue
+                    # if '抱歉，暂无相关数据' in text:
+                    #     print(f"model_url:{model_url} 无数据跳过!")
+                    #     continue
                     print(f"model_url:{model_url}")
                     # 效验文件夹是否存在 不存在则创建
                     model_page = '1-车型参数页面源码'
@@ -497,8 +497,8 @@ class Spider:
                                 carItem['车型ID'].append(ca['specid'])
                             # 车型名称 分割
                             if car['name'] == '车型名称':
-                                car_name = ca['value'].rsplit()[0]
-                                carItem['车系名称'].append(car_name)
+                                # car_name = ca['value'].rsplit()[0]
+                                carItem['车系名称'].append(file.split('-')[6])
                                 carItem[car['name']].append(','.join(ca['value'].rsplit()[1:]).replace(',', ' '))
                                 continue
                             carItem[car['name']].append(ca['value'])
@@ -549,6 +549,13 @@ class Spider:
         for u in self.get_model():
             # 品牌首字母,品牌ID,品牌名称,车系ID,车系名称,车型ID,车型名称
             brand_l, che_id, brand_n, car_l, car_n, model_l, model_n = u
+            brand_l = str(brand_l).replace('-', '')
+            che_id = str(che_id).replace('-', '')
+            brand_n = str(brand_n).replace('-', '')
+            car_l = str(car_l).replace('-', '')
+            car_n = str(car_n).replace('-', '')
+            model_l = str(model_l).replace('-', '')
+            model_n = str(model_n).replace('-', '')
             print(brand_l, che_id, brand_n, car_l, car_n, model_l, model_n)
             if self.keep_records(str(model_l), vali=True):
                 print(f'{model_l} 已获取跳过!')
@@ -579,9 +586,9 @@ class Spider:
 
 if __name__ == '__main__':
     spider = Spider()
-    # spider.run()
+    spider.run()
     # spider.js_saved_html()
     # spider.model_paremeter()
     # spider.extract_text()
     # spider.replace_text()
-    spider.save_xls()
+    # spider.save_xls()
