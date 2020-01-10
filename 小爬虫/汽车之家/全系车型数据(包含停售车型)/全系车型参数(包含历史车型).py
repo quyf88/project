@@ -82,12 +82,14 @@ class Spider:
         file_name = model_page + '/' + str(brand_l) + '-' + str(che_id) + '-' + str(brand_n) + '-' + str(car_l) + '-' +\
                     car_n + '-' + str(model_l) + '-' + model_n + '-' + car_file
         print(file_name)
-        if '抱歉，暂无相关数据' not in text:
-            print(f"model_url:{model_url}")
-            with open(file_name, 'w', encoding='utf-8') as f:
-                f.write(text)
-        else:
-            print(f"model_url:{model_url} 无数据跳过!")
+        with open(file_name, 'w', encoding='utf-8') as f:
+            f.write(text)
+        # if '抱歉，暂无相关数据' not in text:
+        #     print(f"model_url:{model_url}")
+        #     with open(file_name, 'w', encoding='utf-8') as f:
+        #         f.write(text)
+        # else:
+        #     print(f"model_url:{model_url} 无数据跳过!")
 
     def get_car_parser(self):
         """第一步 解析汽车之家所有车系数据保存"""
@@ -406,81 +408,102 @@ class Spider:
         worksheet = workbook.add_sheet('全系车型参数(包含历史车型)')  # 创建一个表
         files = os.listdir(rootPath)
         for file in files:
+            # 写入文件头
+            if isFlag:
+                co1s = 0
+                for co in Header:
+                    worksheet.write(startRow, co1s, co)
+                    co1s += 1
+                else:
+                    startRow += 1
+                    isFlag = False
             carItem = {}
-            print(file)
-            with open(rootPath + file, 'r', encoding="utf-8") as f:
-                text = f.read()
-            # 解析基本参数配置参数，颜色三种参数，其他参数
-            config = "var config = (.*?);"
-            option = "var option = (.*?)};"
-            # bag = "var bag = (.*?);"
-            color = "var color = (.*?);"
-            innerColor = "var innerColor =(.*?);"
-
-            configRe = re.findall(config, text)
-            optionRe = re.findall(option, text)
-            # bagRe = re.findall(bag, text)
-            colorRe = re.findall(color, text)
-            innerColorRe = re.findall(innerColor, text)
-
-            for a in configRe:
-                config = a
-            for b in optionRe:
-                option = b
-            # for c in bagRe:
-            #     bag = c
-            for d in colorRe:
-                color = d
-            for e in innerColorRe:
-                innerColor = e
             carItem['首字母'] = []  # 首字母
             carItem['品牌名称'] = []  # 品牌名称
             carItem['品牌ID'] = []  # 品牌ID
             carItem['车系ID'] = []  # 车系ID
-            carItem['车型ID'] = []  # 车型ID
             carItem['车系名称'] = []  # 车系名称
-            try:
-                config = json.loads(config)
-                option = json.loads(option + '}')
-                # bag = json.loads(bag)
-                # color = json.loads(color)
-                # innerColor = json.loads(innerColor)
+            carItem['车型ID'] = []  # 车型ID
+            carItem['车型名称'] = []  # 车型ID
 
-                configItem = config['result']['paramtypeitems']  # 基本参数
-                optionItem = option['result']['configtypeitems']  # 配置参数
-                # colorItem = color['result']['specitems'][0]['coloritems']  # 外观颜色
-                # innerColorItem = innerColor['result']['specitems'][0]['coloritems']  # 内饰颜色
-            except Exception as e:
-                with open("错误记录.txt", "a", encoding="utf-8") as f1:
-                    f1.write(file.title() + "\n")
-                continue
+            print(file)
+            # 判断文件大小是否为空 os.path.getsize 返回指定文件大小
+            if not os.path.getsize(rootPath + '/' + file):
+                carItem['首字母'].append(file.split('-')[0])
+                carItem['品牌ID'].append(file.split('-')[1])
+                carItem['品牌名称'].append(file.split('-')[2])
+                carItem['车系ID'].append(file.split('-')[3])
+                carItem['车系名称'].append(file.split('-')[4])
+                carItem['车型ID'].append(file.split('-')[5])
+                carItem['车型名称'].append(file.split('-')[6])
+            else:
+                with open(rootPath + file, 'r', encoding="utf-8") as f:
+                    text = f.read()
+                # 解析基本参数配置参数，颜色三种参数，其他参数
+                config = "var config = (.*?);"
+                option = "var option = (.*?)};"
+                # bag = "var bag = (.*?);"
+                color = "var color = (.*?);"
+                innerColor = "var innerColor =(.*?);"
 
-            # 解析基本参数
-            for param in configItem:
-                for car in param['paramitems']:
-                    carItem[car['name']] = []
-                    carItem['首字母'].append(file.split('-')[0])
-                    carItem['品牌名称'].append(file.split('-')[1])
-                    carItem['品牌ID'].append(file.split('-')[2])
-                    carItem['车系ID'].append(file.split('-')[3])
-                    for ca in car['valueitems']:  # 循环车型名称列表
-                        # 车型ID 写入字典
-                        if ca['specid'] not in carItem['车型ID']:
-                            carItem['车型ID'].append(ca['specid'])
-                        # 车型名称 分割
-                        if car['name'] == '车型名称':
-                            car_name = ca['value'].rsplit()[0]
-                            carItem['车系名称'].append(car_name)
-                            carItem[car['name']].append(','.join(ca['value'].rsplit()[1:]).replace(',', ' '))
-                            continue
-                        carItem[car['name']].append(ca['value'])
+                configRe = re.findall(config, text)
+                optionRe = re.findall(option, text)
+                # bagRe = re.findall(bag, text)
+                colorRe = re.findall(color, text)
+                innerColorRe = re.findall(innerColor, text)
 
-            # 解析配置参数
-            for config in optionItem:
-                for car in config['configitems']:
-                    carItem[car['name']] = []
-                    for ca in car['valueitems']:
-                        carItem[car['name']].append(ca['value'])
+                for a in configRe:
+                    config = a
+                for b in optionRe:
+                    option = b
+                # for c in bagRe:
+                #     bag = c
+                for d in colorRe:
+                    color = d
+                for e in innerColorRe:
+                    innerColor = e
+                try:
+                    config = json.loads(config)
+                    option = json.loads(option + '}')
+                    # bag = json.loads(bag)
+                    # color = json.loads(color)
+                    # innerColor = json.loads(innerColor)
+
+                    configItem = config['result']['paramtypeitems']  # 基本参数
+                    optionItem = option['result']['configtypeitems']  # 配置参数
+                    # colorItem = color['result']['specitems'][0]['coloritems']  # 外观颜色
+                    # innerColorItem = innerColor['result']['specitems'][0]['coloritems']  # 内饰颜色
+                except Exception as e:
+                    with open("错误记录.txt", "a", encoding="utf-8") as f1:
+                        f1.write(file.title() + "\n")
+                    continue
+
+                # 解析基本参数
+                for param in configItem:
+                    for car in param['paramitems']:
+                        carItem[car['name']] = []
+                        carItem['首字母'].append(file.split('-')[0])
+                        carItem['品牌名称'].append(file.split('-')[1])
+                        carItem['品牌ID'].append(file.split('-')[2])
+                        carItem['车系ID'].append(file.split('-')[3])
+                        for ca in car['valueitems']:  # 循环车型名称列表
+                            # 车型ID 写入字典
+                            if ca['specid'] not in carItem['车型ID']:
+                                carItem['车型ID'].append(ca['specid'])
+                            # 车型名称 分割
+                            if car['name'] == '车型名称':
+                                car_name = ca['value'].rsplit()[0]
+                                carItem['车系名称'].append(car_name)
+                                carItem[car['name']].append(','.join(ca['value'].rsplit()[1:]).replace(',', ' '))
+                                continue
+                            carItem[car['name']].append(ca['value'])
+
+                # 解析配置参数
+                for config in optionItem:
+                    for car in config['configitems']:
+                        carItem[car['name']] = []
+                        for ca in car['valueitems']:
+                            carItem[car['name']].append(ca['value'])
 
             # 解析外观颜色参数
             # carItem['外观颜色'] = []  # 外观颜色
@@ -493,14 +516,6 @@ class Spider:
             #     carItem['内饰颜色'].append(car['name'])
 
             # 写入表头 startRow行数 cols列数 co标题
-            if isFlag:
-                co1s = 0
-                for co in Header:
-                    worksheet.write(startRow, co1s, co)
-                    co1s += 1
-                else:
-                    startRow += 1
-                    isFlag = False
 
             # 计算起止行号
             endRowNum = startRow + len(carItem['车型ID'])  # 车辆款式记录数
@@ -561,9 +576,9 @@ class Spider:
 
 if __name__ == '__main__':
     spider = Spider()
-    spider.run()
+    # spider.run()
     # spider.js_saved_html()
     # spider.model_paremeter()
     # spider.extract_text()
     # spider.replace_text()
-    # spider.save_xls()
+    spider.save_xls()
