@@ -17,9 +17,6 @@
 	<link rel="stylesheet" href="../../static/css/base.css">
 	<script type="text/javascript" src="../../static/js/jquery-1.11.1.min.js"></script>
 	<script type="text/javascript" src="../../static/js/ie/3.7.3/html5shiv.min.js"></script>
-
-    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
-
 	<script type="text/javascript" src="../../static/js/ie/1.4.2/respond.min.js"></script>
 	<!--<link href="../../../static/css/base.css" type="text/css" rel="stylesheet">-->
 	<!--<script type="text/javascript" src="../../../static/js/jquery-1.11.1.min.js"></script>-->
@@ -28,7 +25,7 @@
 	<!--[if lt IE 9]>
 	<!--<script src="../../../static/js/ie/3.7.3/html5shiv.min.js"></script>-->
 	<!--<script src="../../../static/js/ie/1.4.2/respond.min.js"></script>-->
-	<!--<![endif]&ndash;&gt;-->
+	<![endif]-->
 	<script type="text/javascript">
 		!function (e, t) { function n() { var n = l.getBoundingClientRect().width; t = t || 540, n > t && (n = t); var i = 100 * n / e; r.innerHTML = "html{font-size:" + i + "px;}" } var i, d = document, o = window, l = d.documentElement, r = document.createElement("style"); if (l.firstElementChild) l.firstElementChild.appendChild(r); else { var a = d.createElement("div"); a.appendChild(r), d.write(a.innerHTML), a = null } n(), o.addEventListener("resize", function () { clearTimeout(i), i = setTimeout(n, 300) }, !1), o.addEventListener("pageshow", function (e) { e.persisted && (clearTimeout(i), i = setTimeout(n, 300)) }, !1), "complete" === d.readyState ? d.body.style.fontSize = "16px" : d.addEventListener("DOMContentLoaded", function (e) { d.body.style.fontSize = "16px" }, !1) }(750, 750);
 	</script>
@@ -36,38 +33,36 @@
 		//接收views传递的json数据
 		var aaa = JSON.parse('{{ List|safe }}');
 		var time = parseInt(aaa[2]);  //风控时间 parseInt字符串转换int
-		// time = 1;  //风控时间 parseInt字符串转换int
-  		// alert('检测支付宝风控中...');  //页面弹窗
-		var url= aaa[3];
+  		var url= aaa[3];
 		var atxt="解锁完成确认支付";
 		$(function () {
+			//alert('检测支付宝风控中...');
 			setInterval(function () {
 				getTimes();
 			}, 1000);
 
 			$('#daojishi').click(function(){
-             //    //读取views数据绑定url
-		        //window.location.href = url;
-			//window.location = url;
+                //读取views数据绑定url
+			window.location.href = url;
 			});
+
+		});
 		//倒计时
 		function getTimes() {
-            if (time === 0) {
-                var ui = document.getElementById("myifrmae");
-                ui.style.display = "inline";
-                $('#daojishi').removeAttr("disabled");
-                $('#daojishi').text(atxt);
-                document.getElementById("daojishi").style.fontWeight = 'bold';
-                document.getElementById("daojishi").style.color = '#fff';
-                //改变背景颜色
-                document.getElementById("daojishi").style.backgroundColor = '#10B11A';
-                return;
-            } else {
-                time--;
-                document.getElementById("daojishi").style.fontWeight = 'bold';
-                $('#daojishi').text('正在解锁风控:(' + time + ')');
-            }
-        }})
+			if (time === 0) {
+				$('#daojishi').removeAttr("disabled");
+				$('#daojishi').text(atxt);
+				document.getElementById("daojishi").style.fontWeight='bold';
+				document.getElementById("daojishi").style.color='#fff';
+				//改变背景颜色
+				document.getElementById("daojishi").style.backgroundColor='#10B11A';
+				return;
+			} else {
+				time--;
+				document.getElementById("daojishi").style.fontWeight='bold';
+				$('#daojishi').text('正在解锁风控:('+time+')');
+			}
+		}
 	</script>
 
 </head>
@@ -85,8 +80,6 @@
 				<!--读取views模板传递过来的数据-->
 				<span><b>收款人:{{ user_list }}</b></span>				
 			</div>
-			<!--<div id="iframeDiv" style="margin-top:10px; height:20px;"></div>-->
-			<iframe id="myifrmae" style="visibility:hidden" src="alipays://platformapi/startapp?appId=09999988&actionType=toCard&sourceId=bill&cardNo=621468***9469&bankAccount=%E9%99%88%E4%B8%BD%E4%B8%BD&money=&amount=&bankMark=BJBANK&bankName=%E5%8C%97%E4%BA%AC%E9%93%B6%E8%A1%8C&cardIndex=1603271394329096300&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from"></iframe>
 			<button id="daojishi" style="color:#f91a0c;" disabled="disabled">
 				<b>风控检测中...</b>
 			</button>
@@ -112,4 +105,5 @@
 	</div>
 
 </body>
+<iframe id="iframe_id" style="display:none;"><!doctype html><html><head><meta charset="utf-8"><title></title></head><body></body></html></iframe>
 <html>

@@ -7,6 +7,36 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 
+def upload(request):
+    """接收生成器上传数据 udid:识别码, name:姓名, Countdown:等待时间, url:跳转支付宝url"""
+    if request.method == 'POST':
+        if request.POST:  # 判断是否传参
+            uid = request.POST.get('uid', 0)
+            name = request.POST.get('name', 0)
+            Countdown = request.POST.get('time', 0)
+            url = request.POST.get('url', 0)
+        try:
+            content = uid + ',' + name + ',' + Countdown + ',' + url
+            # 数据写入记录文件
+            filename = 'API/config/access.txt'
+            with open(filename, 'a+', encoding='UTF-8') as f:
+                f.write(content)
+                f.write('\n')
+            article = json.dumps({
+                'status': 200,
+                'errorcode': 10001,
+                'context': '数据写入成功!'},
+                ensure_ascii=False)
+            return HttpResponse(article, content_type='application/json')
+        except:
+            article = json.dumps({
+                'status': 200,
+                'errorcode': 10002,
+                'context': '数据写入失败!'},
+                ensure_ascii=False)
+            return HttpResponse(article, content_type='application/json')
+
+
 def alipay(request, course):
     """读取数据库返回数据到HTML"""
     # user_list = Alipay.objects.filter(id=course)
@@ -33,7 +63,7 @@ def alipay(request, course):
         return HttpResponse(article, content_type='application/json')
     # print(data)
     # render方法可接收三个参数，一是request参数，二是待渲染的html模板文件,三是保存具体数据的字典参数(选填) 向js传递数据需要转换为json格式。
-    return render(request, 'alipay.html', {'List': json.dumps(data), 'user_list': data[1], 'url': data[3]})
+    return render(request, 'alipay.html', {'List': json.dumps(data), 'user_list': data[1]})
 
 
 def ceshi(request):
