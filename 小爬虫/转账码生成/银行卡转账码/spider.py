@@ -49,6 +49,7 @@ bankName=%E4%B8%AD%E5%9B%BD%E5%BB%BA%E8%AE%BE%E9%93%B6%E8%A1%8C  // 银行名称
 
 """
 import os
+import uuid
 import json
 import string
 import requests
@@ -152,13 +153,28 @@ class Spider:
             content = content + ['ABC', '中国农业银行'] if len(content) < 5 else content
             return content
 
+    def upload(self, uid, name, Countdown, url):
+        """向服务器上传数据"""
+        _url = f'http://www.dongdongmeiche.cn/upload/'
+        data = {'uid': uid, 'name': name, 'time': Countdown, 'url': url}
+        response = requests.post(_url, data=data)
+        try:
+            content = response.json()
+            code = content['errorcode']
+            if code != 10001:
+                print(content['context'])
+                os._exit(0)
+            print(content['context'])
+        except:
+            print('连接服务器错误!')
+
     def run(self):
         # 隐藏卡号url
         # cardID 隐藏卡号 获取方法  https://zhuanlan.zhihu.com/p/65495172
         content = ['622908***8318', 'CIB', '-测试', '兴业银行 ', '2001101664858915777']
         _url = f'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={content[0]}&' \
                f'bankAccount={content[2]}&money=&amount=&bankMark={content[1]}&bankName={content[3]}&cardIndex={content[4]}&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
-        # print(_url)
+        print(_url)
 
         # 普通转账url
         # content = self.read_txt()
@@ -169,10 +185,13 @@ class Spider:
         # 旧接口
         # _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
         #        'money=&amount=&bankMark={}&bankName={}&orderSource='.format(content[1], content[0], content[3], content[4])
-        print(_url)
-        # _url = quote(_url, string.printable)
         # print(_url)
-        # _url = 'http://www.dongdongmeiche.com/alipay/6173c10d1d5911ea9aec28d2447ab52e'
+        _url = quote(_url, string.printable)
+        # print(_url)
+        uid = ''.join(str(uuid.uuid4()).split('-'))
+        self.upload(uid, content[2], str(3), str(_url))
+        _url = f'http://www.dongdongmeiche.cn/alipay/{uid}'
+        print(_url)
 
         # 百度长链接转换短链接
         short_link = self.get_url(_url)
@@ -193,3 +212,4 @@ class Spider:
 if __name__ == '__main__':
     spider = Spider()
     spider.run()
+
