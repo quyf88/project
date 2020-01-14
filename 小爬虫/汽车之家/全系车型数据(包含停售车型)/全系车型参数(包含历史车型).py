@@ -580,7 +580,7 @@ class Spider:
             self.keep_records(str(model_l))
             # 删除临时文件
             self.del_temporary_file()
-            time.sleep(1)
+            time.sleep(0.5)
 
             print('*'*100)
         # 第六步 读取数据文件 生成excel
