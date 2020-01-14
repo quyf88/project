@@ -415,9 +415,13 @@ class WeChatSpider:
                             # 格式 mmexport1572159236223.jpg
                             # path = os.getcwd() + r'\ExportFile\image\{}'.format(image_name)
                             image_path.append(image_name)
-                            print('ExportFile/image/{}'.format(image_name))
+                            save_path = datetime.datetime.now().strftime('%Y-%m-%d')
+                            save_path = 'ExportFile/image/{}'.format(save_path)
+                            if not os.path.exists(save_path):
+                                os.mkdir(save_path)
+                            
                             # 根据文件名保存图片至指定位置
-                            self.driver.get_screenshot_as_file('ExportFile/image/{}'.format(image_name))
+                            self.driver.get_screenshot_as_file(save_path + '/' + image_name)
                             # self.process_image('ExportFile/config/{}'.format(name))
                             print('第：[{}] 张图片下载成功,文件名：{}'.format(n + 1, image_name))
                             self.driver.keyevent(4)
