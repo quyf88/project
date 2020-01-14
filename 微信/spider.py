@@ -57,7 +57,7 @@ class WeChatSpider:
             "appActivity": ".ui.LauncherUI",
             'noReset': True  # 获取登录状态
         }
-        self.driver_server = 'http://127.0.0.1:4723/wd/hub'
+        self.driver_server = 'http://127.0.0.1:4730/wd/hub'
         print('**********程序启动中**********')
         # 启动微信
         self.driver = webdriver.Remote(self.driver_server, self.desired_caps)
@@ -69,6 +69,7 @@ class WeChatSpider:
         self.y = self.driver.get_window_size()['height']  # 长
         print(self.x, self.y)
         self.filename = datetime.datetime.now().strftime('%Y-%m-%d') + '.csv'
+        # print(f'文件名：{self.filename}')
         self.name = None
         self.content = None
         # self.day = int(input('输入获取天数：'))
@@ -332,7 +333,7 @@ class WeChatSpider:
                     else:
                         release = self.release
                 self.release = release
-                print(release, self.release)
+                # print(release, self.release)
 
                 # 获取不到月份 默认当前月份 这种情况只会在今天 昨天 数据量多时出现
                 if release == '今天':
@@ -344,11 +345,15 @@ class WeChatSpider:
                     release = release.strftime('%m,%d').replace(',', '月')
                 try:
                     # 判断时间
-                    old_time = datetime.datetime.strptime('2019年' + release, '%Y年%m月%d')
+                    old_time = datetime.datetime.strptime('2020年' + release, '%Y年%m月%d')
                     new_time = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y,%m,%d'), '%Y,%m,%d')
+                    # print(f'朋友圈发布时间：{old_time}, 当前系统时间：{new_time}')
+                    # print((new_time - old_time).days)
+                    # os._exit(0)
                 except:
                     continue
-                if (new_time - old_time).days >= self.day:
+                # if (new_time - old_time).days >= self.day:
+                if (new_time - old_time).days != 1:
                     print('大于{}天不获取'.format(self.day))
                     flag = True
                     break
@@ -410,11 +415,12 @@ class WeChatSpider:
                             # 格式 mmexport1572159236223.jpg
                             # path = os.getcwd() + r'\ExportFile\image\{}'.format(image_name)
                             image_path.append(image_name)
+                            print('ExportFile/image/{}'.format(image_name))
                             # 根据文件名保存图片至指定位置
-                            # self.driver.get_screenshot_as_file('ExportFile/config/{}'.format(image_name))
+                            self.driver.get_screenshot_as_file('ExportFile/image/{}'.format(image_name))
                             # self.process_image('ExportFile/config/{}'.format(name))
                             print('第：[{}] 张图片下载成功,文件名：{}'.format(n + 1, image_name))
-                            # self.driver.keyevent(4)
+                            self.driver.keyevent(4)
                             time.sleep(1)
                             # 切换下一张图片
                             if n == int(image_num[0])-1:
@@ -480,14 +486,14 @@ class WeChatSpider:
 
         # 编辑
         edits = self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.tencent.mm:id/cw')))
-        edit = [i for i in edits if i.text == '保存图片']
+        edit = [i for i in edits if i.text == '编辑']
         edit[0].click()
-        image_name = 'mmexport' + str(round(time.time() * 1000)) + '.jpg'
-        # time.sleep(1)
+        image_name = 'mmexport' + str(round(time.time() * 1000)) + '.png'
+        time.sleep(1)
         # 点击一下屏幕
-        # tap = self.driver.find_elements_by_class_name('android.widget.FrameLayout')
-        # if tap:
-        #     action1.tap(tap[0], 100, 100).perform()
+        tap = self.driver.find_elements_by_class_name('android.widget.FrameLayout')
+        if tap:
+            action1.tap(tap[0], 100, 100).perform()
         return image_name
 
     def if_bottom(self):
