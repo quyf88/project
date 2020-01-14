@@ -589,9 +589,9 @@ class Spider:
 
 if __name__ == '__main__':
     spider = Spider()
-    # spider.run()
+    spider.run()
     # spider.js_saved_html()
     # spider.model_paremeter()
     # spider.extract_text()
     # spider.replace_text()
-    spider.save_xls()
+    # spider.save_xls()
