@@ -430,10 +430,10 @@ class Spider:
             # 判断文件大小是否为空 os.path.getsize 返回指定文件大小
             if not os.path.getsize(rootPath + '/' + file):
                 carItem['首字母'].append(file.split('-')[0])
-                carItem['品牌ID'].append(file.split('-')[1])
-                carItem['品牌名称'].append(file.split('-')[2])
-                carItem['车系ID'].append(file.split('-')[3])
-                carItem['车系名称'].append(file.split('-')[4])
+                carItem['品牌ID'].append(file.split('-')[3])
+                carItem['品牌名称'].append(file.split('-')[4])
+                carItem['车系ID'].append(file.split('-')[5])
+                carItem['车系名称'].append(file.split('-')[6])
                 carItem['车型ID'].append(file.split('-')[5])
                 carItem['车型名称'].append(file.split('-')[6])
             else:
@@ -487,19 +487,22 @@ class Spider:
                     for car in param['paramitems']:
                         carItem[car['name']] = []
                         carItem['首字母'].append(file.split('-')[0])
-                        carItem['品牌ID'].append(file.split('-')[1])
-                        carItem['品牌名称'].append(file.split('-')[2])
-                        carItem['车系ID'].append(file.split('-')[3])
+                        carItem['品牌ID'].append(file.split('-')[3])
+                        carItem['品牌名称'].append(file.split('-')[4])
+                        carItem['车系ID'].append(file.split('-')[5])
                         # carItem['车系名称'].append(file.split('-')[4])
                         for ca in car['valueitems']:  # 循环车型名称列表
                             # 车型ID 写入字典
                             if ca['specid'] not in carItem['车型ID']:
                                 carItem['车型ID'].append(ca['specid'])
-                            # 车型名称 分割
+                            # 提取车型名称
                             if car['name'] == '车型名称':
-                                # car_name = ca['value'].rsplit()[0]
                                 carItem['车系名称'].append(file.split('-')[6])
-                                carItem[car['name']].append(','.join(ca['value'].rsplit()[1:]).replace(',', ' '))
+                                print(ca['value'])
+                                if ca['value'] == '-':
+                                    carItem[car['name']].append(ca['value'])
+                                else:
+                                    carItem[car['name']].append(re.findall(r'(.{4}款.*)', ca['value'])[0])
                                 continue
                             carItem[car['name']].append(ca['value'])
 
@@ -586,9 +589,9 @@ class Spider:
 
 if __name__ == '__main__':
     spider = Spider()
-    spider.run()
+    # spider.run()
     # spider.js_saved_html()
     # spider.model_paremeter()
     # spider.extract_text()
     # spider.replace_text()
-    # spider.save_xls()
+    spider.save_xls()
