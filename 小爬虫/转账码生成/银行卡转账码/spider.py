@@ -186,12 +186,13 @@ class Spider:
         # _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
         #        'money=&amount=&bankMark={}&bankName={}&orderSource='.format(content[1], content[0], content[3], content[4])
         # print(_url)
-        _url = quote(_url, string.printable)
+
+        # 防风控制作
+        # _url = quote(_url, string.printable)
+        # uid = ''.join(str(uuid.uuid4()).split('-'))
+        # self.upload(uid, content[2], str(3), str(_url))
+        # _url = f'http://www.dongdongmeiche.cn/alipay/{uid}'
         # print(_url)
-        uid = ''.join(str(uuid.uuid4()).split('-'))
-        self.upload(uid, content[2], str(3), str(_url))
-        _url = f'http://www.dongdongmeiche.cn/alipay/{uid}'
-        print(_url)
 
         # 百度长链接转换短链接
         short_link = self.get_url(_url)
