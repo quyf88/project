@@ -3,7 +3,7 @@
 # IED ：PyCharm
 # 时间 ：2019/10/31 0031 13:25
 # 版本 ：V1.3
-# 抖音版本 ：9.7.0
+# 抖音版本 ：9.7.2
 import os
 import time
 import datetime
@@ -38,6 +38,7 @@ class Spider:
         self.desired_caps = {
               "platformName": "Android",
               "deviceName": "127.0.0.1:21503",
+              "adbExecTimeout": "80000",
               "appPackage": "com.ss.android.ugc.aweme",
               "appActivity": ".splash.SplashActivity",
               "noReset": "True"
@@ -59,56 +60,68 @@ class Spider:
         滑动
         :return:
         """
-        while True:
-            print('定位评论按钮')
-            # 8.6.0
-            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/yj')))
-            # 8.7.0
-            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zb')))
-            # 8.8.0
-            # comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/zf')))
-            # 9.0.0
-            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/a48')))
+        while True:           
+            print('定位评论按钮')            
+            comment = self.wait.until(EC.presence_of_element_located((By.ID, 'com.ss.android.ugc.aweme:id/a4o')))
             comment_num = comment.text
+            if '评论' in comment_num:
+                # 下一个视频
+                self.driver.swipe(200, 1700, 200, 500, 500)
+                time.sleep(2)
+                continue
             print(f'评论数量：{comment_num}')
             comment_num = int(float(comment_num.replace('w', ''))) * 1000 if 'w' in comment_num else int(
                 int(comment_num) / 10)
-            if int(comment_num) < 100:
-                self.driver.swipe(200, 1500, 200, 500, 500)
+            # 跳过小于100评论的视频
+            if int(comment_num) < 50:
+                self.driver.swipe(200, 1500, 200, 500, 300)
+                time.sleep(2)
                 continue
             comment.click()
             print('刷新评论数据')
-            # 判断数据是否刷新出来
-            # 8.6.0
-            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a22'))):
-            # 8.7.0
-            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a2v'))):
-            # 8.8.0
-            # if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a32'))):
-            # 9.0.0
-            if not self.wait.until(EC.presence_of_all_elements_located((By.ID, 'com.ss.android.ugc.aweme:id/a81'))):            
-                self.driver.keyevent(4)
-                continue
-            new_time = (datetime.datetime.now()+datetime.timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S')
-            # print(new_time)
-            for i in range(comment_num):
-                print(f'刷新第:{i}次')
-                if (i + 1) % 10 == 0:
-                    self.driver.swipe(200, 1200, 200, 1400, 500)
-                    time.sleep(0.5)
-                    continue
-                start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                # print(start_time)
-                if new_time < start_time:
-                    print('超时退出')
-                    break
-                self.driver.swipe(200, 1700, 200, 700, 400)
-            # 下一个视频
-            self.driver.keyevent(4)
             time.sleep(2)
-            self.driver.swipe(200, 1700, 200, 500, 500)
-            print('*' * 25)
-
+            # 判断数据是否刷新出来
+            while True:
+                cou = 1                                    
+                if not self.driver.find_elements_by_id('com.ss.android.ugc.aweme:id/deg'):
+                    print('刷新评论失败重试！')
+                    self.driver.keyevent(4)
+                    time.sleep(1.5)
+                    self.driver.keyevent(4)
+                    time.sleep(1.5)
+                    # 同一个视频重试三次失败切换下一个视频
+                    if cou > 3:
+                        self.driver.swipe(200, 1500, 200, 500, 300)
+                        time.sleep(2)
+                        break
+                    comment.click()
+                    cou += 1                    
+                    continue
+                new_time = (datetime.datetime.now()+datetime.timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
+                # print(new_time)
+                for i in range(comment_num):
+                    if (i + 1) % 10 == 0:
+                        # 判断是否到达底部
+                        # print('判断是否到达底部')
+                        if self.driver.find_elements_by_xpath('//android.support.v7.widget.RecyclerView [@resource-id="com.ss.android.ugc.aweme:id/deg"]/android.widget.FrameLayout/android.widget.TextView'):
+                            print('到达底部,切换下一个视频')
+                            break
+                        self.driver.swipe(200, 1400, 200, 1600, 1000)
+                        time.sleep(0.5)
+                        continue
+                    # start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    # print(start_time)
+                    # if new_time < start_time:
+                    #     print('超时退出')
+                    #     break
+                    self.driver.swipe(200, 1700, 200, 800, 500)
+                    
+                # 下一个视频
+                self.driver.keyevent(4)
+                time.sleep(2)
+                self.driver.swipe(200, 1700, 200, 500, 500)
+                print('*' * 25)
+                break
 
 def proxy():
     url = 'http://www.dongdongmeiche.cn/proxy/ba618b3e3adc4e7c93127546d58502a5'
