@@ -150,3 +150,17 @@ class Proxy(object):
         browser.switch_to_window(handles[-1])
         # 打印新窗口网页的内容
         print(browser.page_source)
+
+
+"""selenium get()请求页面加载超时设置"""
+def selenium_get(self, url):
+    # 限定页面加载时间最大为100秒
+    self.driver.set_page_load_timeout(100)
+    try:
+        self.driver.get(url)
+        return True
+    except:
+        print(u'页面加载超时!')
+        # 当页面加载时间超过设定时间，通过执行Javascript来停止载，然后继续执行后续操作
+        self.driver.execute_script('window.stop()')
+        return False
