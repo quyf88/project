@@ -45,6 +45,8 @@ class Spider:
         # self.x = self.driver.get_window_size()['width']  # 宽
         # self.y = self.driver.get_window_size()['height']  # 长
         # print(self.x, self.y)
+        self.one = 'com.ss.android.ugc.aweme:id/a4o'
+        self.two = 'com.ss.android.ugc.aweme:id/deg'
 
     def slide(self):
         """
@@ -61,8 +63,8 @@ class Spider:
                 time.sleep(2)
                 continue
             print(f'评论数量：{comment_num}')
-            comment_num = int(float(comment_num.replace('w', ''))) * 1000 if 'w' in comment_num else int(
-                int(comment_num) / 10)
+            comment_num = int(float(comment_num.replace('w', ''))) * 3000 if 'w' in comment_num else int(
+                int(comment_num) / 8)
             # 跳过小于100评论的视频
             if int(comment_num) < 50:
                 self.driver.swipe(200, 1500, 200, 500, 300)
@@ -81,31 +83,37 @@ class Spider:
                     self.driver.keyevent(4)
                     time.sleep(1.5)
                     # 同一个视频重试三次失败切换下一个视频
-                    if cou > 3:
+                    if cou > 2:
                         self.driver.swipe(200, 1500, 200, 500, 300)
                         time.sleep(2)
                         break
                     comment.click()
                     cou += 1                    
                     continue
-                new_time = (datetime.datetime.now()+datetime.timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
-                # print(new_time)
+
                 for i in range(comment_num):
-                    if (i + 1) % 10 == 0:
-                        # 判断是否到达底部
+                    # 判断是否到达底部
+                    if not (i + 1) % 200:
                         # print('判断是否到达底部')
-                        if self.driver.find_elements_by_xpath('//android.support.v7.widget.RecyclerView [@resource-id="com.ss.android.ugc.aweme:id/deg"]/android.widget.FrameLayout/android.widget.TextView'):
+                        if self.driver.find_elements_by_xpath(
+                                '//android.support.v7.widget.RecyclerView [@resource-id="com.ss.android.ugc.aweme:id/deg"]/android.widget.FrameLayout/android.widget.TextView'):
                             print('到达底部,切换下一个视频')
                             break
-                        self.driver.swipe(200, 1400, 200, 1600, 1000)
+                    # 下拉刷新十次后 上刷一次 防止加载不出来
+                    if not (i + 1) % 10:
+                        self.driver.swipe(200, 1400, 200, 1600, 500)
                         time.sleep(0.5)
                         continue
+                   
+                    # 根据时间选择退出刷新当前视频
+                    # new_time = (datetime.datetime.now()+datetime.timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
+                    # print(new_time)
                     # start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     # print(start_time)
                     # if new_time < start_time:
                     #     print('超时退出')
                     #     break
-                    self.driver.swipe(200, 1700, 200, 800, 500)
+                    self.driver.swipe(200, 1700, 200, 800, 400)
                     
                 # 下一个视频
                 self.driver.keyevent(4)
@@ -219,7 +227,7 @@ def main(udid, port):
             # if count > 3:
             spider.driver.keyevent(4)
             time.sleep(1)
-            spider.driver.swipe(200, 1700, 200, 500, 300)
+            spider.driver.swipe(200, 1700, 200, 500, 500)
             time.sleep(2)
             print(count)
             count += 1
@@ -234,6 +242,6 @@ if __name__ == '__main__':
         s = threading.Thread(target=main, args=(i, port))
         port += 2
         s.start()                
-        time.sleep(40)
+        time.sleep(20)
 
 
