@@ -168,6 +168,12 @@ class Spider:
         except:
             print('连接服务器错误!')
 
+    def Generate(self, data):
+        """生成记录"""
+        with open('image/生成记录.txt', 'a+', encoding='utf-8') as f:
+            f.write(data)
+            f.write('\n')
+
     def run(self):
         # 隐藏卡号url
         # cardID 隐藏卡号 获取方法  https://zhuanlan.zhihu.com/p/65495172
@@ -203,6 +209,10 @@ class Spider:
 
         # 短链接生成二维码
         self.code_generate(short_link)
+
+        # 保存生成记录
+        data = f'{content[0]},{short_link},{_url}'
+        self.Generate(data)
 
         # 二维码合成图片
         image_process = Picture()
