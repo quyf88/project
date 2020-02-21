@@ -171,6 +171,12 @@ class Spider:
             content = [i for i in content if i]
             return content
 
+    def Generate(self, data):
+        """生成记录"""
+        with open('image/生成记录.txt', 'a+', encoding='utf-8') as f:
+            f.write(data)
+            f.write('\n')
+
     def run(self):
         content = self.read_txt()
         print(content)
@@ -199,6 +205,11 @@ class Spider:
 
         # 短链生成二维码
         self.code_generate(short_link)
+
+        # 保存生成记录
+        data = f'{content[0]},{short_link},{_url}'
+        self.Generate(data)
+
         # 图片处理
         image_process = Picture()
         image_process.text = content[0]

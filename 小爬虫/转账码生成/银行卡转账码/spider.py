@@ -127,7 +127,8 @@ class Spider:
         # 转码
         short_link = quote(short_link, string.digits)
         url = 'http://apis.juhe.cn/qrcode/api?text={}&el=&bgcolor=&fgcolor=&logo=&w=&m=&lw=&type=2&key=b142a4a659dfa5237bf54a78baf8382f'.format(short_link)
-        response = requests.get(url, headers=self.headers, verify=False)
+        # print(url)
+        response = requests.get(url, headers=self.headers, verify=False, timeout=10)
         with open('image/code.png', 'wb') as f:
             f.write(response.content)
             print('支付宝转账码生成成功!')
@@ -177,14 +178,13 @@ class Spider:
     def run(self):
         # 隐藏卡号url
         # cardID 隐藏卡号 获取方法  https://zhuanlan.zhihu.com/p/65495172
-        content = ['621721***3219', 'ICBC', '罗涛敏', '兴业银行 ', '2002181751667134341']
+        content = ['621799***8290', 'PSBC', '吴允树', '兴业银行 ', '2002211803542903956']
         _url = f'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={content[0]}&' \
                f'bankAccount={content[2]}&money=&amount=&bankMark={content[1]}&bankName={content[3]}&cardIndex={content[4]}&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
-        print(_url)
 
         # 普通转账url
-        # content = self.read_txt()
-        # # 新接口
+        content = self.read_txt()
+        # 新接口
         # _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200' \
         #        f'%26actionType%3DtoCard%26sourceId=bill%26cardNo={content[1]}%26bankAccount={content[0]}%0A%26money=' \
         #        f'%26amount=%26bankMark={content[3]}%26bankName={content[4]}%26cardNoHidden=true%26cardChannel=HISTORY_CARD%26orderSource=from'
