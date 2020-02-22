@@ -67,7 +67,11 @@ https://www.alipay.com/?appId=20000168  # 记账本
 https://www.alipay.com/?appId=20000178  # 城市服务
 https://www.alipay.com/?appId=200011235 # 乘车码
 
+接口1商家： 固定金额备注 不可修改
+alipays://platformapi/startapp?appId=20000123&actionType=scan&biz_data={"s": "money","u": "商户id","a": "金额","m":"备注"}
 
+接口2个人：
+alipays://platformapi/startapp?appId=09999988&actionType=toAccount&goBack=NO&amount=金额&userId=商户id&memo=备注
 """
 import os
 import json
@@ -184,8 +188,10 @@ class Spider:
         # _url = f'https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=&userId={content[1]}&memo='
         # 跳转到支付宝账户页面
         # alipay = 'gta4qb@163.com'
-        _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{content[1]}%26amount%3D%26memo%3D'
+        # _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{content[1]}%26amount%3D%26memo%3D'
 
+        # 固定金额 备注 不可修改
+        _url = 'https://www.alipay.com/?appId=20000123&actionType=scan&biz_data={"s":"money","u":"2088902532716171","a":1,"m":"%E5%A4%87%E6%B3%A8%E4%BF%A1%E6%81%AF%3A%E9%87%91%E9%A2%9D%E4%B8%8D%E5%8F%AF%E6%94%B9%E5%8F%98"}'
         # 付款接口
         # fukuan = 'fkx08454npzfffdxvvhjs30'
         # _url = f'https://mobilecodec.alipay.com/client_download.htm?qrcode={fukuan}'
