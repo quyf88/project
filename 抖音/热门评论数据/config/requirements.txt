@@ -1,3 +1,4 @@
 PyQt5==5.12.2
 Appium-Python-Client==0.41
 selenium==3.141.0
+requests==2.22.0
