@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-# 文件 ：端口操作脚本.py
+# 文件 ：script.py
 # IED ：PyCharm
 # 时间 ：2020/2/24 0024 10:59
 # 版本 ：V1.0
@@ -65,6 +65,50 @@ class Monitor:
         print('启动脚本')
         self.switch_on()  # 启动脚本
         print(f'成功启动：{self.port}端口服务!')
+
+
+"""根据端口号杀死对应的进程"""
+def kill_port(port):
+    """根据端口号杀死对应的进程"""
+    # 根据端口号查询pid
+    find_port = 'netstat -aon | findstr %s' % port
+    # 执行cmd命令 返回对象
+    result = os.popen(find_port)
+    # 读取返回结果
+    text = result.read()
+    if not text:
+        print(f'端口：{port}未开启')
+        return
+    # print(text)
+    # 提取pid
+    text = [i.split(' ') for i in text.split('\n') if i]
+    pids = []
+    for i in text:
+        pid = [u for u in i if u]
+        # 提取内部端口号
+        ip = pid[1].split(':')[1]
+        if str(port) == ip:
+            pids.append(pid[-1])
+    # 判断是否有符合条件的端口
+    if not pids:
+        print('没有符合条件的端口信息')
+        return
+    pids = list(set(pids))
+    # 杀死占用端口的pid
+    for pid in pids:
+        find_kill = 'taskkill -f -pid %s' % pid
+        result = os.popen(find_kill)
+        print(result.read())
+
+
+if __name__ == '__main__':
+    while True:
+        port = input('请输入端口号:')
+        kill_port(port)
+        staut = input('按1继续,任意键退出')
+        print(staut)
+        if staut != '1':
+            os._exit(0)
 
 
 if __name__ == '__main__':
