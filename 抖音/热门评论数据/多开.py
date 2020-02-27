@@ -3,7 +3,7 @@
 # IED ：PyCharm
 # 时间 ：2019/10/31 0031 13:25
 # 版本 ：V1.3
-# 抖音版本 ：9.9.0
+# 抖音版本 ：10.0.0
 import os
 import time
 import datetime
@@ -15,6 +15,7 @@ from appium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from script import Monitor
 """
 Appium adb 获取真实appActivity
 https://blog.csdn.net/qq_38154948/article/details/90408056
@@ -45,8 +46,8 @@ class Spider:
         # self.x = self.driver.get_window_size()['width']  # 宽
         # self.y = self.driver.get_window_size()['height']  # 长
         # print(self.x, self.y)
-        self.one = 'com.ss.android.ugc.aweme:id/a6f'  # 评论数量ID
-        self.two = 'com.ss.android.ugc.aweme:id/dj0'  # 评论数据模块ID
+        self.one = 'com.ss.android.ugc.aweme:id/a4i'  # 评论数量ID
+        self.two = 'com.ss.android.ugc.aweme:id/dj6'  # 评论数据模块ID
 
     def slide(self):
         """
@@ -59,6 +60,8 @@ class Spider:
             comment_num = comment.text
             if '评论' in comment_num:
                 # 下一个视频
+                self.driver.keyevent(4)
+                time.sleep(1.5)
                 self.driver.swipe(200, 1700, 200, 500, 500)
                 time.sleep(2)
                 continue
@@ -74,8 +77,8 @@ class Spider:
             print('刷新评论数据')
             time.sleep(2)
             # 判断数据是否刷新出来
+            cou = 1
             while True:
-                cou = 1
                 if not self.driver.find_elements_by_id(self.two):
                     print('刷新评论失败重试！')
                     self.driver.keyevent(4)
@@ -85,6 +88,8 @@ class Spider:
                     # 同一个视频重试三次失败主动抛出异常重启程序
                     if cou > 2:
                         print('评论数据刷新失败重启!')
+                        print('刷新数据失败，等待60秒重启!')
+                        time.sleep(60)
                         raise print('主动抛出异常重启!')
                     comment.click()
                     cou += 1
@@ -92,19 +97,27 @@ class Spider:
 
                 num = 200 if comment_num > 200 else 100
                 for i in range(comment_num):
+                    # print(f'刷新第：{i}次')
                     # 判断是否到达底部
                     if not (i + 1) % num:
-                        # print('判断是否到达底部')
-                        time.sleep(2)
-                        if self.driver.find_elements_by_xpath(
-                                f'//android.support.v7.widget.RecyclerView [@resource-id={self.two}]/android.widget.FrameLayout/android.widget.TextView'):
-                            print('到达底部,切换下一个视频')
-                            break
+                        print('判断是否到达底部')
+                        try:
+                            con = WebDriverWait(self.driver, 5, 1, AttributeError).until(
+                                EC.presence_of_all_elements_located((By.XPATH,
+                                                                     '//android.support.v7.widget.RecyclerView [@resource-id="com.ss.android.ugc.aweme:id/dj6"]/android.widget.FrameLayout/android.widget.TextView')))
+                            # print(con, len(con))
+                            if con:
+                                print('到达底部,切换下一个视频')
+                                break
+                        except Exception as e:
+                            # print(f'出错了：{e}')
+                            pass
+                        print('没有到达底部')
                     # 下拉刷新十次后 上刷一次 防止加载不出来
-                    if not (i + 1) % 30:
-                        self.driver.swipe(200, 1400, 200, 1600, 500)
-                        time.sleep(0.5)
-                        continue
+                    # if not (i + 1) % 30:
+                    #     self.driver.swipe(200, 1400, 200, 1600, 500)
+                    #     time.sleep(0.5)
+                    #     continue
                    
                     # 根据时间选择退出刷新当前视频
                     # new_time = (datetime.datetime.now()+datetime.timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
@@ -114,7 +127,7 @@ class Spider:
                     # if new_time < start_time:
                     #     print('超时退出')
                     #     break
-                    self.driver.swipe(200, 1700, 200, 800, 400)
+                    self.driver.swipe(200, 1700, 200, 800, 600)
                     
                 # 下一个视频
                 self.driver.keyevent(4)
@@ -218,15 +231,23 @@ def main(udid, port):
             # 启动APP
             spider.driver = webdriver.Remote(driver_server, desired_caps)
             # 设置等待
-            spider.wait = WebDriverWait(spider.driver, 100, 1)
+            spider.wait = WebDriverWait(spider.driver, 60, 1)
             spider.slide()
         except Exception as e:
+            # 重启mitmdump服务
+            monitor = Monitor()
+            monitor.switch_mitmdump()
             continue
 
 
 if __name__ == '__main__':
+    # 效验代理
     proxy()
+    # 读取连接设备
     success = adb_devices()
+    # 启动脚本程序
+    monitor = Monitor()
+    monitor.run()
     port = 4723
     for i in success:
         s = threading.Thread(target=main, args=(i, port))
