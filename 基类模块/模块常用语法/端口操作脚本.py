@@ -66,6 +66,21 @@ class Monitor:
         self.switch_on()  # 启动脚本
         print(f'成功启动：{self.port}端口服务!')
 
+import psutil
+def get_pid(pname):
+    """
+    根据程序名查询pid
+    :param pname: 程序名(python.exe)
+    :return: pid列表
+    """
+    pids = []
+    for proc in psutil.process_iter():
+        print(proc)  # pid 程序名 程序开启时间
+        # print('pid-%d,name:%s' % (proc.pid, proc.name()))
+        if proc.name() == pname:
+            pids.append(proc.pid)
+            continue
+    return pids
 
 """根据端口号杀死对应的进程"""
 def kill_port(port):
