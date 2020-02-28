@@ -6,6 +6,7 @@
 # 抖音版本 ：10.0.0
 import os
 import time
+import psutil
 import datetime
 import requests
 import threading
@@ -240,7 +241,53 @@ def main(udid, port):
             continue
 
 
+class Monitors:
+    def write(self):
+        """
+        将主程序进程号写入文件
+        :return:
+        """
+        # 获取当前进程号
+        pid = os.getpid()
+        print('当前进程号：{}'.format(pid))
+        with open('config/pid.txt', 'w') as f:
+            f.write(str(pid))
+
+    def read(self):
+        """
+        读取进程中的数据
+        :return:
+        """
+        if os.path.exists('config/pid.txt'):
+            with open('config/pid.txt', 'r') as f:
+                pid = f.read()
+                return pid
+        else:
+            return '0'
+
+    def run(self):
+        pid = int(self.read())
+        print('读取进程号：{}'.format(pid))
+        if pid:
+            # 获取所有进程pid
+            running_pids = psutil.pids()
+            if pid in running_pids:
+                print('程序正在运行中!')
+                return True
+            else:
+                self.write()
+                print('程序没有运行，启动中!')
+                return False
+        else:
+            self.write()
+            print('程序没有运行，启动中!')
+            return False
+
+
 if __name__ == '__main__':
+    monitors = Monitors()
+    if monitors.run():
+        os._exit(0)
     # 效验代理
     proxy()
     # 读取连接设备
