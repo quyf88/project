@@ -1,3 +1,32 @@
+"""一条一条保存数据"""
+def save_xls(data):
+    """
+    保存数据
+    data : 字典格式 必须和表头长度一样
+    :return:
+    """
+    # 判断文件是否存在 如果存在则读取然后插入新数据，不存在则创建一个新DataFrame并添加表头
+    path = os.path.abspath('.') + r'/全系车型机油数据.xls'
+    if not os.path.exists(path):
+        # 创建一个新DataFrame并添加表头
+        Header = ['首字母', '品牌', '厂商', '型号', '型号ID', '排量', '年份', '轮胎尺寸', '机油容量',
+                  '机油型号', '机油价格', '合成级别', '机滤型号', '机滤价格', '获取时间']
+        df = pd.DataFrame(columns=Header)
+    else:
+        df_read = pd.read_excel(path)
+        df = pd.DataFrame(df_read)
+
+    # 定义一行新数据 data为一个字典
+    new = pd.DataFrame(data, index=[1])  # 自定义索引为：1 ，这里也可以不设置index
+
+    # 把定义的新数据添加到原数据最后一行 ignore_index=True,表示不按原来的索引，从0开始自动递增
+    df = df.append(new, ignore_index=True)
+
+    # 保存数据 sheet_name工作表名 index是否添加索引 header表头
+    df.to_excel(path, sheet_name='data', index=False, header=True)
+
+
+
 """读取excel"""
 import pandas as pd
 def read_xls(self, filename):
