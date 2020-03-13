@@ -6,3 +6,5 @@
 -测试1,https://dwz.cn/zzh7GjXz,https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=&userId=Jeffrey6777@163.com&memo=
 -测试1,https://dwz.cn/SCA4q4GZ,https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=&userId=2088902532716171&memo=
 -测试1,https://dwz.cn/iM504QyB,https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=1&userId=2088902532716171&memo=这是备注
+-测试1,https://dwz.cn/Sf3IJ5b3,https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D18141920036%26amount%3D%26memo%3D
+-测试1,https://dwz.cn/iM504QyB,https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=1&userId=2088902532716171&memo=这是备注

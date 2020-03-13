@@ -61,7 +61,8 @@ from image_process import Picture
 
 class Spider:
     def __init__(self):
-        self.headers = {'user-agent': str(UserAgent().random)}
+        # self.headers = {'user-agent': str(UserAgent().random)}
+        self.headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36'}
 
     def get_url(self, lang_url):
         """
@@ -178,7 +179,7 @@ class Spider:
     def run(self):
         # 隐藏卡号url
         # cardID 隐藏卡号 获取方法  https://zhuanlan.zhihu.com/p/65495172
-        # content = ['621799***8290', 'PSBC', '吴允树', '兴业银行 ', '2002211803542903956']
+        # content = ['621792***2742', 'SPDB', '公明', '兴业银行 ', '2003121805887818546']
         # _url = f'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={content[0]}&' \
         #        f'bankAccount={content[2]}&money=&amount=&bankMark={content[1]}&bankName={content[3]}&cardIndex={content[4]}&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from'
 
@@ -194,7 +195,7 @@ class Spider:
         # _url = 'https://www.alipay.com/?appId=09999988&actionType=toCard&sourceId=bill&cardNo={}&bankAccount={}&' \
         #        'money=&amount=&bankMark={}&bankName={}&orderSource='.format(content[1], content[0], content[3], content[4])
         print(_url)
-        os._exit(0)
+
         # 防风控制作
         # _url = quote(_url, string.printable)
         # uid = ''.join(str(uuid.uuid4()).split('-'))
