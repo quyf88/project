@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-# 文件 ：豌豆IP代理.py
+# 文件 ：ip_proxy.py
 # IED ：PyCharm
 # 时间 ：2020/3/14 0014 16:06
 # 版本 ：V1.0
