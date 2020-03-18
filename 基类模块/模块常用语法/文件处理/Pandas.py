@@ -1,6 +1,6 @@
-"""一条一条保存数据"""
 def save_xls(data):
     """
+    一条一条保存数据
     保存数据
     data : 字典格式 必须和表头长度一样
     :return:
@@ -25,6 +25,28 @@ def save_xls(data):
     # 保存数据 sheet_name工作表名 index是否添加索引 header表头
     df.to_excel(path, sheet_name='data', index=False, header=True)
 
+
+def _excel_add_sheet(file, sheet_name):
+    import os
+    import openpyxl
+    import pandas as pd
+    """
+    在现有Excel中新建sheet
+    xls文件用xlwt。xlsx文件用openpyxl，如果xls格式通过改后缀修改成xlsx格式读取会有问题
+    file : 文件名
+    sheet_name: 新工作表名称
+    :return:
+    """
+    # 读取需要写入的workbook文件 xlsx用openpyxl打开 xls用xlwt打开 备份用
+    book = openpyxl.load_workbook(file)
+    with pd.ExcelWriter(file, engine='openpyxl') as writer:
+        # 此时的writer里还只是读写器. 然后将上面读取的book复制给writer
+        writer.book = book
+        # 转化为字典的形式
+        writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+        # 新建一个sheet表格,并保留文件原有数据
+        df = pd.DataFrame({}, index=[1])
+        df.to_excel(writer, sheet_name=sheet_name, index=False)
 
 
 """读取excel"""
