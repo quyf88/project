@@ -26,14 +26,12 @@ def save_xls(data):
     df.to_excel(path, sheet_name='data', index=False, header=True)
 
 
-def _excel_add_sheet(file, sheet_name):
-    import os
-    import openpyxl
-    import pandas as pd
+def _excel_add_sheet(self, file, data):
     """
-    在现有Excel中新建sheet
+    Excel多个工作表插入数据
     xls文件用xlwt。xlsx文件用openpyxl，如果xls格式通过改后缀修改成xlsx格式读取会有问题
-    file : 文件名
+    file: 文件名
+    Header: 表头
     sheet_name: 新工作表名称
     :return:
     """
@@ -44,10 +42,15 @@ def _excel_add_sheet(file, sheet_name):
         writer.book = book
         # 转化为字典的形式
         writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
-        # 新建一个sheet表格,并保留文件原有数据
-        df = pd.DataFrame({}, index=[1])
-        df.to_excel(writer, sheet_name=sheet_name, index=False)
 
+        # 打开指定表名工作表 并读取数据
+        df = pd.DataFrame(pd.read_excel(file, sheet_name=self.words))
+        # 定义一行新数据 data为一个字典
+        new_data = pd.DataFrame(data, index=[1])  # 自定义索引为：1 ，这里也可以不设置index
+        # 把定义的新数据添加到原数据最后一行 ignore_index=True,表示不按原来的索引，从0开始自动递增
+        df = df.append(new_data, ignore_index=True)
+        # 保存数据至指定工作表,并保留其他工作表中的数据
+        df.to_excel(writer, sheet_name=self.words, index=False)
 
 """读取excel"""
 import pandas as pd
