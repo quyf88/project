@@ -124,7 +124,7 @@ class Spider:
         读取配置文件
         :return:
         """
-        with open('config/url.txt', 'r', encoding='utf-8') as f:
+        with open('config/2.txt', 'r', encoding='utf-8') as f:
             for i in f.readlines():
                 url = i.split()[0]
                 yield url
@@ -254,7 +254,7 @@ class Spider:
         存储当前漫画章节url和章节名
         :return:
         """
-        with open(self.comic_path + '/url.txt', 'a+', encoding='UTF-8') as f:
+        with open(self.comic_path + '/2.txt', 'a+', encoding='UTF-8') as f:
             for i in data:
                 f.write(i)
                 f.write(',')
@@ -353,7 +353,7 @@ class Spider:
         self.chapter_path = self.comic_path + '/' + chapter
         if not os.path.exists(self.chapter_path):
             os.mkdir(self.chapter_path)
-        with open(self.chapter_path + '/url.txt', 'a+', encoding='UTF-8') as f:
+        with open(self.chapter_path + '/2.txt', 'a+', encoding='UTF-8') as f:
             for i in data:
                 f.write(i)
                 f.write('\n')

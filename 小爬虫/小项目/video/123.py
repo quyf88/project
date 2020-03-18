@@ -134,7 +134,7 @@ import time
 
 
 
-with open('config/url.txt', 'r', encoding='utf-8') as f:
+with open('config/2.txt', 'r', encoding='utf-8') as f:
     a = f.readlines()
     a = [i.replace('\n', '')for i in a]
     print(a)

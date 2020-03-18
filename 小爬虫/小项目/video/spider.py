@@ -75,7 +75,7 @@ class Spider:
             result = etree.HTML(response)
             url_list = result.xpath('//*[@class="well well-sm "]/a/@href')
             # print(url_list)
-            with open('config/url.txt', 'a', encoding='utf-8') as f:
+            with open('config/2.txt', 'a', encoding='utf-8') as f:
                 for _url in url_list:
                     _url = 'https://www.av01.tv' + _url
                     print(_url)
@@ -87,7 +87,7 @@ class Spider:
         读取配置文件 url
         :return:
         """
-        with open('config/url.txt', 'r', encoding='UTF-8') as f:
+        with open('config/2.txt', 'r', encoding='UTF-8') as f:
             urls = f.readlines()
 
         return urls
@@ -372,7 +372,7 @@ if __name__ == '__main__':
     # m3u8 播放地址
     spider = Spider()
     # spider.get_video_url()  # 获取指定女优所有视频URL地址
-    with open('config/url.txt', 'r', encoding='utf-8') as f:
+    with open('config/2.txt', 'r', encoding='utf-8') as f:
             urls = f.readlines()
             urls = [i.replace('\n', '') for i in urls]
     for url in urls:

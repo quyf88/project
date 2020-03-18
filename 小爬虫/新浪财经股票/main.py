@@ -106,7 +106,7 @@ class Spider:
     def sql_save(self, data):
 
         for d in data:
-            with open('1.txt', 'a+', encoding='utf-8') as f:
+            with open('url.txt', 'a+', encoding='utf-8') as f:
                 f.write(str(d))
                 f.write('\n')
                 print("成功写入1")
