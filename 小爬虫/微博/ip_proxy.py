@@ -48,7 +48,7 @@ class Proxy:
         # url = r'http://api.wandoudl.com/api/ip?app_key=61056a77cc2115e31eb27ca62aec7ecc&pack=0&num=1&xy=3&type=2&lb=\n&mr=2&'
         # 412037638
         url = r'http://api.wandoudl.com/api/ip?app_key=61056a77cc2115e31eb27ca62aec7ecc&pack=0&num=1&xy=3&type=2&lb=\n&mr=2&'
-        res = requests.get(url, timeout=20)
+        res = requests.get(url, timeout=10)
         content = json.loads(res.text)
         if content['code'] != 200:
             print(f'代理IP获取失败:\n错误代码：{content["code"]}\nmsg:{content["msg"]}')
@@ -67,33 +67,36 @@ class Proxy:
         # 效验请求IP地址 请求此url返回请求的IP地址
         url = "http://whatismyip.akamai.com/"  # 爱尔兰
 
-        print(f'代理前IP：{requests.get(url, timeout=10).text}')
+        print(f'代理前IP：{requests.get(url, timeout=5).text}')
         # 代理
         proxy = {
             'http': 'socks5://{}'.format(ip),
             'https': 'socks5://{}'.format(ip)
         }
-        res = requests.get(url, proxies=proxy, headers=self.headers, timeout=10)
+        res = requests.get(url, proxies=proxy, headers=self.headers, timeout=5)
         print(f'代理后IP：{res.text}')
 
         return res.text
 
     def main(self):
-        # 从api中提取出代理IP:PORT 一次提取一个
-        ip, port, expire_time = self.get_proxy_ip()
-        if not ip:
-            return
-        ip_port = f'{ip}:{port}'
-        try:
-            res_ip = self.censor_ip(ip_port)
-        except:
-            print(f'代理IP验证失败，IP:{ip}不可用')
-            sys.exit()
-        # if ip != res_ip:
-        #
-        #     return
-        print(f'ip:{ip_port}可用,过期时间:{expire_time}')
-        return ip_port, expire_time
+        i = 1
+        while i < 4:
+            # 从api中提取出代理IP:PORT 一次提取一个
+            ip, port, expire_time = self.get_proxy_ip()
+            if not ip:
+                return
+            ip_port = f'{ip}:{port}'
+            try:
+                self.censor_ip(ip_port)
+            except:
+                print(f'代理IP验证失败，IP:{ip}不可用, 切换新IP!')
+                i += 1
+                continue
+
+            print(f'ip:{ip_port}可用,过期时间:{expire_time}')
+            return ip_port, expire_time
+        print('代理效验失败,请检查代理配置。')
+        sys.exit()
 
 
 if __name__ == '__main__':

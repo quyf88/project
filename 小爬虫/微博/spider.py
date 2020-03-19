@@ -4,6 +4,7 @@
 # 时间 ：2020/3/16 0016 13:59
 # 版本 ：V1.0
 import os
+import time
 import json
 import datetime
 import requests
@@ -19,7 +20,8 @@ PATH = os.getcwd()
 
 class WeiBo:
     def __init__(self, word):
-        self.words = word
+        self.fail_num = 0  # 请求失败次错
+        self.words = word  # 关键词
         self.count = 1  # 记录数据存储数量
         self.proxies = None  # 代理IP
         self.expire_time = None  # 代理IP过期时间
@@ -33,7 +35,7 @@ class WeiBo:
         #     'Cookie': 'SINAGLOBAL=4469623337200.637.1574044792390; login_sid_t=b903041d9b098166f2bfcda87cc96e16; cross_origin_proto=SSL; YF-V5-G0=125128c5d7f9f51f96971f11468b5a3f; _s_tentry=www.baidu.com; Apache=1405289944706.576.1583937754638; ULV=1583937754673:4:1:1:1405289944706.576.1583937754638:1581345875669; Ugrow-G0=6fd5dedc9d0f894fec342d051b79679e; UOR=,,login.sina.com.cn; SCF=Aim2CkP5Nrbss-5hxCtnIfHmRLMLqLLxbad_2x_TJsLiSuMgZrpHi-y93f4D7Lu0pbrjAF9yOJXsZzhNpe5jeAM.; SUHB=0k1ygmuQNci1dn; wb_view_log_6098207047=1366*7681; SUBP=0033WrSXqPxfM72wWs9jqgMF55529P9D9WhLNNQI_kFFDD8rEnaFL3LD5JpVF0201h-0eh.4Shnf; SUB=_2AkMpMsIndcPxrAVRkfAXzGziaIpH-jya56vRAn7uJhMyAxh87ksfqSVutBF-XHF-LNmn3HArQ71ps0gNPPx2hvKj; WBStorage=42212210b087ca50|undefined; wb_view_log=1366*7681; YF-Page-G0=7f483edf167a381b771295af62b14a27|1584287391|1584287344; webim_unReadCount=%7B%22time%22%3A1584287448958%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0%2C%22allcountNum%22%3A0%2C%22msgbox%22%3A0%7D'
         #     }
 
-    def proxy(self):
+    def _proxy(self):
         """
         调用IP代理
         :return:
@@ -67,35 +69,62 @@ class WeiBo:
             response = None
         return response
 
-    def _parse_json(self, content):
+    def _get_userid(self, response):
         """
-        解析json数据 提取个人信息资料
+        提取userid 拼接个人信息接口
         :param content:
         :return:
         """
+        userid = []
+        content = json.loads(response)
         cards = content['data']['cards']  # 数据列表
         for card in cards:
-            try:
-                data = {}
-                data['用户id'] = card['mblog']['user']['id']  # 用户id
-                data['用户名'] = card['mblog']['user']['screen_name']  # 用户名
-                data['微博认证名称'] = card['mblog']['user']['verified_reason']  # 微博认证名称
-                sex = card['mblog']['user']['gender']  # 性别
-                data['性别'] = '女' if sex == 'f' else '男'
-                data['简介'] = card['mblog']['user']['description']  # 简介
-                data['粉丝数量'] = card['mblog']['user']['followers_count']  # 粉丝数量
-                data['发布微博量'] = card['mblog']['user']['statuses_count']  # 发布微博量
-                data['关注量'] = card['mblog']['user']['follow_count']  # 关注量
-                data['用户头像'] = card['mblog']['user']['profile_image_url']  # 用户头像
-                data['移动端地址'] = card['mblog']['user']['profile_url']  # 移动端地址
-                data['关键词'] = self.words
-
-                yield data
-            except:
-                # print('数据解析错误!')
+            if card['card_type'] != 11:  # 状态=11返回的是用户数据列表
                 continue
+            for card_group in card['card_group']:
+                userid.append(card_group['user']['id'])  # 用户id
 
-    def save_xls(self, data):
+        return userid
+
+    def _verify_data(self, response):
+        """
+        效验返回的json中是否有数据
+        :return:
+        """
+        content = json.loads(response)
+        # content['ok']=1有数据，0没有数据
+        if not content['ok']:
+            return False
+        return True
+
+    def _parse_json(self, res):
+        """
+        解析个人信息
+        :param content:
+        :return:
+        """
+        content = json.loads(res)
+
+        data = {}
+        data['用户id'] = content['data']['userInfo']['id']  # userid
+        data['用户名'] = content['data']['userInfo']['screen_name']  # 用户名
+        # 性别
+        sex = content['data']['userInfo']['gender']
+        data['性别'] = '女' if sex == 'f' else '男'
+        # 微博认证名称
+        verified = content['data']['userInfo']['verified']  # 认证状态
+        data['微博认证名称'] = '无认证信息' if not verified else content['data']['userInfo']['verified_reason']
+        data['简介'] = content['data']['userInfo']['description']  # 简介
+        data['粉丝数量'] = content['data']['userInfo']['followers_count']  # 粉丝数量
+        data['发布微博量'] = content['data']['userInfo']['statuses_count']  # 发布微博量
+        data['关注量'] = content['data']['userInfo']['follow_count']  # 关注量
+        data['用户头像'] = content['data']['userInfo']['profile_image_url']  # 用户头像
+        data['移动端地址'] = content['data']['userInfo']['profile_url']  # 移动端地址
+        data['关键词'] = self.words
+
+        return data
+
+    def _save_xls(self, data):
         """
         保存数据
         data : 字典格式 必须和表头长度一样
@@ -103,7 +132,7 @@ class WeiBo:
         """
         # 判断文件是否存在 如果存在则读取然后插入新数据，不存在则创建一个新DataFrame并添加表头
         file = f'{PATH}/数据/关键词-{self.words}.xlsx'
-        Header = ['用户id', '用户名', '微博认证名称', '性别', '简介', '粉丝数量', '发布微博量', '关注量', '用户头像', '移动端地址', '关键词']
+        Header = ['用户id', '用户名', '性别', '微博认证名称', '简介', '粉丝数量', '发布微博量', '关注量', '用户头像', '移动端地址', '关键词']
         if not os.path.exists(f'{PATH}/数据'):
             os.mkdir(f'{PATH}/数据')
         if not os.path.exists(file):
@@ -120,44 +149,62 @@ class WeiBo:
         # 保存数据 sheet_name工作表名 index是否添加索引 header表头
         df.to_excel(file, sheet_name=self.words, index=False, header=True)
 
-    def get_user_id(self):
+    def run(self):
         """
         根据关键词搜索 获取用户信息
         :return:
         """
-        for page in range(1, 100000):
-            # 请求数据
-            url = f'https://m.weibo.cn/api/container/getIndex?containerid=100103type%3D1%26q%3D{quote(self.words)}&page_type=searchall&page={str(page)}'
+        for page in range(133, 100000):
+            # 根据关键词获取相匹配的用户信息
+            # 数据分类:1综合，3用户，61实时， 62关注， 64视频， 58问答， 21文章，63图片， 87同城， 60热门， 38图片， 32主页
+            chanenl = 3
+            print(f'第:{page}页数据获取中...')
+            url = f'https://m.weibo.cn/api/container/getIndex?containerid=100103type%3D{chanenl}%26q%3D{quote(self.words)}&page_type=searchall&page={page}'
             print(url)
             # 获取代理IP
-            # self.proxy()
-            # 请求数据
+            # self._proxy()
+            # 搜索关键词获取userid
             response = self._parse_url(url)
             if not response:
                 print('获取数据失败!切换代理IP')
                 self.expire_time = None
                 continue
-            # 解析存储数据
-            content = json.loads(response)
-            # 判断是否有数据
-            if not content['ok']:
-                print(f'content:{content["ok"]},{content["msg"]}')
-                print(f'关键词:{self.words}无新数据,切换关键词.')
-                print('*'*50)
-                return None
-            for data in self._parse_json(content):
+            # 效验返回结果中是否有数据
+            if not self._verify_data(response):
+                if self.fail_num > 3:
+                    self.fail_num = 0  # 初始化错误计数
+                    print(f'关键词:[{self.words}]无新数据,切换关键词.')
+                    print('*' * 50)
+                    return None
+                self.fail_num += 1
+                continue
+
+            # 解析json数据获取userid列表
+            userids = self._get_userid(response)
+
+            # 根据userid获取个人信息
+            for userid in userids:
+                user_url = f'https://m.weibo.cn/api/container/getIndex?title=%E5%9F%BA%E6%9C%AC%E8%B5%84%E6%96%99&type=uid&value={userid}'
+                print(user_url)
+                res = self._parse_url(user_url)  # 请求个人信息接口
+                if not self._verify_data(res):
+                    print(f'id:{userid},获取数据失败!')
+                    continue
+                data = self._parse_json(res)  # 解析
                 try:
-                    self.save_xls(data)
+                    self._save_xls(data)
                     print(f'第:{self.count}条数据保存成功!')
                     self.count += 1
                 except Exception as e:
                     print(e)
                     print(data)
                     continue
-            # time.sleep(3)
+                time.sleep(1)
+            print(f'第:{page}页数据获取完成，切换下一页。')
+            print('*'*50)
 
 
 if __name__ == '__main__':
-    words = '珠宝'
+    words = '服饰有限公司'
     weibo = WeiBo(words)
-    weibo.get_user_id()
+    weibo.run()
