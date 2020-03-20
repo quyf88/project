@@ -11,11 +11,23 @@ import requests
 import pandas as pd
 from retrying import retry
 from urllib.parse import quote
+from configparser import ConfigParser
 
 from ip_proxy import Proxy
 
 print("os.path.abspath(__file__) = ", os.path.abspath(__file__))
 PATH = os.getcwd()
+
+
+def red_config():
+    """
+    读取配置文件
+    :return: 代理状态
+    """
+    cp = ConfigParser()  # 实例化
+    cp.read(f'{PATH}/config/config.ini', encoding='utf-8')  # 读取文件
+    proxy_statu = cp.get('Status', 'proxy')  # 读取值
+    return proxy_statu
 
 
 class WeiBo:
@@ -65,9 +77,11 @@ class WeiBo:
         """
         try:
             response = requests.get(url, headers=self.headers, proxies=self.proxies, timeout=10).text
+            if not response:
+                return None
+            return response
         except:
-            response = None
-        return response
+            return None
 
     def _get_userid(self, response):
         """
@@ -86,7 +100,20 @@ class WeiBo:
 
         return userid
 
-    def _verify_data(self, response):
+    def _verify_response(self, response):
+        """
+        判断response是否有数据
+        :param response:
+        :return:True 有数据， False 无数据
+        """
+        if not response:
+            print('获取数据失败!切换IP重试!')
+            self.expire_time = None
+            self._proxy()
+            return False
+        return True
+
+    def _verify_json(self, response):
         """
         效验返回的json中是否有数据
         :return:
@@ -154,23 +181,22 @@ class WeiBo:
         根据关键词搜索 获取用户信息
         :return:
         """
-        for page in range(133, 100000):
+        for page in range(1, 100000):
             # 根据关键词获取相匹配的用户信息
             # 数据分类:1综合，3用户，61实时， 62关注， 64视频， 58问答， 21文章，63图片， 87同城， 60热门， 38图片， 32主页
             chanenl = 3
             print(f'第:{page}页数据获取中...')
             url = f'https://m.weibo.cn/api/container/getIndex?containerid=100103type%3D{chanenl}%26q%3D{quote(self.words)}&page_type=searchall&page={page}'
-            print(url)
+            # print(url)
             # 获取代理IP
             # self._proxy()
             # 搜索关键词获取userid
             response = self._parse_url(url)
-            if not response:
-                print('获取数据失败!切换代理IP')
-                self.expire_time = None
+            # 判断是否请求成功
+            if not self._verify_response(response):
                 continue
             # 效验返回结果中是否有数据
-            if not self._verify_data(response):
+            if not self._verify_json(response):
                 if self.fail_num > 3:
                     self.fail_num = 0  # 初始化错误计数
                     print(f'关键词:[{self.words}]无新数据,切换关键词.')
@@ -185,9 +211,13 @@ class WeiBo:
             # 根据userid获取个人信息
             for userid in userids:
                 user_url = f'https://m.weibo.cn/api/container/getIndex?title=%E5%9F%BA%E6%9C%AC%E8%B5%84%E6%96%99&type=uid&value={userid}'
-                print(user_url)
+                # print(user_url)
                 res = self._parse_url(user_url)  # 请求个人信息接口
-                if not self._verify_data(res):
+                # 判断是否有返回数据
+                if not self._verify_response(res):
+                    continue
+                # 判断返回json中是否有数据
+                if not self._verify_json(res):
                     print(f'id:{userid},获取数据失败!')
                     continue
                 data = self._parse_json(res)  # 解析
@@ -205,6 +235,7 @@ class WeiBo:
 
 
 if __name__ == '__main__':
-    words = '服饰有限公司'
+    words = '时尚博主'
     weibo = WeiBo(words)
     weibo.run()
+    # print(red_config())
