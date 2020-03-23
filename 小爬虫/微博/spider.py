@@ -4,6 +4,7 @@
 # 时间 ：2020/3/16 0016 13:59
 # 版本 ：V1.0
 import os
+import threading
 import time
 import json
 import datetime
@@ -19,15 +20,25 @@ print("os.path.abspath(__file__) = ", os.path.abspath(__file__))
 PATH = os.getcwd()
 
 
-def red_config():
+def red_ini(section, name):
     """
     读取配置文件
     :return: 代理状态
     """
     cp = ConfigParser()  # 实例化
-    cp.read(f'{PATH}/config/config.ini', encoding='utf-8')  # 读取文件
-    proxy_statu = cp.get('Status', 'proxy')  # 读取值
-    return proxy_statu
+    cp.read(f'{PATH}/config/config.ini', encoding='utf-8')  # 打开文件
+    worth = cp.get(section, name)  # 根据节、名称 读取值
+    return worth
+
+
+def _red_words():
+    """
+    读取配置文件中的关键词
+    :return:
+    """
+    words = red_ini('Words', 'words')
+    words = [i for i in words.split(',') if i]
+    return words
 
 
 class WeiBo:
@@ -52,6 +63,10 @@ class WeiBo:
         调用IP代理
         :return:
         """
+        # 判断是否开启代理
+        if not int(red_ini('Status', 'proxy')):
+            return None
+
         # 判断代理IP是否过期
         new_time = datetime.datetime.now()
         if self.expire_time and new_time < datetime.datetime.strptime(self.expire_time, "%Y-%m-%d %H:%M:%S"):
@@ -185,11 +200,11 @@ class WeiBo:
             # 根据关键词获取相匹配的用户信息
             # 数据分类:1综合，3用户，61实时， 62关注， 64视频， 58问答， 21文章，63图片， 87同城， 60热门， 38图片， 32主页
             chanenl = 3
-            print(f'第:{page}页数据获取中...')
+            print(f'关键词:[{self.words}] 第:{page}页数据获取中...')
             url = f'https://m.weibo.cn/api/container/getIndex?containerid=100103type%3D{chanenl}%26q%3D{quote(self.words)}&page_type=searchall&page={page}'
             # print(url)
             # 获取代理IP
-            # self._proxy()
+            self._proxy()
             # 搜索关键词获取userid
             response = self._parse_url(url)
             # 判断是否请求成功
@@ -199,7 +214,7 @@ class WeiBo:
             if not self._verify_json(response):
                 if self.fail_num > 3:
                     self.fail_num = 0  # 初始化错误计数
-                    print(f'关键词:[{self.words}]无新数据,切换关键词.')
+                    print(f'关键词:[{self.words}] 无新数据,切换关键词.')
                     print('*' * 50)
                     return None
                 self.fail_num += 1
@@ -218,24 +233,36 @@ class WeiBo:
                     continue
                 # 判断返回json中是否有数据
                 if not self._verify_json(res):
-                    print(f'id:{userid},获取数据失败!')
+                    print(f'关键词:[{self.words}] id:{userid},获取数据失败!')
                     continue
                 data = self._parse_json(res)  # 解析
                 try:
                     self._save_xls(data)
-                    print(f'第:{self.count}条数据保存成功!')
+                    print(f'关键词:[{self.words}] 第:{self.count}条数据保存成功!')
                     self.count += 1
                 except Exception as e:
                     print(e)
                     print(data)
                     continue
-                time.sleep(1)
-            print(f'第:{page}页数据获取完成，切换下一页。')
-            print('*'*50)
+                # time.sleep(1)
+            print(f'关键词:[{self.words}] 第:{page}页数据获取完成，切换下一页。')
+
+
+def main(word):
+    print(f'关键词:[{word}]数据获取中...')
+    print(type(word))
+    weibo = WeiBo(word)
+    weibo.run()
 
 
 if __name__ == '__main__':
-    words = '时尚博主'
-    weibo = WeiBo(words)
-    weibo.run()
-    # print(red_config())
+    words = red_ini('Words', 'words')
+    words = [i for i in words.split(',') if i]
+    print(words, type(words))
+    count = 1
+    for word in words:
+        print(f'第：{count}次')
+        thread = threading.Thread(target=main, args=(word,))
+        thread.start()
+        count += 1
+
