@@ -74,8 +74,12 @@ class WeiBo:
             # if new_time < datetime.datetime.strptime(self.expire_time, "%Y-%m-%d %H:%M:%S"):
             print(f'当前使用代理IP:{self.proxies} 过期时间：{self.expire_time}')
             return
-        proxy = Proxy()
-        ip_port, expire_time = proxy.main()
+        try:
+            proxy = Proxy()
+            ip_port, expire_time = proxy.main()
+        except:
+            print('<font color="red">ip代理获取失败,请检查代理设置!</font>')
+            os._exit(0)
         self.headers = proxy.headers
         self.proxies = {
             'http': 'socks5://{}'.format(ip_port),
@@ -125,6 +129,7 @@ class WeiBo:
             print('获取数据失败!切换IP重试!')
             self.expire_time = None
             self._proxy()
+            self.fail_num += 1  # 增加一次错误计数
             return False
         return True
 
@@ -135,8 +140,18 @@ class WeiBo:
         """
         content = json.loads(response)
         # content['ok']=1有数据，0没有数据
-        if not content['ok']:
+        if not int(content['ok']):
             return False
+        return True
+
+    def _verify_fail(self):
+        """
+        判断错误次数 超过四次退出程序
+        :return:
+        """
+        if self.fail_num >= 3:
+            print('<font color="red">请求数据失败,请检查网络连接!</font>')
+            os._exit(0)
         return True
 
     def _parse_json(self, res):
@@ -208,7 +223,7 @@ class WeiBo:
             # 搜索关键词获取userid
             response = self._parse_url(url)
             # 判断是否请求成功
-            if not self._verify_response(response):
+            if not self._verify_response(response) and self._verify_fail():
                 continue
             # 效验返回结果中是否有数据
             if not self._verify_json(response):
@@ -229,7 +244,7 @@ class WeiBo:
                 # print(user_url)
                 res = self._parse_url(user_url)  # 请求个人信息接口
                 # 判断是否有返回数据
-                if not self._verify_response(res):
+                if not self._verify_response(res) and self._verify_fail():
                     continue
                 # 判断返回json中是否有数据
                 if not self._verify_json(res):
@@ -244,25 +259,27 @@ class WeiBo:
                     print(e)
                     print(data)
                     continue
+                # 重置错误计数
+                self.fail_num = 0
                 # time.sleep(1)
             print(f'关键词:[{self.words}] 第:{page}页数据获取完成，切换下一页。')
 
 
 def main(word):
-    print(f'关键词:[{word}]数据获取中...')
-    print(type(word))
+    print(f'关键词:[{word}]数据获取中...')   
     weibo = WeiBo(word)
     weibo.run()
 
 
 if __name__ == '__main__':
-    words = red_ini('Words', 'words')
+    words = red_ini('Words', 'words')  # 读取关键词
     words = [i for i in words.split(',') if i]
-    print(words, type(words))
-    count = 1
+    start_thread = red_ini('Status', 'thread')  # 读取配置文件多线程状态
     for word in words:
-        print(f'第：{count}次')
-        thread = threading.Thread(target=main, args=(word,))
-        thread.start()
-        count += 1
+        if int(start_thread):  # 判断是否多线程启动
+            thread = threading.Thread(target=main, args=(word,))
+            thread.start()
+        else:
+            main(word)
+        
 

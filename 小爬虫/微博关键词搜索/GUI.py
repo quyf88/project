@@ -43,6 +43,8 @@ class CrawlWindow(QWidget):
         self.stop = QPushButton(self)
         # 初始化IP代理复选框
         self.checkbox = QCheckBox('启用代理', self)
+        # 初始化多线程复选框
+        self.start_thread = QCheckBox('启用多线程', self)
 
         # 界面布局 全局控件（注意参数self），用于承载全局布局
         wwg = QWidget(self)
@@ -67,6 +69,7 @@ class CrawlWindow(QWidget):
         self.layout_init()  # 页面布局
         self.set_log_init()  # 输出控件
         self.checkbox_init()  # IP代理复选框
+        self.start_thread_init()  # 启用多线程代理复选框
 
         self.ini_init()  # 初始化配置文件参数
         self.count = True  # 是否清空输入框中的文本
@@ -77,17 +80,16 @@ class CrawlWindow(QWidget):
         self.log_browser.append('GUI界面启动成功')
         self.log_browser.append('检查配置文件...')
         self.log_browser.append('初始化配置文件')
-        # 设置IP代理为不可用
-        self.red_ini('Status', 'proxy', '0')
-        # 设置关键词为空
-        self.red_ini('Words', 'words', 'None')
+        self.red_ini('Status', 'proxy', '0')  # 设置IP代理为不可用
+        self.red_ini('Status', 'thread', '0')  # 设置多线程关闭
+        self.red_ini('Words', 'words', 'None')  # 设置关键词为空
         self.log_browser.append('初始化配置文件成功')
         self.log_browser.append('<font color="green">系统启动成功,请添加搜索关键词</font>')
 
     def movie_init(self):
         """添加关键词输入框 初始化配置"""
         # 文本框尺寸
-        self.price.setFixedSize(300, 100)
+        self.price.setFixedSize(220, 100)
         # 设置默认显示文本
         self.price.setPlainText("输入关键词,多个关键词以英文','隔开")
         # 输入内容时清空默认显示文本内容 selectionChanged:点击文本框时发射信号
@@ -114,7 +116,7 @@ class CrawlWindow(QWidget):
 
     def stop_init(self):
         """暂停按钮 初始化配置"""
-        self.stop.setText('暂停')
+        self.stop.setText('停止')
         self.stop.setEnabled(False)
         self.stop.clicked.connect(self.stop_slot)
 
@@ -133,6 +135,10 @@ class CrawlWindow(QWidget):
         # self.checkbox.toggle()
         self.checkbox.stateChanged.connect(self.checkbox_slot)
 
+    def start_thread_init(self):
+        """开启多线程复选框 初始化配置"""
+        self.start_thread.stateChanged.connect(self.start_thread_slot)
+
     def layout_init(self):
         """页面布局"""
         # 输出控件设置为垂直布局方式
@@ -140,10 +146,11 @@ class CrawlWindow(QWidget):
 
         # 局部布局 关键词输入控件、添加关键词按钮、启动按钮、暂停按钮 水平布局+网格布局方式
         self.h_layout.addWidget(self.price)  # 关键词输入控件设置为水平布局
-        self.g_layout.addWidget(self.save_combobox, 0, 0)  # 添加关键词按钮设置为网格布局指定位置为第一行第一个位置
+        self.g_layout.addWidget(self.save_combobox, 1, 0)  # 添加关键词按钮设置为网格布局指定位置为第一行第一个位置
+        self.g_layout.addWidget(self.start_thread, 0, 0)
         self.g_layout.addWidget(self.checkbox, 0, 1)
-        self.g_layout.addWidget(self.start_btn, 1, 0)  # 启动按钮设置为网格布局指定位置为第二行第一个位置
-        self.g_layout.addWidget(self.stop, 1, 1)  # 暂停按钮设置为网格布局指定职位只第二行第二个位置
+        self.g_layout.addWidget(self.start_btn, 2, 0)  # 启动按钮设置为网格布局指定位置为第二行第一个位置
+        self.g_layout.addWidget(self.stop, 2, 1)  # 暂停按钮设置为网格布局指定职位只第二行第二个位置
         self.h_layout.addLayout(self.g_layout)  # 将局部网格布局嵌套进局部水平布局(关键词输入控件、添加关键词按钮、启动按钮、暂停按钮 绑定在一起)
         self.v_layout.addLayout(self.h_layout)  # 将局部水平布局嵌套进局部垂直布局(将上一步整合的布局和输出控件平级,设置成垂直布局)
 
@@ -166,14 +173,22 @@ class CrawlWindow(QWidget):
         # 初始化各个按钮状态
         self.price.setEnabled(False)  # 输入框
         self.save_combobox.setEnabled(False)  # 添加关键字按钮
-        self.checkbox.setEnabled(False)
+        self.checkbox.setEnabled(False)  # IP代理复选框
+        self.start_thread.setEnabled(False)  # 开启多线程复选框
         self.start_btn.setEnabled(False)  # 启动按钮
         self.stop.setEnabled(True)  # 暂停按钮
 
     def stop_slot(self):
         """暂停 信号槽"""
-        self.log_browser.append('<font color="red">*****程序暂停*****</font>')
-        # os.system("pause")
+        # 改变程序状态
+        self.worker.stop = True
+        # 改变各按钮状态
+        self.price.setEnabled(True)  # 输入框
+        self.save_combobox.setEnabled(True)  # 添加关键字按钮
+        self.checkbox.setEnabled(True)  # IP代理复选框
+        self.start_thread.setEnabled(True)  # 开启多线程复选框
+        self.start_btn.setEnabled(True)  # 启动按钮
+        self.stop.setEnabled(False)  # 暂停按钮
 
     def combobox_slot(self):
         """关键词输入控件 信号槽"""
@@ -205,12 +220,22 @@ class CrawlWindow(QWidget):
         self.red_ini('Status', 'proxy', '0')
         self.log_browser.append('<font color="red">关闭IP代理成功</font>')
 
+    def start_thread_slot(self):
+        """开启多线程复选框 信号槽"""
+        if self.start_thread.isChecked():
+            self.red_ini('Status', 'thread', '1')
+            self.log_browser.append('<font color="green">开启多线程</font>')
+            return None
+        self.red_ini('Status', 'thread', '0')
+        self.log_browser.append('<font color="red">关闭多线程</font>')
+
     def set_enabled_slot(self, status):
         """子程序结束改变按钮状态"""
         if not status:
             self.price.setEnabled(True)  # 输入框
             self.save_combobox.setEnabled(True)  # 添加关键字按钮
             self.checkbox.setEnabled(True)  # IP代理
+            self.start_thread.setEnabled(True)  # 开启多线程复选框
             self.start_btn.setEnabled(True)  # 启动按钮
             self.stop.setEnabled(False)  # 暂停按钮
 
@@ -249,6 +274,7 @@ class CrawlWindow(QWidget):
 class MyThread(QThread):
     log_signal = pyqtSignal(str)
     start_q = pyqtSignal(bool)
+    stop = False  # 是否终止程序
 
     def __init__(self):
         super(MyThread, self).__init__()
@@ -265,6 +291,7 @@ class MyThread(QThread):
         # r.returncode 子进程的退出状态
         # r.stdout.flush() 如果出现子进程假死 管道阻塞 手动刷新缓冲
         try:
+            self.stop = False
             self.start_q.emit(True)
             r = subprocess.Popen(['python', r'spider.py'],  # 需要执行的文件路径
                                  stdout=subprocess.PIPE,
@@ -272,6 +299,11 @@ class MyThread(QThread):
                                  bufsize=0)
 
             while r.poll() is None:
+                # 判断是否终止子程序(调用的程序)
+                if self.stop:
+                    r.terminate()  # win10终止子进程
+                    self.log_signal.emit('<font color="red">*****程序已关闭*****</font>')
+                    return
                 line = str(r.stdout.readline(), encoding='UTF-8')  # TODO 打包时改为GBK
                 line = line.strip()
                 if line:
