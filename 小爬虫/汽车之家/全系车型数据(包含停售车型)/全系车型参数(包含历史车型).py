@@ -16,6 +16,7 @@ from lxml import etree
 from retrying import retry
 from selenium import webdriver
 from fake_useragent import UserAgent
+from selenium.webdriver.chrome.options import Options
 
 
 def run_time(func):
@@ -271,6 +272,13 @@ class Spider:
             os.makedirs(content_file)
 
         lists = os.listdir("2-js拼装的HTML")
+        # Linux系统下 get打开本地html需添加:file://
+        # selenium无界面模式 keep_alive 设置浏览器连接活跃状态
+        # chrome_options = Options()
+        # chrome_options.add_argument('--no-sandbox')  # 让Chrome在root权限下运行
+        # chrome_options.add_argument('--disable-dev-shm-usage')
+        # chrome_options.add_argument('--headless')  # 不用打开图形界面
+        # driver = webdriver.Chrome(chrome_options=chrome_options)
         driver = webdriver.Chrome()
         for fil in lists:
             print(f'提取：{fil}class混淆属性对应字体')
@@ -281,6 +289,7 @@ class Spider:
                 continue
 
             driver.get(os.getcwd() + os.sep + "2-js拼装的HTML/" + fil)
+
             text = driver.find_element_by_tag_name('body')
 
             with open(content_file + "/" + fil, "w", encoding="utf-8") as f:
