@@ -31,6 +31,22 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
+"""Linux 系统下selenium无头模式配置"""
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+chrome_options = Options()
+chrome_options.add_argument('--no-sandbox')  # 使用root权限运行
+chrome_options.add_argument('--disable-dev-shm-usage')
+chrome_options.add_argument('--headless')  # 无头模式
+browser = webdriver.Chrome(chrome_options=chrome_options)
+
+browser.get('https://www.baidu.com')
+print(browser.page_source)
+
+
+
+
+
 # selenium无界面模式 keep_alive 设置浏览器连接活跃状态
 chrome_options = Options()
 chrome_options.add_argument('--headless')
