@@ -13,9 +13,11 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls import url 
 from django.contrib import admin
 from django.urls import path
 from API import views
+from ip import ip
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,4 +26,5 @@ urlpatterns = [
     path('proxy/<str:course>', views.validity_period),
     path('ceshi', views.ceshi),
     path('upload/', views.upload),
+    url(r'^$', ip.get_ip),  # 指定二级域名
 ]
