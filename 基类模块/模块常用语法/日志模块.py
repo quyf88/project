@@ -12,6 +12,8 @@ import logging
 同时，将结果写出到日志中
 '''
 
+PATH = os.getcwd()
+
 
 def run_time(func):
     def new_func(*args, **kwargs):
@@ -34,24 +36,26 @@ def log_init():
     # 创建一个日志器
     program = os.path.basename(sys.argv[0])  # 获取程序名
     logger = logging.getLogger(program)
-    formatter = logging.Formatter('%(asctime)s | %(name)-3s | %(levelname)-6s| %(message)s')  # 设置日志输出格式
-    logger.setLevel(logging.DEBUG)
+    # 判断handler是否有值,(避免出现重复添加的问题)
+    if not logger.handlers:
+        formatter = logging.Formatter('%(asctime)s | %(name)-3s | %(levelname)-6s| %(message)s')  # 设置日志输出格式
+        logger.setLevel(logging.DEBUG)
 
-    # 输出日志至屏幕
-    console = logging.StreamHandler()  # 设置日志信息输出至屏幕
-    console.setLevel(level=logging.DEBUG)  # 设置日志器输出级别，包括debug < info< warning< error< critical
-    console.setFormatter(formatter)  # 设置日志输出格式
-    logger.addHandler(console)
+        # 输出日志至屏幕
+        console = logging.StreamHandler()  # 设置日志信息输出至屏幕
+        console.setLevel(level=logging.DEBUG)  # 设置日志器输出级别，包括debug < info< warning< error< critical
+        console.setFormatter(formatter)  # 设置日志输出格式
 
-    # 输出日志至文件
-    path = os.path.abspath('.') + r'/log/'  # 日志保存路径
-    if not os.path.exists(path):
-        os.mkdir(path)
-    filename = path + datetime.datetime.now().strftime('%Y-%m-%d') + '.csv'
-    fh = logging.FileHandler(filename, encoding='utf-8', mode='a+')  # 设置日志信息保存至文件
-    fh.setLevel(logging.DEBUG)  # 设置日志器输出级别
-    fh.setFormatter(formatter)  # 设置日志输出格式
-    logger.addHandler(fh)
+        # 输出日志至文件
+        path = PATH + r'/logs/'  # 日志保存路径
+        if not os.path.exists(path):
+            os.mkdir(path)
+        filename = path + 'ip-' + datetime.datetime.now().strftime('%Y-%m-%d') + '.log'
+        fh = logging.FileHandler(filename, encoding='utf-8', mode='a+')  # 设置日志信息保存至文件
+        # fh.setLevel(logging.DEBUG)  # 设置日志器输出级别
+        fh.setFormatter(formatter)  # 设置日志输出格式
+        logger.addHandler(fh)
+        logger.addHandler(console)
 
     return logger
 
