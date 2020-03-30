@@ -2,6 +2,9 @@
 # coding=utf-8
 import os
 import sys
+import json
+import requests
+from retrying import retry
 import logging
 import datetime
 from django.http import HttpResponse
@@ -11,15 +14,37 @@ PATH = os.getcwd()
 
 def get_ip(request):
     """获取访问客户端ip地址"""
-    username = request.META.get('USERDOMAIN_ROAMINGPROFILE')
+    ip = None
+    proxy_ip = None
+    server_name = request.META.get('SERVER_NAME')
     if request.META.get('HTTP_X_FORWARDED_FOR'):
         ip = request.META.get("HTTP_X_FORWARDED_FOR")
+        proxy_ip = request.META.get("REMOTE_ADDR")
     else:
         ip = request.META.get("REMOTE_ADDR")
+    # 获取物理地址
+    try:
+        address = ip_address(ip)
+    except:
+        address = '获取失败'
     # 写入日志文件
-    content = f'{username} {ip}'
-    log_init().info(content)
-    return HttpResponse(f'用户名：{username} IP地址：{ip}')
+    log_init().info(f'{server_name} {ip} {address}')
+    return HttpResponse(ip)
+
+
+@retry(stop_max_attempt_number=5)
+def ip_address(ip):
+    """ip地址查询物理地址"""
+    url = f'http://api.map.baidu.com/location/ip?ak=VCyE5wE5Wmo19kgLodBkbt0n5obyji5j&ip={ip}&coor=bd09ll'
+    rsp = requests.get(url, timeout=10).text
+    content = json.loads(rsp)
+
+    # 请求状态 0有数据 1无数据
+    status = content['status']
+    if status:
+        return content['message']
+    address = content['content']['address']
+    return address
 
 
 def log_init():
