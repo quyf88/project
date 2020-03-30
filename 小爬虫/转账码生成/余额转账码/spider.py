@@ -183,10 +183,9 @@ class Spider:
 
     def run(self):
         content = self.read_txt()
-        # print(content)
+        print(content)
         # 跳转到转账页面
-        # 获取userid https://www.dedemao.com/alipay/authorize_demo.php
-        _url = f'https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=&userId={content[1]}&memo=这是备注'
+        _url = f'https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=1&userId={content[1]}&memo=这是备注'
         # 跳转到支付宝账户页面
         # alipay = 'gta4qb@163.com'
         # _url = f'https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D{content[1]}%26amount%3D%26memo%3D'
