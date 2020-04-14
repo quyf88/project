@@ -13,3 +13,7 @@
 -华林,https://dwz.cn/fQy5J9My,https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=1&userId=1977510462@qq.com&memo=这是备注
 -华林,https://dwz.cn/5BMsv7KP,https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=1&userId=2088832025838834&memo=这是备注
 -华林,https://dwz.cn/ATahWANr,https://www.alipay.com/?appId=09999988&actionType=toAccount&goBack=NO&amount=&userId=2088832025838834&memo=这是备注
+-测测,https://dwz.cn/ZBhKKiS2,https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D2540620279@qq.com%26amount%3D%26memo%3D
+-翠峰,https://dwz.cn/ZBhKKiS2,https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoAccount%26account%3D2540620279@qq.com%26amount%3D%26memo%3D
+-翠峰,https://dwz.cn/EDInuPKH,https://ds.alipay.com/?appId=20000123&actionType=scan&biz_data={"u":"2088732756841973","a":1,"m":"%E5%A4%87%E6%B3%A8%E4%BF%A1%E6%81%AF%3A%E9%87%91%E9%A2%9D%E4%B8%8D%E5%8F%AF%E6%94%B9%E5%8F%98"}
+-志明,https://dwz.cn/EDInuPKH,https://ds.alipay.com/?appId=20000123&actionType=scan&biz_data={"u":"2088732756841973","a":1,"m":"%E5%A4%87%E6%B3%A8%E4%BF%A1%E6%81%AF%3A%E9%87%91%E9%A2%9D%E4%B8%8D%E5%8F%AF%E6%94%B9%E5%8F%98"}
