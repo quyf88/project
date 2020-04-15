@@ -96,12 +96,17 @@ class Spider:
         """
         while True:
             # 把需要添加的域名拼接成url
-            url = f'https://ziyuan.baidu.com/site/siteadd?sites=https://{domain}#/'
+            url = f'https://ziyuan.baidu.com/site/siteadd?sites=http://{domain}#/'
             self.driver.get(url)
+            # 选择协议头
+            self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="protocolSelect"]/span'))).click()
+            self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="protocolSelect"]/div/div[1]'))).click()
             # 下一步
             next_step = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#site-add')))
             next_step.click()
-            # 打码            self.log.info('打码中...')
+
+            # 打码
+            self.log.info('打码中...')
             # 判断是否有弹窗验证
             time.sleep(2)  # 加2秒等待防止访问太快页面加载不出元素
             code = self.driver.find_elements_by_xpath('//div[@class="vcode-body"]/div[1]/div/div[2]/div[2]')
@@ -118,6 +123,13 @@ class Spider:
             time.sleep(1)
             next_attr = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#sub-attr')))
             next_attr.click()
+
+            # 判断是否有站点领域错误提示
+            time.sleep(2)
+            if self.driver.find_elements_by_xpath('//*[@id="dialog"]'):
+                self.driver.refresh()
+                self.wait.until(EC.presence_of_element_located((By.XPATH, '//label[@for="check2"]')))
+                self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#sub-attr'))).click()
 
             # 提交
             time.sleep(1.5)
@@ -141,8 +153,6 @@ class Spider:
         with open('验证码.jpg', 'wb') as f:
             f.write(response.content)
         rsp = self.code_api()
-        if not rsp:
-            return False
         point = rsp['point']  # 角度
         px = rsp['px']  # 距离
         # print(f'角度:{point}, 距离:{px}')
@@ -156,12 +166,12 @@ class Spider:
     def code_api(self):
         """调用打码接口获取图片角度"""
         files = {'file': ('img.jpg', open('验证码.jpg', 'rb'), 'image/jpeg', {})}
-        values = {'token': "5866ef7a9c779d6298dcdedc85c049a4"}
+        values = {'token': "75b5f07a07d552e7f9f9958ac63363d8"}
         r = requests.post('http://106.13.108.81:882/api/Baiduyz', files=files, data=values)
         rsp = json.loads(r.text)
         if '成功找到' not in rsp['msg']:
-            # print(rsp['msg'])
-            return
+            self.log.error(rsp['msg'])
+            sys.exit()
         return rsp
 
     def process_txt(self):
@@ -174,22 +184,32 @@ class Spider:
             if line.replace('\n', ''):
                 yield line.replace('\n', '')
 
+    def save_txt(self, domain, status=True):
+        """保存记录"""
+        if status:
+            filename = f'{PATH}/config/{datetime.now().strftime("%Y-%m-%d")}-成功.txt'
+        else:
+            filename = f'{PATH}/config/{datetime.now().strftime("%Y-%m-%d")}-失败.txt'
+
+        with open(filename, 'a+', encoding='utf-8') as f:
+            f.write(f'{domain}\n')
+
     def main(self):
         for domain in self.process_txt():
-            count = 0
             while True:
-                if count > 3:
-                    break
                 try:
                     self.add_main_site(domain)
                     self.log.info(f'主域名:{domain}添加成功!')
+                    self.save_txt(domain)
                     time.sleep(1)
                     break
                 except Exception as e:
-                    count += 1
+                    self.save_txt(domain, status=False)
                     self.log.error(f'主域名:{domain}添加失败重试')
                     self.log.error(e)
-                    continue
+                    self.log.error(e.__traceback__.tb_frame.f_globals["__file__"])  # 发生异常所在的文件
+                    self.log.error(e.__traceback__.tb_lineno)  # 发生异常所在的行数
+                    break
 
 
 if __name__ == '__main__':
