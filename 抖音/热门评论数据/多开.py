@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
-# 文件 ：spider.py
+# 文件 ：批量添加子站.py
 # IED ：PyCharm
 # 时间 ：2019/10/31 0031 13:25
 # 版本 ：V1.3
-# 抖音版本 ：10.6.0
+# 抖音版本 ：10.7.0
 import os
 import time
 import psutil
@@ -47,8 +47,8 @@ class Spider:
         # self.x = self.driver.get_window_size()['width']  # 宽
         # self.y = self.driver.get_window_size()['height']  # 长
         # print(self.x, self.y)
-        self.one = 'com.ss.android.ugc.aweme:id/a71'  # 评论数量ID
-        self.two = 'com.ss.android.ugc.aweme:id/dwg'  # 评论数据模块ID
+        self.one = 'com.ss.android.ugc.aweme:id/a6z'  # 评论数量ID
+        self.two = 'com.ss.android.ugc.aweme:id/dwf'  # 评论数据模块ID
 
     def slide(self):
         """
@@ -105,7 +105,7 @@ class Spider:
                         try:
                             con = WebDriverWait(self.driver, 5, 1, AttributeError).until(
                                 EC.presence_of_all_elements_located((By.XPATH,
-                                                                     '//android.support.v7.widget.RecyclerView [@resource-id="com.ss.android.ugc.aweme:id/dwg"]/android.widget.FrameLayout/android.widget.TextView')))
+                                                                     '//android.support.v7.widget.RecyclerView [@resource-id="com.ss.android.ugc.aweme:id/dwf"]/android.widget.FrameLayout/android.widget.TextView')))
                             # print(con, len(con))
                             if con:
                                 print('到达底部,切换下一个视频')
