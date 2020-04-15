@@ -21,3 +21,6 @@
 
 # nginx热加载
 # nginx -s reload
+
+# 查找文件
+# find / -name uwsgi
