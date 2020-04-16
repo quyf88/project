@@ -41,7 +41,8 @@ class Spider:
         headers = {"User-Agent": UserAgent().random}
         while True:
             try:
-                response = requests.get(url, headers=headers, timeout=300)
+                # allow_redirects关闭页面跳转
+                response = requests.get(url, headers=headers, allow_redirects=False, timeout=300)
             except Exception as e:
                 print(e)
                 continue
@@ -279,7 +280,12 @@ class Spider:
         # chrome_options.add_argument('--disable-dev-shm-usage')
         # chrome_options.add_argument('--headless')  # 不用打开图形界面
         # driver = webdriver.Chrome(chrome_options=chrome_options)
-        driver = webdriver.Chrome()
+        # windows 系统无头模式
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-gpu')
+        driver = webdriver.Chrome(chrome_options=chrome_options, keep_alive=False)
+        # driver = webdriver.Chrome()
         for fil in lists:
             print(f'提取：{fil}class混淆属性对应字体')
 
