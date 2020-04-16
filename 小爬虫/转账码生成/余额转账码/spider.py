@@ -4,7 +4,7 @@
 # @author: xxxx
 # @site: 
 # @software: PyCharm
-# @file: spider.py
+# @file: 批量添加子站.py
 # @time: 2019/9/3 13:01
 
 """
