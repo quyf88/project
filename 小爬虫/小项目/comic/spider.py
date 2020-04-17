@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2019/9/2 10:40
 # @Author  : project
-# @File    : spider.py
+# @File    : 批量添加子站.py
 # @Software: PyCharm
 import re
 import os
