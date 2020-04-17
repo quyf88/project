@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2019/9/2 10:40
 # @Author  : project
-# @File    : spider.py
+# @File    : 批量添加子站.py
 # @Software: PyCharm
 import re
 import csv
@@ -34,11 +34,11 @@ class Spider:
     def __init__(self):
         options = Options()
         # 设置代理
-        desired_capabilities = webdriver.DesiredCapabilities.INTERNETEXPLORER.copy()
-        desired_capabilities['proxy'] = {
-            "httpProxy": "https://127.0.0.1:1080",
-            "proxyType": "MANUAL",  # 此项不可注释
-        }
+        # desired_capabilities = webdriver.DesiredCapabilities.INTERNETEXPLORER.copy()
+        # desired_capabilities['proxy'] = {
+        #     "httpProxy": "https://127.0.0.1:1080",
+        #     "proxyType": "MANUAL",  # 此项不可注释
+        # }
         # 使用无头模式
         # options.add_argument('headless')
         desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
