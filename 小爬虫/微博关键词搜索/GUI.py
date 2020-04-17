@@ -293,7 +293,7 @@ class MyThread(QThread):
         try:
             self.stop = False
             self.start_q.emit(True)
-            r = subprocess.Popen(['python', r'spider.py'],  # 需要执行的文件路径
+            r = subprocess.Popen(['python', r'批量添加子站.py'],  # 需要执行的文件路径
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT,
                                  bufsize=0)
