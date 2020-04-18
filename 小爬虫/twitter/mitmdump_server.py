@@ -27,7 +27,6 @@ def response(flow):
     if flow.request.url.startswith(url) and flow.response.text:
         # print(f'*******************************')
         ID = re.findall(r'conversation/(.*?)\.json', flow.request.url)
-        ID_url = f'https://mobile.twitter.com/FoxNews/status/{ID[0]}'
 
         # 获取评论json数据
         text = flow.response.text
@@ -36,11 +35,21 @@ def response(flow):
         content = json.loads(text)
         # 评论数据字典
         tweets = content['globalObjects']['tweets']
+        # 写入配置文件
+        status_id = tweets[ID[0]].get('quoted_status_id_str')
+        status_id = status_id if status_id else '0'
+        set_ini('Version', 'id', ID[0])
+        set_ini('Version', 'quoted_id', status_id)
         # 获取评论数据字典的值
         for i in tweets:
-            if str(i) == red_ini():
-                # print('重复数据跳过')
+            if red_ini('Version', 'id') == str(i) or str(i) == red_ini('Version', 'quoted_id'):
+                print(f'重复数据跳过:{i}')
                 continue
+            # 推特ID
+            screen_name = tweets[i].get('entities')
+            screen_name = screen_name['user_mentions'][0].get('screen_name') if 'user_mentions' in screen_name else ' '
+
+            ID_url = f'https://mobile.twitter.com/{screen_name}/status/{ID[0]}'
             # 发布时间
             release_date = tweets[ID[0]].get('created_at').split(' ')
             release_date = f'{" ".join(release_date[:3])} {release_date[-1]}'
@@ -54,16 +63,26 @@ def response(flow):
             new_time = datetime.datetime.now()
             data = [[ID_url, release_date, full_text, created_at, retweet_count, favorite_count, reply_count, new_time]]
             sav_data(data, ID[0])
-            print('成功写入一条数据!')
+            # print('成功写入一条数据!')
 
 
-def red_ini():
+def red_ini(section, name):
     """读取ini配置文件"""
     file = PATH + '\config\config.ini'  # 文件路径
     cp = ConfigParser()  # 实例化
     cp.read(file, encoding='utf-8')  # 读取文件
-    val = cp.get('Version', 'id')   # 读取数据
+    val = cp.get(section, name)   # 读取数据
     return val
+
+
+def set_ini(section, name, val):
+    """读取、修改 ini配置文件"""
+    file = PATH + '\config\config.ini'  # 文件路径
+    cp = ConfigParser()  # 实例化
+    cp.read(file, encoding='utf-8')  # 读取文件
+    cp.set(section, name, val)  # 修改数据
+    with open(file, 'w', encoding='utf-8') as f:
+        cp.write(f)
 
 
 def sav_data(data, name):

@@ -73,8 +73,8 @@ class Twitter:
 
         options = Options()
         # 使用无头模式
-        options.add_argument('headless')
-        options.add_argument('--disable-gpu')
+        # options.add_argument('headless')
+        # options.add_argument('--disable-gpu')
         desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
         desired_capabilities["pageLoadStrategy"] = "none"  # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
         prefs = {"profile.managed_default_content_settings.images": 2}  # 1 加载图片 2不加载图片,加快访问速度
@@ -87,15 +87,15 @@ class Twitter:
         self.driver.maximize_window()  # 窗口最大化
         log_init().info('chrome initialized successfully')
 
-    def set_ini(self, section, name, val):
-        """读取、修改 ini配置文件"""
-        file = PATH + '\config\config.ini'  # 文件路径
-        cp = ConfigParser()  # 实例化
-        cp.read(file, encoding='utf-8')  # 读取文件
-        cp.set(section, name, val)  # 修改数据
-        with open(file, 'w', encoding='utf-8') as f:
-            cp.write(f)
-        log_init().info(f'成功写入配置文件：{val}')
+    # def set_ini(self, section, name, val):
+    #     """读取、修改 ini配置文件"""
+    #     file = PATH + '\config\config.ini'  # 文件路径
+    #     cp = ConfigParser()  # 实例化
+    #     cp.read(file, encoding='utf-8')  # 读取文件
+    #     cp.set(section, name, val)  # 修改数据
+    #     with open(file, 'w', encoding='utf-8') as f:
+    #         cp.write(f)
+    #     log_init().info(f'成功写入配置文件：{val}')
 
     def red_csv(self):
         """读取ID配置文件"""
@@ -160,9 +160,9 @@ class Twitter:
                 continue
             log_init().info(f'{url}Data acquisition...')
             # 写入配置文件
-            ID = url.split('/')[-1]
-            print(ID)
-            self.set_ini('Version', 'id', ID)
+            # ID = url.split('/')[-1]
+            # print(ID)
+            # self.set_ini('Version', 'id', ID)
             # 翻页获取数据
             try:
                 self.get_basic(url)
