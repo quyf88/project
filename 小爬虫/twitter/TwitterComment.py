@@ -11,8 +11,9 @@ import time
 import logging
 import datetime
 from configparser import ConfigParser
-
+from selenium.webdriver.common.by import By
 from selenium import webdriver
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -65,11 +66,11 @@ def log_init():
 class Twitter:
     def __init__(self):
         log_init().info('Program start')
-        log_init().info('init chrome')
+        log_init().info('chrome start')
 
         # 开启mitmdump
-        self.monitor = Monitor()
-        self.monitor.run()
+        # self.monitor = Monitor()
+        # self.monitor.run()
 
         options = Options()
         # 使用无头模式
@@ -127,11 +128,11 @@ class Twitter:
         while True:
             count = 0
             self.driver.get(url)
-            if url not in self.driver.current_url:
-                continue
+            # if url not in self.driver.current_url:
+            #     continue
             while True:
                 log_init().info('Data acquisition...')
-                if count > 10:
+                if count > 30:
                     return
                 Height = self.driver.execute_script("return document.body.scrollHeight;")
                 # 获取body的高度，滑到底部
@@ -141,8 +142,11 @@ class Twitter:
                 # 判断是否到达底部
                 page_source = self.driver.page_source
                 if'显示更多回复' in page_source or 'Show more replies' in page_source:
-                    # print('没有更多数据')
-                    return
+                    more = self.driver.find_elements_by_xpath('//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div/div/section/div/div/div/div/div/div/div/div/span')
+                    if not more:
+                        return
+                    more[0].click()
+                    time.sleep(3)
                 new_Height = self.driver.execute_script("return document.body.scrollHeight;")
                 if new_Height == Height:
                     count += 1
@@ -158,7 +162,7 @@ class Twitter:
             if self.keep_records(url, vali=True):
                 print(f'{url} jump over!')
                 continue
-            log_init().info(f'{url}Data acquisition...')
+            log_init().info(f'{url} Data acquisition...')
             # 写入配置文件
             # ID = url.split('/')[-1]
             # print(ID)
@@ -175,9 +179,9 @@ class Twitter:
             self.keep_records(url)
             log_init().info('Save acquisition records')
 
-        self.driver.quit()
+        # self.driver.quit()
         # 关闭mitmduimp
-        self.monitor.kill()
+        # self.monitor.kill()
 
 
 class Monitor:

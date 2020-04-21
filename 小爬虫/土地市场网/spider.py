@@ -181,6 +181,6 @@ class Spider:
 if __name__ == '__main__':
     spider = Spider()
     # 获取数据
-    spider.run()
+    # spider.run()
     # 获取url
-    # spider.get_code()
+    spider.get_code()
