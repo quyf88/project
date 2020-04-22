@@ -11,7 +11,7 @@ import threading
 
 def say_hello(num):
     print("启动第[{}]个程序!".format(num))
-    os.system('python server{}/spider.py'.format(num))
+    os.system('python server{}/批量添加子站.py'.format(num))
 
 
 def main():

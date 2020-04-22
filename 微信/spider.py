@@ -1,6 +1,6 @@
 # coding=utf-8
 # 作者    ： Administrator
-# 文件    ：spider.py
+# 文件    ：批量添加子站.py
 # IED    ：PyCharm
 # 创建时间 ：2019/8/23 19:30
 import os
