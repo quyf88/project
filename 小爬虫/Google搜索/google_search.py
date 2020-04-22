@@ -105,21 +105,27 @@ class GoogleSearch:
 
     def captcha_api(self, data_sitekey, page_url):
         """打码"""
-        api_key = "26899b9d5e27d0328567700e3023e679"
+        # api_key = "26899b9d5e27d0328567700e3023e679"
+        api_key = "b53dee5c62edccdef409f63c0bb0d27f"
         # key=打码平台秘钥，googlekey=页面data_sitekey，pageurl=当前页面url
         u1 = f"https://2captcha.com/in.php?key={api_key}&method=userrecaptcha&googlekey={data_sitekey}&pageurl={page_url}&json=1&invisible=1"
         r1 = requests.get(u1)
         # print(r1.json())
         rid = r1.json().get("request")
         u2 = f"https://2captcha.com/res.php?key={api_key}&action=get&id={int(rid)}&json=1"
-        log_init().info(f'打码中...等待20-30秒')
+        log_init().info(f'人机验证识别...等待20-30秒')
         time.sleep(25)
+        count = 0
         while True:
+            if count > 3:
+                log_init().error('人机识别打码失败,请检查网络状态或打码平台余额是否充足!')
+                return
             r2 = requests.get(u2)
             # print(r2.json())
             if r2.json().get("status") == 1:
                 form_tokon = r2.json().get("request")
                 break
+            count += 1
             time.sleep(5)
         log_init().info('成功获取人机识别码')
         # 提交打码结果
@@ -155,7 +161,9 @@ class GoogleSearch:
             res_url = html.xpath('//div/div[1]/a/@href')  # 文章url
             b = date[0].replace('年', ' ').replace('月', ' ').replace('日', ' ').replace('-', '')
             c = [i for i in b.split(' ') if i]
-            c = f'{c[1] c[2] c[0]}'
+            if len(c) < 3:
+                continue
+            c = f'{c[1]} {c[2]} {c[0]}'
             self.sav_data([[c, res_url[0]]], int(num))
         return True
 

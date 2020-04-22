@@ -1,0 +1,42 @@
+# 谷歌搜索项目
+
+谷歌浏览器带引号检索一条新闻内容，爬取结果数（图中的503）、所有结果的网址和发布日期，每一条新闻爬取结果保存到一个csv文件中
+
+问题答复： 1.“约” ，不用摘取浏览器显示的结果数，直接爬去所有网址之后count ；2. IP地址位置定为美国 ； 3.对于点进去都没有日期的数据直接舍弃
+
+# 显示全部结果
+https://www.google.com/search?q=%E5%93%88%E5%93%88&filter=0&biw=1366&bih=657&start=200
+
+url xpath
+//*[@id="rso"]/div/div/div/a/@href
+
+date xpath
+//*[@id="rso"]/div/div/div/div/span/span
+
+model xpath
+//*[@id="rso"]/div
+
+# 人机验证
+//div[id="recaptcha"]
+
+
+
+
+# 谷歌人机打码
+https://2captcha.com
+# 账号注册 充值
+https://www.yinwenseo.com/2captcha/
+# python 脚本
+https://www.cnblogs.com/HeavyShield/p/12291557.html
+
+
+https://2captcha.com/in.php?key=1abc234de56fab7c89012d34e56fa7b8&method=userrecaptcha&googlekey=6Le-wvkSVVABCPBMRTvw0Q4Muexq1bi0DJwx_mJ-&pageurl=http://mysite.com/page/with/recaptcha
+
+
+
+
+
+
+**************
+明天待办:
+百度短链充值  2020-05-16到期
