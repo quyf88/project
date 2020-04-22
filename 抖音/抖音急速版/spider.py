@@ -3,7 +3,7 @@
 # IED ：PyCharm
 # 时间 ：2019/10/31 0031 13:25
 # 版本 ：V1.3
-# 抖音版本 ：10.8.0
+# 抖音版本 ：10.7.0
 import os
 import time
 import psutil
@@ -16,8 +16,8 @@ from appium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+# from script import Monitor
 
-from script import Monitor
 """
 Appium adb 获取真实appActivity
 https://blog.csdn.net/qq_38154948/article/details/90408056
@@ -48,16 +48,16 @@ class Spider:
         # self.x = self.driver.get_window_size()['width']  # 宽
         # self.y = self.driver.get_window_size()['height']  # 长
         # print(self.x, self.y)
-        self.one = 'com.ss.android.ugc.aweme:id/a7h'  # 评论数量ID
-        self.two = 'com.ss.android.ugc.aweme:id/e06'  # 评论数据模块ID
+        self.one = 'com.ss.android.ugc.aweme.lite:id/pp'  # 评论数量ID
+        self.two = 'com.ss.android.ugc.aweme.lite:id/bhn'  # 评论数据模块ID
 
     def slide(self):
         """
         滑动
         :return:
         """
-        while True:           
-            print('定位评论按钮')            
+        while True:
+            print('定位评论按钮')
             comment = self.wait.until(EC.presence_of_element_located((By.ID, self.one)))
             comment_num = comment.text
             if '评论' in comment_num:
@@ -87,15 +87,16 @@ class Spider:
                     time.sleep(1.5)
                     self.driver.keyevent(4)
                     time.sleep(1.5)
-                    # 同一个视频重试三次失败切换下一个视频
+                    # 同一个视频重试三次失败主动抛出异常重启程序
                     if cou > 2:
                         print('评论数据刷新失败重启!')
-                        time.sleep(60)
                         print('刷新数据失败，等待60秒重启!')
+                        time.sleep(60)
                         raise print('主动抛出异常重启!')
                     comment.click()
-                    cou += 1                    
+                    cou += 1
                     continue
+
                 num = 200 if comment_num > 200 else 100
                 for i in range(comment_num):
                     # print(f'刷新第：{i}次')
@@ -103,8 +104,9 @@ class Spider:
                     if not (i + 1) % num:
                         print('判断是否到达底部')
                         try:
-                            con = WebDriverWait(self.driver, 5, 1, AttributeError).until(EC.presence_of_all_elements_located((By.XPATH,
-                                    '//android.support.v7.widget.RecyclerView [@resource-id="com.ss.android.ugc.aweme:id/e06"]/android.widget.FrameLayout/android.widget.TextView')))
+                            con = WebDriverWait(self.driver, 5, 1, AttributeError).until(
+                                EC.presence_of_all_elements_located((By.XPATH,
+                                                                     '//android.support.v7.widget.RecyclerView [@resource-id="com.ss.android.ugc.aweme.lite:id/bhn"]/android.widget.FrameLayout/android.widget.TextView')))
                             # print(con, len(con))
                             if con:
                                 print('到达底部,切换下一个视频')
@@ -118,7 +120,7 @@ class Spider:
                     #     self.driver.swipe(200, 1400, 200, 1600, 500)
                     #     time.sleep(0.5)
                     #     continue
-                   
+
                     # 根据时间选择退出刷新当前视频
                     # new_time = (datetime.datetime.now()+datetime.timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
                     # print(new_time)
@@ -127,8 +129,8 @@ class Spider:
                     # if new_time < start_time:
                     #     print('超时退出')
                     #     break
-                    self.driver.swipe(200, 1700, 200, 800, 400)
-                    
+                    self.driver.swipe(200, 1700, 200, 800, 600)
+
                 # 下一个视频
                 self.driver.keyevent(4)
                 time.sleep(2)
@@ -160,7 +162,7 @@ def proxy():
 
 
 def adb_devices():
-    """读取设备列表"""   
+    """读取设备列表"""
     get_cmd = "adb devices"  # 查询连接设备列表
     count = 0
     try:
@@ -178,13 +180,19 @@ def adb_devices():
             # 分割多条信息为列表
             output = output.decode().replace('\r', '').split('\n')
             # 剔除列表中空字符串
-            output = list(filter(None, output))            
-            print(output)            
-            if len(output) < 2:
+            output = list(filter(None, output))
+            print(output)
+            if len(output) < 1:
                 print("读取设备信息失败,自动重启中...")
                 count += 1
-                os.popen('adb connect 127.0.0.1:21503')
-                time.sleep(1)
+                # os.popen('adb connect 127.0.0.1:21503')
+                # time.sleep(1)
+                # os.popen('adb connect 127.0.0.1:21513')
+                # time.sleep(1)
+                # os.popen('adb connect 127.0.0.1:21523')
+                # time.sleep(1)
+                # os.popen('adb connect 127.0.0.1:21533')
+                # time.sleep(1)
                 continue
             # 连接设备列表
             devices = [i.split('\t') for i in output[1:]]
@@ -195,28 +203,31 @@ def adb_devices():
             return success
     except:
         print('读取设备信息失败,请检查设备是否成功启动!')
-        os.popen('adb connect 127.0.0.1:21503')
-        time.sleep(1)
+        # os.popen('adb connect 127.0.0.1:21503')
+        # time.sleep(1)
+        # os.popen('adb connect 127.0.0.1:21513')
+        # time.sleep(1)
+        # os.popen('adb connect 127.0.0.1:21523')
+        # time.sleep(1)
+        # os.popen('adb connect 127.0.0.1:21533')
+        # time.sleep(1)
 
 
 @run_time
 def main(udid, port):
     while True:
-        # 启动脚本程序
-        monitor = Monitor()
-        monitor.run()
         try:
             spider = Spider()
             print(f'**********程序[{udid}]启动中**********')
             desired_caps = {
-                "automationName": "Uiautomator1",
+                "automationName": "Uiautomator1",  # 引擎错误时添加此项 uiautomator2ServerLaunchTimeout'
                 "platformName": "Android",
                 "deviceName": udid,
-                "adbExecTimeout": "100000",
-                "appPackage": "com.ss.android.ugc.aweme",
-                "appActivity": ".splash.SplashActivity",
+                "adbExecTimeout": "100000",  # adb指令超时时间，默认是20000毫秒
+                "appPackage": "com.ss.android.ugc.aweme.lite",
+                "appActivity": "com.ss.android.ugc.aweme.main.MainActivity",
                 "udid": udid,  # 根据模拟器名称启动
-                "noReset": True
+                "noReset": True  # 默认保留登录状态
             }
             driver_server = 'http://127.0.0.1:{}/wd/hub'.format(port)
             # 启动APP
@@ -225,6 +236,9 @@ def main(udid, port):
             spider.wait = WebDriverWait(spider.driver, 60, 1)
             spider.slide()
         except Exception as e:
+            # 重启mitmdump服务
+            # monitor = Monitor()
+            # monitor.switch_mitmdump()
             continue
 
 
@@ -279,7 +293,9 @@ if __name__ == '__main__':
     proxy()
     # 读取连接设备
     success = adb_devices()
-    # 启动程序
+    # 启动脚本程序
+    # monitor = Monitor()
+    # monitor.run()
     port = 4723
     for i in success:
         s = threading.Thread(target=main, args=(i, port))
