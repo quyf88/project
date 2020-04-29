@@ -204,6 +204,7 @@ class Spider:
 
         # 百度长链接转换短链接
         short_link = self.get_url(_url)
+        # short_link = 'http://mrw.so/4BH9yz '
         print(f'百度短链：{short_link}')
 
         # 缩短网址 http://mrw.so/api.html

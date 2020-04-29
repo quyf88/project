@@ -5,6 +5,8 @@
 # 版本 ：V1.0
 import csv
 import os, sys, time, logging, datetime, random
+from configparser import ConfigParser
+
 import requests
 from lxml import etree
 from urllib.parse import quote_plus
@@ -155,15 +157,20 @@ class GoogleSearch:
         for result in results:
             html = etree.HTML(result.get_attribute('innerHTML'))
             date = html.xpath('//div/div/div/span/span/text()')  # 文章发布时间
-            if not date:
-                log_init().info('不符合条件跳过')
+            res_url = html.xpath('//div[@class="r"]/a/@href')  # 文章url
+            if not res_url:
                 continue
-            res_url = html.xpath('//div/div[1]/a/@href')  # 文章url
-            b = date[0].replace('年', ' ').replace('月', ' ').replace('日', ' ').replace('-', '')
-            c = [i for i in b.split(' ') if i]
-            if len(c) < 3:
-                continue
-            c = f'{c[1]} {c[2]} {c[0]}'
+            if date:
+                # log_init().info('不符合条件跳过')
+                # continue
+                b = date[0].replace('年', ' ').replace('月', ' ').replace('日', ' ').replace('-', '')
+                c = [i for i in b.split(' ') if i]
+                if len(c) < 3:
+                    c = 'None'
+                else:
+                    c = f'{c[1]} {c[2]} {c[0]}'
+            else:
+                c = 'None'
             self.sav_data([[c, res_url[0]]], int(num))
         return True
 
