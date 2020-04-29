@@ -1,11 +1,38 @@
-# 谷歌搜索项目
-
-谷歌浏览器带引号检索一条新闻内容，爬取结果数（图中的503）、所有结果的网址和发布日期，每一条新闻爬取结果保存到一个csv文件中
-
-
+***********
+待办:
+百度短链充值  2020-05-16到期
 
 
+# 域名备案查询
 
-**************
-明天待办:
-百度短链充值
+
+# 汽车之家数据不全待处理
+
+
+
+
+***************
+支付宝 信用卡 自动填写
+
+
+alipays://platformapi/startapp?appId=77700152&page=pages/card-creation/index?
+
+/index.html#pages/card-home/index
+
+com.eg.android.AlipayGphone
+.AlipayLogin
+
+
+alipays://platformapi/startapp?appId=09999999 信用卡页面
+
+
+
+https://ds.alipay.com/?from=mobilecodec&scheme=alipays%3A%2F%2Fplatformapi%2Fstartapp%3FappId%3D20000200%26actionType%3DtoCard
+
+https://ds.alipay.com/?from=mobilecodec&scheme=alipays://platformapi/startapp?appId=20000200&actionType=toCard&sourceId=bill&cardNo=6228480848862792670&bankAccount=田桂瑞
+&money=99999&amount=&bankMark=ABC&bankName=招商银行&cardNoHidden=true&cardChannel=HISTORY_CARD&orderSource=from
+
+
+
+
+# APPIUM 测试一下看看
