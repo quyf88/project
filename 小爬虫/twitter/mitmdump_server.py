@@ -22,9 +22,14 @@ FILE_NAME = f'{PATH}/config/{datetime.datetime.now().strftime("%Y-%m-%d")}.csv'
 
 
 def response(flow):
-    url = 'https://api.twitter.com/2/timeline/conversation/'
+    # 评论数据接口
+    url_1 = 'https://api.twitter.com/2/timeline/conversation/'
+    # 转推数据接口
+    url_2 = 'https://api.twitter.com/2/timeline/retweeted_by.json?'
+    # 个人主页接口
+    url_3 = 'https://api.twitter.com/2/timeline/profile/'
     # 过滤接口和数据
-    if flow.request.url.startswith(url) and flow.response.text:
+    if flow.request.url.startswith(url_1) and flow.response.text:
         # print(f'*******************************')
         ID = re.findall(r'conversation/(.*?)\.json', flow.request.url)
 
@@ -58,12 +63,55 @@ def response(flow):
             full_text = tweets[i].get('full_text')  # 内容
             full_text = str(full_text).replace('\n', '')
             retweet_count = tweets[i].get('retweet_count')  # 回复数量
-            favorite_count = tweets[i].get('favorite_count')  # 转发数
+            # favorite_count = tweets[i].get('favorite_count')  # 转发信息
+            favorite_count = f'{ID[0]}转发数据.csv'  # 转发数据
             reply_count = tweets[i].get('favorite_count')  # 点赞数
             new_time = datetime.datetime.now()
             data = [[ID_url, release_date, full_text, created_at, retweet_count, favorite_count, reply_count, new_time]]
             sav_data(data, ID[0])
             # print('成功写入一条数据!')
+
+    # 过滤转推数据
+    if flow.request.url.startswith(url_2) and flow.response.text:
+        print(f'*************过滤转推数据******************')
+        # 获取评论json数据
+        text = flow.response.text
+        # print(f'抓到的包：{text}')
+        # 将已编码的json字符串解码为python对象
+        content = json.loads(text)
+        # 转推数据
+        users = content['globalObjects']['users']
+        with open(f'{PATH}/config/转推账户信息.txt', 'a+', encoding='utf-8') as f:
+            for i in users:
+                screen_name = users[i].get('screen_name')
+                f.write(screen_name)
+                f.write('\n')
+
+    # 过滤个人信息数据 抓取转推时间
+    if flow.request.url.startswith(url_3) and flow.response.text:
+        print(f'************过滤个人信息数据*******************')
+        # 获取评论json数据
+        text = flow.response.text
+        # print(f'抓到的包：{text}')
+        # 将已编码的json字符串解码为python对象
+        content = json.loads(text)
+        tweets = content['globalObjects']['tweets']
+        for i in tweets:
+            # 被转推ID
+            retweeted_status_id = tweets[i].get('retweeted_status_id_str')
+            if red_ini('Version', 'id') != retweeted_status_id:
+                print('跳过')
+                continue
+            # 转推者ID
+            user_id = tweets[i].get('user_id_str')
+            # 转推时间
+            retweete_time = tweets[i].get('created_at')
+            data = [[retweeted_status_id, user_id, retweete_time]]
+            # 保存
+            sav_retweete_time(data, retweeted_status_id)
+            print('成功写入数据')
+            # 被转推ID写入配置文件 效验是否已获取转推时间用
+            set_ini('Version', 'retweete_time', retweeted_status_id)
 
 
 def red_ini(section, name):
@@ -100,7 +148,28 @@ def sav_data(data, name):
             reader = csv.reader(f1)
             if not [row for row in reader]:
                 k.writerow(
-                    ['Twitter ID', '发布日期', '评论', '评论时间', '回复数', '转发数', '点赞数', '获取数据时间'])
+                    ['Twitter ID', '发布日期', '评论', '评论时间', '回复数', '转发数据文件', '点赞数', '获取数据时间'])
+                k.writerows(data)
+            else:
+                k.writerows(data)
+
+
+def sav_retweete_time(data, name):
+    """
+    保存数据
+    :return:
+    """
+    path = PATH + r'/数据'  # 数据保存路径
+    if not os.path.exists(path):
+        os.mkdir(path)
+    FILE_NAME = f'{path}/{name}转发数据.csv'
+    with open(FILE_NAME, "a+", encoding='UTF-8', newline="") as f:
+        k = csv.writer(f, delimiter=',')
+        with open(FILE_NAME, "r", encoding='UTF-8', newline="") as f1:
+            reader = csv.reader(f1)
+            if not [row for row in reader]:
+                k.writerow(
+                    ['Twitter ID', '转推ID', '转推时间'])
                 k.writerows(data)
             else:
                 k.writerows(data)

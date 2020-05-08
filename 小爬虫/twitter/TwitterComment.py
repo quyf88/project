@@ -69,8 +69,8 @@ class Twitter:
         log_init().info('chrome start')
 
         # 开启mitmdump
-        # self.monitor = Monitor()
-        # self.monitor.run()
+        self.monitor = Monitor()
+        self.monitor.run()
 
         options = Options()
         # 使用无头模式
@@ -78,7 +78,7 @@ class Twitter:
         # options.add_argument('--disable-gpu')
         desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
         desired_capabilities["pageLoadStrategy"] = "none"  # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
-        prefs = {"profile.managed_default_content_settings.images": 2}  # 1 加载图片 2不加载图片,加快访问速度
+        prefs = {"profile.managed_default_content_settings.images": 1}  # 1 加载图片 2不加载图片,加快访问速度
         options.add_experimental_option("prefs", prefs)
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
@@ -88,15 +88,33 @@ class Twitter:
         self.driver.maximize_window()  # 窗口最大化
         log_init().info('chrome initialized successfully')
 
-    # def set_ini(self, section, name, val):
-    #     """读取、修改 ini配置文件"""
-    #     file = PATH + '\config\config.ini'  # 文件路径
-    #     cp = ConfigParser()  # 实例化
-    #     cp.read(file, encoding='utf-8')  # 读取文件
-    #     cp.set(section, name, val)  # 修改数据
-    #     with open(file, 'w', encoding='utf-8') as f:
-    #         cp.write(f)
-    #     log_init().info(f'成功写入配置文件：{val}')
+    def login(self):
+        """登录账号"""
+        self.driver.get('https://twitter.com/login')
+        input('登录账号：登录成功后按ENTER继续运行')
+        if 'twitter.com/login' not in self.driver.current_url:
+            log_init().info("登录成功")
+        else:
+            # log_init().info("等待扫码中...")
+            # time.sleep(5)
+            log_init().info("登录失败")
+
+    def red_ini(self, section, name):
+        """读取ini配置文件"""
+        file = PATH + '\config\config.ini'  # 文件路径
+        cp = ConfigParser()  # 实例化
+        cp.read(file, encoding='utf-8')  # 读取文件
+        val = cp.get(section, name)  # 读取数据
+        return val
+
+    def set_ini(self, section, name, val):
+        """读取、修改 ini配置文件"""
+        file = PATH + '\config\config.ini'  # 文件路径
+        cp = ConfigParser()  # 实例化
+        cp.read(file, encoding='utf-8')  # 读取文件
+        cp.set(section, name, val)  # 修改数据
+        with open(file, 'w', encoding='utf-8') as f:
+            cp.write(f)
 
     def red_csv(self):
         """读取ID配置文件"""
@@ -125,15 +143,65 @@ class Twitter:
                 f.write('\n')
 
     def get_basic(self, url):
+        """获取评论数据"""
+        count = 0
+        self.driver.get(url)
+        time.sleep(5)
         while True:
-            count = 0
-            self.driver.get(url)
-            # if url not in self.driver.current_url:
-            #     continue
-            while True:
-                log_init().info('Data acquisition...')
-                if count > 30:
+            log_init().info('Data acquisition...')
+            if count > 5:
+                return
+            Height = self.driver.execute_script("return document.body.scrollHeight;")
+            # 获取body的高度，滑到底部
+            scroll = "window.scrollTo(0,document.body.scrollHeight)"
+            self.driver.execute_script(scroll)
+            time.sleep(2)
+            # 判断是否到达底部
+            page_source = self.driver.page_source
+            if '显示更多回复' in page_source or 'Show more replies' in page_source:
+                more = self.driver.find_elements_by_xpath(
+                    '//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div/div/section/div/div/div/div/div/div/div/div/span')
+                if not more:
                     return
+                more[0].click()
+                time.sleep(3)
+            new_Height = self.driver.execute_script("return document.body.scrollHeight;")
+            if new_Height == Height:
+                count += 1
+            else:
+                count = 0
+            # print(count)
+
+    def retweeted_status(self, url):
+        """获取转推日期数据"""
+        url = f'{url}/retweets'
+        self.driver.get(url)
+        log_init().info('转推用户信息数据加载中')
+        while True:
+            if self.driver.find_elements_by_xpath('//*[@aria-label="时间线：转推者"]'):
+                break
+            if self.driver.find_elements_by_xpath(
+                    '//*[@id="react-root"]/div/div/div[1]/div[2]/div/div/div/div[2]/div[2]/div/div[2]/div/div/div/div/span'):
+                break
+
+        # 是否有转推信息
+        with open(f'{PATH}/config/转推账户信息.txt', 'r', encoding='utf-8') as f:
+            retweeted = [i.replace('\n', '') for i in f.readlines()]
+            log_init().info(retweeted)
+            if not retweeted:
+                return
+        for retw in retweeted:
+            self.driver.get(f'https://twitter.com/{retw}')
+            log_init().info(f'开始获取：https://twitter.com/{retw}')
+            count = 0
+            while True:
+                log_init().info('数据匹配中...')
+                if count > 10:
+                    log_init().info(f'https://twitter.com/{retw} 没有匹配到转推信息')
+                    break
+                if self.red_ini('Version', 'id') == self.red_ini('Version', 'retweete_time'):
+                    log_init().info(f'https://twitter.com/{retw} 成功抓取转推时间！')
+                    break
                 Height = self.driver.execute_script("return document.body.scrollHeight;")
                 # 获取body的高度，滑到底部
                 scroll = "window.scrollTo(0,document.body.scrollHeight)"
@@ -141,10 +209,11 @@ class Twitter:
                 time.sleep(2)
                 # 判断是否到达底部
                 page_source = self.driver.page_source
-                if'显示更多回复' in page_source or 'Show more replies' in page_source:
-                    more = self.driver.find_elements_by_xpath('//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div/div/section/div/div/div/div/div/div/div/div/span')
+                if '显示更多回复' in page_source or 'Show more replies' in page_source:
+                    more = self.driver.find_elements_by_xpath(
+                        '//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div/div/section/div/div/div/div/div/div/div/div/span')
                     if not more:
-                        return
+                        break
                     more[0].click()
                     time.sleep(3)
                 new_Height = self.driver.execute_script("return document.body.scrollHeight;")
@@ -152,10 +221,14 @@ class Twitter:
                     count += 1
                 else:
                     count = 0
-                # print(count)
+            # 修改配置文件
+            self.set_ini('Version', 'retweete_time', '0')
+        # 删除转推账户信息
+        os.remove('config/转推账户信息.txt')
 
     @run_time
     def main(self):
+        self.login()
         log_init().info('Read ID data files...')
         for url in self.red_csv():
             # 判断是否获取过
@@ -163,25 +236,24 @@ class Twitter:
                 print(f'{url} jump over!')
                 continue
             log_init().info(f'{url} Data acquisition...')
-            # 写入配置文件
-            # ID = url.split('/')[-1]
-            # print(ID)
-            # self.set_ini('Version', 'id', ID)
+
             # 翻页获取数据
             try:
                 self.get_basic(url)
             except Exception as e:
                 log_init().error(e)
                 continue
+            print('获取转推数据')
+            self.retweeted_status(url)
             log_init().info(f'{url}Data acquisition completed!')
 
             # 写入获取记录
             self.keep_records(url)
             log_init().info('Save acquisition records')
 
-        # self.driver.quit()
+        self.driver.quit()
         # 关闭mitmduimp
-        # self.monitor.kill()
+        self.monitor.kill()
 
 
 class Monitor:
@@ -211,7 +283,7 @@ class Monitor:
         os.system(mitmdump)
         os.system(cmd)
         log_init().info('Start mitmdump Server')
-        os.system('start /min mitmdump --mode upstream:https://127.0.0.1:1080 -s mitmdump_server.py')
+        os.system('start /min mitmdump --mode upstream:https://127.0.0.1:8080 -s mitmdump_server.py')
         time.sleep(5)
         if not self.net_is_used(8080):
             log_init().info('mitmdump Service failed to start!')
@@ -229,6 +301,15 @@ class Monitor:
         self.switch_mitmdump()
 
 
+def version():
+    # 版本号
+    print('*' * 20)
+    print('脚本启动')
+    print(f'selenium: {webdriver.__version__}')
+    print('*' * 20)
+
+
 if __name__ == '__main__':
+    version()
     twitter = Twitter()
     twitter.main()
