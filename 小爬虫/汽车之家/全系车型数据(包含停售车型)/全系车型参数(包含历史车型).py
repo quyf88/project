@@ -7,11 +7,11 @@ import os
 import re
 import bs4
 import json
-import xlwt
 import time
 import shutil
 import datetime
 import requests
+import xlsxwriter
 from lxml import etree
 from retrying import retry
 from selenium import webdriver
@@ -415,12 +415,20 @@ class Spider:
                   '车内PM2.5过滤装置': 235, '负离子发生器': 236, '车内香氛装置': 237, '车载冰箱': 238, '面部识别': 239,
                   'OTA升级': 240, '四驱形式': 241, '后排车门开启方式': 242, '货箱尺寸(mm)': 243, '中央差速器结构': 244, '实测快充时间(小时)': 245,
                   '实测慢充时间(小时)': 246, '电动机': 247, '最大载重质量(kg)': 248, '工信部续航里程(km)': 249, '品牌ID': 250, '品牌名称': 251, '车系ID': 252,
-                  '车系名称': 253, '车型ID': 254,
+                  '车系名称': 253, '车型ID': 254, '选装包': 255, '外观颜色': 256, '内饰颜色': 257
                   }
         rootPath = "5-文字替换后json/"
+        # xlwt 创建文件
+        # import xlwt
+        # workbook = xlwt.Workbook(encoding='ascii')  # 创建一个文件
+        # worksheet = workbook.add_sheet('全系车型参数(包含历史车型)')  # 创建一个表
+        # workbook.save('Mybook.xls')
+        workbook = xlsxwriter.Workbook('Mybook.xls')
+        workfomat = workbook.add_format()
+        workfomat.set_align('left')
+        workfomat.set_bold(5)
 
-        workbook = xlwt.Workbook(encoding='ascii')  # 创建一个文件
-        worksheet = workbook.add_sheet('全系车型参数(包含历史车型)')  # 创建一个表
+        worksheet = workbook.add_worksheet('全系车型参数(包含历史车型)')
         files = os.listdir(rootPath)
         for file in files:
             # 写入文件头
@@ -462,13 +470,13 @@ class Spider:
                     # 解析基本参数配置参数，颜色三种参数，其他参数
                     config = "var config = (.*?);"
                     option = "var option = (.*?)};"
-                    # bag = "var bag = (.*?);"
+                    bag = "var bag = (.*?);"
                     color = "var color = (.*?);"
                     innerColor = "var innerColor =(.*?);"
 
                     configRe = re.findall(config, text)
                     optionRe = re.findall(option, text)
-                    # bagRe = re.findall(bag, text)
+                    bagRe = re.findall(bag, text)
                     colorRe = re.findall(color, text)
                     innerColorRe = re.findall(innerColor, text)
 
@@ -476,22 +484,23 @@ class Spider:
                         config = a
                     for b in optionRe:
                         option = b
-                    # for c in bagRe:
-                    #     bag = c
+                    for c in bagRe:
+                        bag = c
                     for d in colorRe:
                         color = d
                     for e in innerColorRe:
                         innerColor = e
                     config = json.loads(config)
                     option = json.loads(option + '}')
-                    # bag = json.loads(bag)
-                    # color = json.loads(color)
-                    # innerColor = json.loads(innerColor)
+                    bag = json.loads(bag)
+                    color = json.loads(color)
+                    innerColor = json.loads(innerColor)
 
                     configItem = config['result']['paramtypeitems']  # 基本参数
                     optionItem = option['result']['configtypeitems']  # 配置参数
-                    # colorItem = color['result']['specitems'][0]['coloritems']  # 外观颜色
-                    # innerColorItem = innerColor['result']['specitems'][0]['coloritems']  # 内饰颜色
+                    bagItem = bag['result']['bagtypeitems']  # 选装包
+                    colorItem = color['result']['specitems']  # 外观颜色
+                    innerColorItem = innerColor['result']['specitems']  # 内饰颜色
                 except Exception as e:
                     with open("错误记录.txt", "a", encoding="utf-8") as f1:
                         f1.write(file.title() + "\n")
@@ -505,20 +514,10 @@ class Spider:
                         carItem['品牌ID'].append(file.split('-')[3])
                         carItem['品牌名称'].append(file.split('-')[4])
                         carItem['车系ID'].append(file.split('-')[5])
-                        # carItem['车系名称'].append(file.split('-')[4])
-                        for ca in car['valueitems']:  # 循环车型名称列表
-                            # 车型ID 写入字典
-                            if ca['specid'] not in carItem['车型ID']:
+                        carItem['车系名称'].append(file.split('-')[6])
+                        for ca in car['valueitems']:
+                            if ca['specid'] not in carItem['车型ID']:  # 写入车型ID
                                 carItem['车型ID'].append(ca['specid'])
-                            # 提取车型名称
-                            if car['name'] == '车型名称':
-                                carItem['车系名称'].append(file.split('-')[6])
-                                print(ca['value'])
-                                if ca['value'] == '-':
-                                    carItem[car['name']].append(ca['value'])
-                                else:
-                                    carItem[car['name']].append(re.findall(r'(.{4}款.*)', ca['value'])[0])
-                                continue
                             carItem[car['name']].append(ca['value'])
 
                 # 解析配置参数
@@ -526,20 +525,43 @@ class Spider:
                     for car in config['configitems']:
                         carItem[car['name']] = []
                         for ca in car['valueitems']:
-                            carItem[car['name']].append(ca['value'])
+                            if not ca['sublist']:
+                                val = ca['value'].replace('&nbsp;', '') if ca['value'] else '-'
+                                carItem[car['name']].append(val)
+                                continue
+                            # 解析多行数据
+                            sublist = []
+                            for i in ca['sublist']:
+                                val = f"●{i['subname']}" if i['subvalue'] == 1 else f"○{i['subname']}"
+                                sublist.append(val)
+                            carItem[car['name']].append(' '.join(sublist))
 
-            # 解析外观颜色参数
-            # carItem['外观颜色'] = []  # 外观颜色
-            # for car in colorItem:
-            #     carItem['外观颜色'].append(car['name'])
+                # 解析选装包
+                for bag in bagItem:
+                    carItem[bag['name']] = []
+                    for ba in bag['bagitems']:
+                        if not ba['valueitems']:
+                            carItem[bag['name']].append('○无选装包')
+                            continue
+                        carItem[bag['name']].append(ba)
 
-            # 解析内饰颜色
-            # carItem['内饰颜色'] = []  # 内饰颜色
-            # for car in innerColorItem:
-            #     carItem['内饰颜色'].append(car['name'])
+                # 解析外观颜色参数
+                carItem['外观颜色'] = []  # 外观颜色
+                for col in colorItem:
+                    colors = []
+                    for coloritems in col['coloritems']:
+                        colors.append(coloritems['name'])
+                    carItem['外观颜色'].append(','.join(colors))
+
+                # 解析内饰颜色
+                carItem['内饰颜色'] = []  # 内饰颜色
+                for inner in innerColorItem:
+                    colors = []
+                    for coloritems in inner['coloritems']:
+                       colors.append(coloritems['name'])
+                    carItem['内饰颜色'].append(','.join(colors))
 
             # 写入表头 startRow行数 cols列数 co标题
-
             # 计算起止行号
             endRowNum = startRow + len(carItem['车型ID'])  # 车辆款式记录数
             for row in range(startRow, endRowNum):
@@ -552,12 +574,13 @@ class Spider:
                     if not context:
                         context = '-'
                     # 写入数据 row行 colNum列 context内容
-                    worksheet.write(row, colNum, context)
+                    worksheet.write_string(row, colNum, context)
                 print(f'第:{count}条数据插入成功')
                 count += 1
             else:
                 startRow = endRowNum
-        workbook.save('Mybook.xls')
+
+        workbook.close()
 
     @run_time
     def run(self):
@@ -597,6 +620,10 @@ class Spider:
             self.del_temporary_file()
             time.sleep(0.5)
 
+            count += 1
+            if count > 20:
+                return
+
             print('*'*100)
         # 第六步 读取数据文件 生成excel
         # self.save_xls()
@@ -604,9 +631,5 @@ class Spider:
 
 if __name__ == '__main__':
     spider = Spider()
-    spider.run()
-    # spider.js_saved_html()
-    # spider.model_paremeter()
-    # spider.extract_text()
-    # spider.replace_text()
-    # spider.save_xls()
+    # spider.run()
+    spider.save_xls()
